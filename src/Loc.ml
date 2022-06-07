@@ -179,7 +179,7 @@ struct
       start = 0;
       start_bol = 0;
       start_line_num = 1;
-      stop = count_clusters str;
+      stop = count_clusters str - 1;
       stop_bol = count_clusters @@ String.concat "\n" @@ CCList.take (List.length lines - 1) lines;
       stop_line_num = List.length lines;
       filename
