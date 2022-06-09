@@ -8,20 +8,17 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github RedPRL/kai))
 
-(authors "Author Name")
+(authors "Reed Mullanix <reedmullanix@gmail.com>")
 
-(maintainers "Maintainer Name")
+(maintainers "Reed Mullanix <reedmullanix@gmail.com>")
 
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(license Apache-2.0)
 
 (package
  (name kai)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "A library for diagnostics and span-associated metadata.")
  (depends
    ocaml
    dune
@@ -29,8 +26,4 @@
    algaeff
    bwd
    ;; [TODO: Reed M, 07/06/2022] I should conditionally compile this!
-   (menhir (>= 20220210)))
- (tags
-  (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
+   (menhir (>= 20220210))))
