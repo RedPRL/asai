@@ -1,0 +1,4 @@
+(library
+  (name Kai_unix)
+  (public_name kai.unix)
+  (libraries bwd kai notty notty.unix))

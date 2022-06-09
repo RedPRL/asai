@@ -1,6 +1,8 @@
 open Bwd
 open Loc
 
+module StringTbl := Hashtbl.Make(String)
+
 (** The signature of a diagnostic  *)
 module type S = sig
   (** An abstract type of error codes. *)
@@ -29,6 +31,8 @@ module type S = sig
 
   (** The severity of a diagnostic. *)
   val severity : t -> Severity.t
+
+  type display = buffers:(string StringTbl.t) -> t -> unit
 end
 
 (** The functor used to generate diagnostics from an error code. *)

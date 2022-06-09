@@ -41,6 +41,13 @@ struct
     (** The absolute file name of the file that contains the position. *)
   }
 
+  let create (pos : Lexing.position) = {
+    point = pos.pos_cnum;
+    bol = pos.pos_bol;
+    line = pos.pos_lnum;
+    filename = pos.pos_fname;
+  }
+
   let filename pos = pos.filename
   let line pos = pos.line
 
@@ -90,11 +97,21 @@ struct
   let start_line sp = sp.start_line
   let stop_line sp = sp.start_line
 
+  let height sp =
+    sp.stop_line - sp.start_line + 1
+
+  let line_numbers sp =
+    List.init (height sp) (fun ix -> sp.start_line + ix)
+
+
   let utf8_slice str sp =
-    String.sub str sp.start sp.stop
+    String.sub str sp.start (sp.start - sp.stop + 1)
 
   let utf8_slice_lines str sp =
-    String.sub str sp.start_bol (find_end_of_line sp.stop str)
+    let before = String.sub str sp.start_bol sp.start in
+    let middle = utf8_slice str sp in
+    let after = String.sub str sp.stop_bol (find_end_of_line sp.stop str) in
+    (before, middle, after)
 
   let start_pos sp : Pos.t = {
     point = sp.start;
@@ -109,6 +126,24 @@ struct
     line = sp.stop_line;
     filename = sp.filename
   }
+
+  let spanning (start_pos : Pos.t) (stop_pos : Pos.t) =
+    if (start_pos.filename <> stop_pos.filename) then
+      let msg =
+        Format.asprintf "The filenames %s and %s did not match"
+          start_pos.filename
+          stop_pos.filename
+      in
+      raise @@ Invalid_argument msg
+    else {
+      start = start_pos.point;
+      start_bol = start_pos.bol;
+      start_line = start_pos.line;
+      stop = stop_pos.point;
+      stop_bol = stop_pos.bol;
+      stop_line = stop_pos.line;
+      filename = start_pos.filename
+    }
 end
 
 module Loc =

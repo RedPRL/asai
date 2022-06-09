@@ -7,4 +7,4 @@
 (executable
  (name STLC)
  (public_name kai_stlc)
- (libraries kai algaeff menhirLib))
+ (libraries kai kai.unix algaeff menhirLib))

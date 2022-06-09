@@ -19,6 +19,10 @@ module Pos : sig
   (** The abstract type of positions. *)
   type t
 
+  (** Create a source position from a lexer position.
+      Note that we expect the position to be {i byte-indexed}. *)
+  val create : Lexing.position -> t
+
   (** Get the filename associated with the position. *)
   val filename : t -> string
 
@@ -27,6 +31,7 @@ module Pos : sig
 
   (** Extract the line containing the position our of a UTF-8 encoded string. *)
   val utf8_slice_line : string -> t -> string
+
 end
 
 (** {1 Source Spans} *)
@@ -50,13 +55,19 @@ module Span : sig
   (** Get the 1-indexed line number of the end of the span. *)
   val stop_line : t -> int
 
+  (** Get a list of all line numbers covered by a span. *)
+  val line_numbers : t -> int list
+
+  (** The number of rows this span covers. *)
+  val height : t -> int
+
   (** {2 Slicing} *)
 
   (** Extract the span out of a UTF-8 encoded string.  *)
   val utf8_slice : string -> t -> string
 
   (** Extract the lines containing the span out of a UTF-8 encoded string. *)
-  val utf8_slice_lines : string -> t -> string
+  val utf8_slice_lines : string -> t -> string * string * string
 
   (** {3 Conversions} *)
 
@@ -65,6 +76,9 @@ module Span : sig
 
   (** Get the end position of a span. *)
   val stop_pos : t -> Pos.t
+
+  (** Create a span that covers two positions. *)
+  val spanning : Pos.t -> Pos.t -> t
 end
 
 (** {1 Located Items} *)

@@ -1,6 +1,8 @@
 open Bwd
 open Loc
 
+module StringTbl = Hashtbl.Make(String)
+
 module type S =
 sig
   type code
@@ -20,6 +22,8 @@ sig
   val with_cause : location:Span.t -> message:string -> t -> t
 
   val severity : t -> Severity.t
+
+  type display = buffers:(string StringTbl.t) -> t -> unit
 end
 
 module Make (ErrorCode : ErrorCode.S) : S with type code = ErrorCode.t =
@@ -49,4 +53,6 @@ struct
   let with_cause ~location ~message diag =
     let cause = { location; message } in
     { diag with causes = Snoc(diag.causes, cause) }
+
+  type display = buffers:(string StringTbl.t) -> t -> unit
 end

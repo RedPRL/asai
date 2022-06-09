@@ -36,12 +36,15 @@ struct
   let fatal diag =
     Effect.perform (Fatal diag)
 
-  let load_file ~filename contents =
+  let load_file ~filepath contents =
     let env = Reader.read () in
-    Hashtbl.add env.buffers filename contents
+    Hashtbl.add env.buffers filepath contents
 
   let locate span k =
     Reader.scope (fun env -> { env with span = Some span }) k
+
+  let position pos k =
+    Reader.scope (fun env -> { env with span = Some (Span.spanning pos pos) }) k
 
   (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
   let run ~display k =
@@ -55,10 +58,10 @@ struct
         { effc = fun (type a) (eff : a Effect.t) ->
               match eff with
               | Survivable diag -> Option.some @@ fun (k : (a, _) continuation) ->
-                display diag;
+                display ~buffers diag;
                 continue k ()
               | Fatal diag -> Option.some @@ fun (k : (a, _) continuation) ->
-                display diag;
+                display ~buffers diag;
                 discontinue k Panic
               | _ -> None
         };

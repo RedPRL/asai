@@ -1,6 +1,10 @@
 open Bwd
 
+open Kai.Loc
+
 open Syntax
+
+module Terminal = Kai_unix.Make(Doctor.ErrorCode)
 
 module Elab =
 struct
@@ -114,15 +118,20 @@ end
 module Driver =
 struct
   let load filepath =
-    let display (diag : Doctor.Diagnostic.t) =
-      Format.printf "%s" diag.message
-    in
-    Doctor.run ~display @@ fun () ->
+    Doctor.run ~display:Terminal.display @@ fun () ->
     let lexbuf = Lexing.from_channel (open_in filepath) in
     lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filepath };
+    let contents = 
+      let ch = open_in filepath in
+      let str = really_input_string ch (in_channel_length ch) in
+      close_in ch;
+      str
+    in
+    Doctor.load_file ~filepath @@ contents;
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
+        Doctor.position (Pos.create @@ lexbuf.lex_curr_p) @@ fun () ->
         let msg = Format.asprintf "Unrecognized token '%s'." tok in
         Doctor.build ~code:LexerError msg
         |> Doctor.cause "I could not recognize this token."
