@@ -119,13 +119,13 @@ struct
 
 
   let utf8_slice str sp =
-    String.sub str sp.start (next_codepoint str sp.stop - sp.start)
+    String.sub str sp.start (sp.stop - sp.start)
 
   let utf8_slice_lines str sp =
     let before = String.sub str sp.start_bol (sp.start - sp.start_bol) in
     let middle = utf8_slice str sp in
     let after_stop = next_codepoint str sp.stop in
-    let after = String.sub str after_stop (bytes_till_newline str after_stop) in
+    let after = String.sub str sp.stop (bytes_till_newline str after_stop) in
     (before, middle, after)
 
   let start_pos sp : Pos.t = {
