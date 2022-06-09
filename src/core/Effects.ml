@@ -1,4 +1,3 @@
-open Bwd
 open Loc
 
 module Hashtbl = Hashtbl.Make (String)

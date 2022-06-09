@@ -25,14 +25,11 @@
  (depends
    ocaml
    dune
-   (uuseg (>= 14.0))
-   (containers (>= 3.7))
    ;; Pinned Deps
    algaeff
    bwd
    ;; [TODO: Reed M, 07/06/2022] I should conditionally compile this!
-   (menhir (>= 20220210))
-   )
+   (menhir (>= 20220210)))
  (tags
   (topics "to describe" your project)))
 
