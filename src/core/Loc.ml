@@ -21,12 +21,26 @@
    This gives us O(1) indexing + slicing, which is really what we wanted all along.
 *)
 
-let rec find_end_of_line n str =
+(** Count the number of codepoints until a newline or the end of the string. *)
+let bytes_till_newline str start =
+  let rec go n ix =
+    if ix >= String.length str then
+      n
+    else
+      let decoded = String.get_utf_8_uchar str n in
+      let uch = Uchar.utf_decode_uchar decoded in
+      let nbytes = Uchar.utf_decode_length decoded in
+      if Uchar.equal uch (Uchar.of_char '\n') then
+        n
+      else
+        go (n + nbytes) (ix + nbytes)
+  in
+  go 0 start
+
+(** Get the byte offset of the next codepoint. *)
+let next_codepoint str n = 
   let decoded = String.get_utf_8_uchar str n in
-  if Uchar.equal (Uchar.utf_decode_uchar decoded) (Uchar.of_char '\n') then
-    n
-  else
-    find_end_of_line (n + Uchar.utf_decode_length decoded) str
+  Uchar.utf_decode_length decoded + n
 
 module Pos =
 struct
@@ -52,7 +66,7 @@ struct
   let line pos = pos.line
 
   let utf8_slice_line str pos =
-    String.sub str pos.bol (find_end_of_line pos.point str)
+    String.sub str pos.bol (bytes_till_newline str pos.bol)
 end
 
 module Span =
@@ -105,12 +119,13 @@ struct
 
 
   let utf8_slice str sp =
-    String.sub str sp.start (sp.start - sp.stop + 1)
+    String.sub str sp.start (next_codepoint str sp.stop - sp.start)
 
   let utf8_slice_lines str sp =
-    let before = String.sub str sp.start_bol sp.start in
+    let before = String.sub str sp.start_bol (sp.start - sp.start_bol) in
     let middle = utf8_slice str sp in
-    let after = String.sub str sp.stop_bol (find_end_of_line sp.stop str) in
+    let after_stop = next_codepoint str sp.stop in
+    let after = String.sub str after_stop (bytes_till_newline str after_stop) in
     (before, middle, after)
 
   let start_pos sp : Pos.t = {

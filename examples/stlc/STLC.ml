@@ -137,11 +137,14 @@ struct
         |> Doctor.cause "I could not recognize this token."
         |> Doctor.fatal
       | Grammar.Error ->
+        Doctor.position (Pos.create @@ lexbuf.lex_curr_p) @@ fun () ->
         let msg = "Failed to parse." in
         Doctor.build ~code:LexerError msg
         |> Doctor.cause "I couldn't figure out how to parse this."
         |> Doctor.fatal
-    in Elab.chk tm tp
+    in
+    Elab.Reader.run ~env:Emp @@ fun () ->
+    Elab.chk tm tp
 end
 
 let () =

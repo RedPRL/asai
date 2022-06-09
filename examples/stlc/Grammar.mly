@@ -41,6 +41,8 @@ term:
     { tm }
 
 term_:
+  | nm = ATOM
+    { Var nm }
   | LPR; LAMBDA; nm = ATOM; body = term; RPR
     { Lam(nm, body) }
   | LPR; PAIR; a = term; b = term; RPR

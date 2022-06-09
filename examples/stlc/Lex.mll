@@ -53,6 +53,10 @@ and real_token = parse
     { ARROW }
   | "×"
     { TIMES }
+  | '('
+    { LPR }
+  | ')'
+    { RPR }
   | atom
     {
       (* [TODO: Reed M, 02/05/2022] Actually disallow subscripts *)
