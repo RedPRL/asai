@@ -31,7 +31,7 @@ struct
     match severity with
     | Info -> fg green
     | Warning -> fg yellow
-    | Error | Panic -> fg lightred
+    | Error | Panic -> fg red
 
   let underline_style severity =
     A.st A.underline ++ highlight_style severity
