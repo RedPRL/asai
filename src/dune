@@ -1,5 +1,5 @@
 (library
  (name Kai)
  (public_name kai)
- (libraries bwd uuseg uuseg.string containers)
+ (libraries algaeff bwd containers uuseg uuseg.string)
  )

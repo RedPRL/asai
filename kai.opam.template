@@ -1,3 +1,4 @@
 pin-depends: [
+  [ "algaeff.~dev" "git+https://github.com/RedPRL/algaeff" ]
   [ "bwd.2.0.0~dev" "git+https://github.com/RedPRL/ocaml-bwd"]
 ]

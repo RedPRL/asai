@@ -6,20 +6,11 @@ module type S = sig
   (** An abstract type of error codes. *)
   type code
 
-  (** A highlight is some source span, along with a message
+  (** A cause is some source span, along with a message
       associated with the span. *)
-  type highlight = {
-    location : Span.t;
-    message : string
-  }
-
-  (** The "cause" of a diagnostic.
-      These are relevant spans that may be associated
-      with some diagnostic, along with an optional
-      highlight. *)
   type cause = {
     location : Span.t;
-    highlight : highlight option
+    message : string
   }
 
   (** The type of diagnostic messages. *)
@@ -34,8 +25,7 @@ module type S = sig
 
   (** Construct *)
   val build : code:code -> string -> t
-  val with_cause : location:Span.t -> t -> t
-  val with_highlight : location:Span.t -> message:string -> t -> t
+  val with_cause : location:Span.t -> message:string -> t -> t
 
   (** The severity of a diagnostic. *)
   val severity : t -> Severity.t

@@ -1,0 +1,10 @@
+(menhir
+ (flags --strict --explain --table --unused-tokens)
+ (modules Grammar))
+
+(ocamllex Lex)
+
+(executable
+ (name STLC)
+ (public_name kai_stlc)
+ (libraries kai algaeff menhirLib))
