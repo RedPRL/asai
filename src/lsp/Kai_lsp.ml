@@ -112,8 +112,8 @@ let rec event_loop () =
   | _ ->
     Eio.traceln "Recieved an invalid message. Shutting down...@."
 
-let run () =
+let run ~init ~load_file =
   Eio_main.run @@ fun env ->
-  Effects.run env @@ fun () ->
+  Effects.run ~init ~load_file env @@ fun () ->
   event_loop ()
 

@@ -1,3 +1,5 @@
+open Bwd
+
 open Loc
 
 module Hashtbl = Hashtbl.Make (String)
@@ -47,11 +49,36 @@ struct
     Reader.scope (fun env -> { env with span = Some (Span.spanning pos pos) }) k
 
   (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
-  let run ~display k =
+  let run k =
     let open Effect.Deep in
     (* [TODO: Reed M, 07/06/2022] This isn't thread safe, I should probably add a mutex for the hashtable. *)
     let buffers = Hashtbl.create 32 in
-    (* [TODO: Reed M, 07/06/2022] This should be some sort of database! *)
+    let diagnostics = ref Emp in
+    Reader.run ~env:{ buffers; span = None } @@ fun () ->
+    begin
+      try
+        try_with k ()
+          { effc = fun (type a) (eff : a Effect.t) ->
+                match eff with
+                | Survivable diag -> Option.some @@ fun (k : (a, _) continuation) ->
+                  diagnostics := Snoc(!diagnostics, diag);
+                  continue k ()
+                | Fatal diag -> Option.some @@ fun (k : (a, _) continuation) ->
+                  diagnostics := Snoc(!diagnostics, diag);
+                  discontinue k Panic
+                | _ -> None
+          }
+      with Panic ->
+        ()
+
+    end;
+    Bwd.to_list @@ !diagnostics
+
+  (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
+  let run_display ~display k =
+    let open Effect.Deep in
+    (* [TODO: Reed M, 07/06/2022] This isn't thread safe, I should probably add a mutex for the hashtable. *)
+    let buffers = Hashtbl.create 32 in
     Reader.run ~env:{ buffers; span = None } @@ fun () ->
     try
       try_with k ()

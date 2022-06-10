@@ -17,5 +17,9 @@ sig
 
   val load_file : filepath:string -> string -> unit
 
-  val run : display:Diagnostic.display -> (unit -> unit) -> int
+  (** Run the effects, and gather all diagostics encountered into a list. *)
+  val run : (unit -> unit) -> Diagnostic.t list
+
+  (** Run the effects, and display any errors we encounter. *)
+  val run_display : display:Diagnostic.display -> (unit -> unit) -> int
 end

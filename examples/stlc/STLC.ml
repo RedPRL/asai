@@ -118,7 +118,7 @@ end
 module Driver =
 struct
   let load filepath =
-    Doctor.run ~display:Terminal.display @@ fun () ->
+    Doctor.run_display ~display:Terminal.display @@ fun () ->
     let lexbuf = Lexing.from_channel (open_in filepath) in
     lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filepath };
     let contents = 
