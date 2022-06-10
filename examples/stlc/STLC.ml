@@ -1,10 +1,9 @@
+open Asai
 open Bwd
-
-open Kai.Loc
 
 open Syntax
 
-module Terminal = Kai_unix.Make(Doctor.ErrorCode)
+module Terminal = Asai_unix.Make(Doctor.ErrorCode)
 
 module Elab =
 struct

@@ -3,7 +3,7 @@
 ;; it's not clear how this interacts???
 (using menhir 2.1)
 
-(name kai)
+(name asai)
 
 (generate_opam_files true)
 
@@ -17,7 +17,7 @@
 (license Apache-2.0)
 
 (package
- (name kai)
+ (name asai)
  (synopsis "A library for diagnostics and span-associated metadata.")
  (depends
    ocaml

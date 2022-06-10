@@ -1,4 +1,4 @@
-open Kai.Severity
+open Asai.Severity
 
 module ErrorCode =
 struct
@@ -39,4 +39,4 @@ struct
       "The parser encountered an error."
 end
 
-include Kai.Effects.Make(ErrorCode)
+include Asai.Effects.Make(ErrorCode)

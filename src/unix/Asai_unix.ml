@@ -2,14 +2,13 @@ open Bwd
 
 module StringTbl = Hashtbl.Make(String)
 
-open Kai
-open Kai.Loc
+open Asai
 
 open Notty
 open Notty.Infix
 
 
-module Make (ErrorCode : Kai.ErrorCode.S) =
+module Make (ErrorCode : ErrorCode.S) =
 struct
   module Diagnostic = Diagnostic.Make(ErrorCode)
   (* Error [E1]: An error happened! Oh no *)

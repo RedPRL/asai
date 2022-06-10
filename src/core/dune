@@ -1,5 +1,4 @@
 (library
- (name Kai)
- (public_name kai)
- (libraries algaeff bwd)
- )
+ (name Asai)
+ (public_name asai)
+ (libraries algaeff bwd))

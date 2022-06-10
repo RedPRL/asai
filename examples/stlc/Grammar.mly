@@ -1,5 +1,5 @@
 %{
-open Kai.Loc
+open Asai
 
 open Syntax
 

@@ -6,5 +6,5 @@
 
 (executable
  (name STLC)
- (public_name kai_stlc)
- (libraries kai kai.unix algaeff menhirLib))
+ (public_name asai_stlc)
+ (libraries asai asai.unix algaeff menhirLib))
