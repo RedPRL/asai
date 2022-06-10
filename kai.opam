@@ -9,6 +9,10 @@ bug-reports: "https://github.com/RedPRL/kai/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.1"}
+  "notty" {>= "0.2"}
+  "lsp" {>= "1.11"}
+  "eio" {>= "0.2"}
+  "eio_main" {>= "0.2"}
   "algaeff"
   "bwd"
   "menhir" {>= "20220210"}

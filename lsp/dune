@@ -1,0 +1,4 @@
+(library
+  (name Kai_lsp)
+  (public_name kai.lsp)
+  (libraries algaeff kai lsp eio eio_main))
