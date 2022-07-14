@@ -59,22 +59,11 @@ struct
 
   module R = Lsp.Client_request
 
-  let poop () =
-    Option.bind (recv ()) @@
-    function
-    | Jsonrpc.Message ({ id = Some id; _ } as msg) ->
-      begin
-        match R.of_jsonrpc { msg with id } with
-        | Ok packed -> Some (id, packed)
-        | Error err -> raise @@ LspError (DecodeError err)
-      end
-    | _ -> None
-
   (** Perform the LSP initialization handshake.
       https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize *)
   let initialize () = 
     let (id, req) =
-      unwrap (poop ()) @@
+      unwrap (Request.recv ()) @@
       HandshakeError "Initialization must begin with a request."
     in
     match req with
@@ -116,22 +105,24 @@ struct
 
   let rec event_loop () =
     match recv () with
-    | Some (Jsonrpc.Message msg) ->
+    | Some packet ->
       let _ =
-        try
-          match msg.id with
-          | Some id ->
-            let resp = Request.handle id msg in
-            send (RPC.Response resp)
-          | None ->
-            Notification.handle msg
-        with exn -> print_exn exn
+        match packet with
+        | RPC.Packet.Request req ->
+          let resp = Request.handle req in
+          send (RPC.Packet.Response resp)
+        | RPC.Packet.Notification notif ->
+          Notification.handle notif
+        | _ ->
+          Eio.traceln "Recieved unexpected packet type."
+        | exception exn ->
+          print_exn exn
       in
       if should_shutdown () then
         shutdown ()
       else
         event_loop ()
-    | _ ->
+    | None ->
       Eio.traceln "Recieved an invalid message. Shutting down...@."
 
   let run ~init ~load_file =

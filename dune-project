@@ -18,13 +18,13 @@
 
 (package
  (name asai)
- (synopsis "A library for diagnostics and span-associated metadata.")
+ (synopsis "A library for diagnostics and span-associated metadata")
  (depends
    ocaml
    dune
    ;; [TODO: Reed M, 08/06/2022] I should conditionally compile this!
    (notty (>= 0.2))
-   (lsp (>= 1.11))
+   (lsp (>= 1.12))
    (eio (>= 0.2))
    (eio_main (>= 0.2))
    ;; Pinned Deps

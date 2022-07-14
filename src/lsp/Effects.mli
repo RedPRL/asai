@@ -13,8 +13,8 @@ module Make (ErrorCode: Asai.ErrorCode.S) : sig
 
   exception LspError of lsp_error
 
-  val recv : unit -> RPC.packet option
-  val send : RPC.packet -> unit
+  val recv : unit -> RPC.Packet.t option
+  val send : RPC.Packet.t -> unit
 
   val should_shutdown : unit -> bool
   val initiate_shutdown : unit -> unit
@@ -25,18 +25,16 @@ module Make (ErrorCode: Asai.ErrorCode.S) : sig
   module Request : sig
     type packed = Lsp.Client_request.packed
     type 'resp t = 'resp Lsp.Client_request.t
-    type msg = RPC.Id.t option RPC.Message.t
 
-    val handle : RPC.Id.t -> msg -> RPC.Response.t
+    val handle : RPC.Request.t -> RPC.Response.t
     val recv : unit -> (RPC.Id.t * packed) option
     val respond : RPC.Id.t -> 'resp t -> 'resp -> unit
   end
 
   module Notification : sig
-    type msg = RPC.Id.t option RPC.Message.t
     type t = Lsp.Client_notification.t
 
-    val handle : msg -> unit
+    val handle : RPC.Notification.t -> unit
     val recv : unit -> t option
   end
 

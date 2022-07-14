@@ -56,7 +56,7 @@ struct
 
   let broadcast notif =
     let msg = Broadcast.to_jsonrpc notif in
-    send (RPC.Message { msg with id = None })
+    send (RPC.Packet.Notification msg)
 
   let render_lsp_additional_info (uri : DocumentUri.t) (cause : Diagnostic.cause) : DiagnosticRelatedInformation.t =
     let range = Shims.Loc.lsp_range_of_span cause.location in
@@ -104,7 +104,6 @@ struct
 
   module Request =
   struct
-    type msg = RPC.Id.t option RPC.Message.t
     type 'resp t = 'resp Lsp.Client_request.t
     type packed = Request.packed
 
@@ -119,35 +118,34 @@ struct
       | _ ->
         raise @@ LspError (UnknownRequest mthd)
 
-    let handle id (msg : msg) =
+    let handle (msg : RPC.Request.t) =
       Eio.traceln "Request: %s@." msg.method_;
-      match Request.of_jsonrpc { msg with id } with
+      match Request.of_jsonrpc msg with
       | Ok (E r) ->
         let resp = dispatch msg.method_ r in
         let json = Request.yojson_of_result r resp in
-        RPC.Response.ok id json
+        RPC.Response.ok msg.id json
       | Error err ->
         raise (LspError (DecodeError err))
 
     let recv () =
       Option.bind (recv ()) @@
       function
-      | Jsonrpc.Message ({ id = Some id; _ } as msg) ->
+      | RPC.Packet.Request req ->
         begin
-          match Request.of_jsonrpc { msg with id } with
-          | Ok packed -> Some (id, packed)
+          match Request.of_jsonrpc req with
+          | Ok packed -> Some (req.id, packed)
           | Error err -> raise @@ LspError (DecodeError err)
         end
       | _ -> None
 
     let respond id req resp =
       let json = Request.yojson_of_result req resp in
-      send (RPC.Response (RPC.Response.ok id json))
+      send (RPC.Packet.Response (RPC.Response.ok id json))
   end
 
   module Notification =
   struct
-    type msg = RPC.Id.t option RPC.Message.t
     type t = Lsp.Client_notification.t
 
     let dispatch : string -> t -> unit = 
@@ -160,9 +158,9 @@ struct
       | _ ->
         raise @@ LspError (UnknownNotification mthd)
 
-    let handle (msg : msg) =
+    let handle (msg : RPC.Notification.t) =
       Eio.traceln "Request: %s@." msg.method_;
-      match Notification.of_jsonrpc { msg with id = () } with
+      match Notification.of_jsonrpc msg with
       | Ok notif ->
         dispatch msg.method_ notif
       | Error err ->
@@ -171,9 +169,9 @@ struct
     let recv () =
       Option.bind (recv ()) @@
       function
-      | Jsonrpc.Message ({ id = None; _ } as msg) ->
+      | RPC.Packet.Notification msg ->
         begin
-          match Notification.of_jsonrpc { msg with id = () } with
+          match Notification.of_jsonrpc msg with
           | Ok notif -> Some notif
           | Error err -> raise @@ LspError (DecodeError err)
         end

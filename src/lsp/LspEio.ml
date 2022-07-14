@@ -1,6 +1,8 @@
 open Eio
 open Lsp.Import
 
+module RPC = Jsonrpc
+
 type io = {
   input : Buf_read.t;
   output : Flow.sink;
@@ -87,24 +89,19 @@ end
 
 module Message =
 struct
-  type t = Jsonrpc.packet
-
   let read io = 
     try
       let header = Header.read io in
       let len = header.content_length in
       let json = Json.of_string @@ Buf_read.take len io.input in
-      let open Json.O in
-      let req json = Jsonrpc.Message (Jsonrpc.Message.either_of_yojson json) in
-      let resp json = Jsonrpc.Response (Jsonrpc.Response.t_of_yojson json) in
-      Some ((req <|> resp) json)
+      Some (RPC.Packet.t_of_yojson json)
     with
     | Sys_error _
     | End_of_file  ->
       None
 
   let write io packet =
-    let json = Jsonrpc.yojson_of_packet packet in
+    let json = RPC.Packet.yojson_of_t packet in
     let data = Json.to_string json in
     let content_length = String.length data in
     let header = Header.create ~content_length in

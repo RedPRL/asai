@@ -1,4 +1,5 @@
 open Eio
+module RPC := Jsonrpc
 
 (** An abstract type representing all of the various resources required to run the LSP server. *)
 type io
@@ -7,7 +8,7 @@ type io
 val init : Stdenv.t -> io
 
 (** Receive a JSON RPC packet on stdin. *)
-val recv : io -> Jsonrpc.packet option
+val recv : io -> RPC.Packet.t option
 
 (** Send aa JSON RPC packet on stdout. *)
-val send : io -> Jsonrpc.packet -> unit
+val send : io -> RPC.Packet.t -> unit
