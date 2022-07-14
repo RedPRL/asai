@@ -15,11 +15,11 @@ sig
   type t = {
     message : string;
     code : code;
-    causes : cause bwd
+    cause : cause;
+    frames : cause bwd
   }
 
-  val build : code:code -> string -> t
-  val with_cause : location:Span.t -> message:string -> t -> t
+  val build : code:code -> cause:cause -> string -> t
 
   val severity : t -> Severity.t
 
@@ -36,7 +36,8 @@ struct
   type t = {
     message : string;
     code : ErrorCode.t;
-    causes : cause bwd
+    cause : cause;
+    frames : cause bwd
   }
 
   let severity diag =
@@ -44,15 +45,12 @@ struct
 
   type code = ErrorCode.t
 
-  let build ~code message = {
+  let build ~code ~cause message = {
     message;
     code;
-    causes = Emp
+    cause;
+    frames = Emp
   }
-
-  let with_cause ~location ~message diag =
-    let cause = { location; message } in
-    { diag with causes = Snoc(diag.causes, cause) }
 
   type display = buffers:(string StringTbl.t) -> t -> unit
 end

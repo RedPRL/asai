@@ -21,13 +21,14 @@ module type S = sig
     (** The main message of a diagnostic. *)
     code : code;
     (** The error code of a diagnostic. *)
-    causes : cause bwd;
-    (** A stack of "causes" of a diagnostic. *)
+    cause : cause;
+    (** The main cause of an error. *)
+    frames : cause bwd;
+    (** A stack of extra information that may be relevant to the error. *)
   }
 
   (** Construct *)
-  val build : code:code -> string -> t
-  val with_cause : location:Span.t -> message:string -> t -> t
+  val build : code:code -> cause:cause -> string -> t
 
   (** The severity of a diagnostic. *)
   val severity : t -> Severity.t

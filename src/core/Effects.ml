@@ -9,7 +9,7 @@ struct
 
   type env = {
     buffers : string Hashtbl.t;
-    span   : Span.t option
+    span   : Span.t
   }
 
   module Diagnostic = Diagnostic.Make (ErrorCode)
@@ -21,16 +21,9 @@ struct
 
   exception Panic
 
-  let build ~code message =
-    Diagnostic.build ~code message
-
-  let cause message diag =
+  let build ~code ~cause ~message =
     let env = Reader.read () in
-    match env.span with
-    | Some location ->
-      Diagnostic.with_cause ~location ~message diag
-    | None ->
-      diag
+    Diagnostic.build ~code ~cause:{ location = env.span; message = cause } message
 
   let emit diag =
     Effect.perform (Survivable diag)
@@ -43,18 +36,18 @@ struct
     Hashtbl.add env.buffers filepath contents
 
   let locate span k =
-    Reader.scope (fun env -> { env with span = Some span }) k
+    Reader.scope (fun env -> { env with span = span }) k
 
   let position pos k =
-    Reader.scope (fun env -> { env with span = Some (Span.spanning pos pos) }) k
+    Reader.scope (fun env -> { env with span = Span.spanning pos pos }) k
 
   (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
-  let run k =
+  let run ~span k =
     let open Effect.Deep in
     (* [TODO: Reed M, 07/06/2022] This isn't thread safe, I should probably add a mutex for the hashtable. *)
     let buffers = Hashtbl.create 32 in
     let diagnostics = ref Emp in
-    Reader.run ~env:{ buffers; span = None } @@ fun () ->
+    Reader.run ~env:{ buffers; span = span } @@ fun () ->
     begin
       try
         try_with k ()
@@ -75,11 +68,11 @@ struct
     Bwd.to_list @@ !diagnostics
 
   (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
-  let run_display ~display k =
+  let run_display ~span ~display k =
     let open Effect.Deep in
     (* [TODO: Reed M, 07/06/2022] This isn't thread safe, I should probably add a mutex for the hashtable. *)
     let buffers = Hashtbl.create 32 in
-    Reader.run ~env:{ buffers; span = None } @@ fun () ->
+    Reader.run ~env:{ buffers; span } @@ fun () ->
     try
       try_with k ()
         { effc = fun (type a) (eff : a Effect.t) ->

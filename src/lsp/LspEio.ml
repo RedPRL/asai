@@ -109,6 +109,7 @@ struct
     let content_length = String.length data in
     let header = Header.create ~content_length in
     Header.write io header;
+    Flow.copy_string data io.output
 end
 
 let init (env : Stdenv.t) = {

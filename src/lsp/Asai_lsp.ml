@@ -7,8 +7,7 @@ module Make (ErrorCode : Asai.ErrorCode.S) =
 struct
 
   module Effects = Effects.Make(ErrorCode)
-  module Request = Request.Make(ErrorCode)
-  module Notification = Notification.Make(ErrorCode)
+  module Doctor = Effects.Doctor
   open Effects
 
   let unwrap opt err =
@@ -58,18 +57,33 @@ struct
     | Some uri -> Some (DocumentUri.to_path uri)
     | None -> Option.join init_params.rootPath
 
+  module R = Lsp.Client_request
+
+  let poop () =
+    Option.bind (recv ()) @@
+    function
+    | Jsonrpc.Message ({ id = Some id; _ } as msg) ->
+      begin
+        match R.of_jsonrpc { msg with id } with
+        | Ok packed -> Some (id, packed)
+        | Error err -> raise @@ LspError (DecodeError err)
+      end
+    | _ -> None
+
   (** Perform the LSP initialization handshake.
       https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize *)
-  let initialize = 
+  let initialize () = 
     let (id, req) =
-      unwrap (Request.recv ()) @@
+      unwrap (poop ()) @@
       HandshakeError "Initialization must begin with a request."
-    in match req with
+    in
+    match req with
     | E (Initialize init_params as init_req) ->
       begin
         Eio.traceln "Initializing...";
         let resp = InitializeResult.create ~capabilities:server_capabilities () in
         Request.respond id init_req resp;
+        Eio.traceln "Responded!";
         let notif =
           unwrap (Notification.recv ()) @@
           HandshakeError "Initialization must complete with an initialized notification."
@@ -78,7 +92,8 @@ struct
         | Initialized ->
           let root = get_root init_params in
           Eio.traceln "Root: %s" (Option.value root ~default:"<no-root>");
-          set_root root
+          set_root root;
+          Eio.traceln "Initialized!"
         | _ ->
           raise @@ LspError (HandshakeError "Initialization must complete with an initialized notification.")
       end
@@ -121,6 +136,9 @@ struct
 
   let run ~init ~load_file =
     Eio_main.run @@ fun env ->
-    Effects.run ~init ~load_file env @@ fun () ->
-    event_loop ()
+    Effects.run env ~init ~load_file @@ fun () ->
+    begin
+      initialize ();
+      event_loop ()
+    end
 end

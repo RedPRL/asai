@@ -7,6 +7,8 @@ open Asai
     makes it possible to provide a generic LSP server for any tool using Asai. *)
 
 module Make (ErrorCode: ErrorCode.S) : sig
+  module Doctor : module type of Asai.Effects.Make(ErrorCode)
+
   val run : init:(string option -> unit)
     -> load_file:(string -> unit)
     -> unit

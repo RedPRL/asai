@@ -87,7 +87,7 @@ struct
         (ErrorCode.code_num diag.code)
         diag.message
     in
-    let causes = List.map (render_cause ~buffers ~severity) @@ Bwd.to_list diag.causes in
+    let causes = List.map (render_cause ~buffers ~severity) @@ diag.cause :: (Bwd.to_list diag.frames) in
     let image = I.vcat (header :: causes) in
     Notty_unix.output_image image;
     Printf.printf "\n";

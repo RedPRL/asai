@@ -44,6 +44,7 @@ let next_codepoint str n =
 
 module Pos =
 struct
+  (* See [NOTE: Bytes, Codepoints, and Grapheme Clusters] *)
   type t = {
     point : int;
     (** The byte index of the position. *)
@@ -55,7 +56,14 @@ struct
     (** The absolute file name of the file that contains the position. *)
   }
 
-  let create (pos : Lexing.position) = {
+  let create ~point ~bol ~line ~filename = { 
+    point;
+    bol;
+    line;
+    filename
+  }
+
+  let of_lex_pos (pos : Lexing.position) = {
     point = pos.pos_cnum;
     bol = pos.pos_bol;
     line = pos.pos_lnum;
@@ -63,6 +71,7 @@ struct
   }
 
   let filename pos = pos.filename
+  let offset pos = pos.point
   let line pos = pos.line
 
   let utf8_slice_line str pos =
@@ -89,7 +98,7 @@ struct
     (** The absolute file name of the file that contains the span. *)
   }
 
-  let create (pos_start : Lexing.position) (pos_stop : Lexing.position) =
+  let of_lex_pos (pos_start : Lexing.position) (pos_stop : Lexing.position) =
     if (pos_start.pos_fname <> pos_stop.pos_fname) then
       let msg =
         Format.asprintf "The filenames %s and %s did not match"
@@ -106,6 +115,16 @@ struct
       stop_line = pos_stop.pos_lnum;
       filename = pos_start.pos_fname
     }
+
+  let file_start filename = {
+    start = 0;
+    start_bol = 0;
+    start_line = 1;
+    stop = 0;
+    stop_bol = 0;
+    stop_line = 1;
+    filename;
+  }
 
   let filename sp = sp.filename
   let start_line sp = sp.start_line

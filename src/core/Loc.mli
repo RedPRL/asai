@@ -19,12 +19,19 @@ module Pos : sig
   (** The abstract type of positions. *)
   type t
 
+  val create : point:int -> bol:int -> line:int -> filename:string -> t
+
   (** Create a source position from a lexer position.
       Note that we expect the position to be {i byte-indexed}. *)
-  val create : Lexing.position -> t
+  val of_lex_pos : Lexing.position -> t
 
   (** Get the filename associated with the position. *)
   val filename : t -> string
+
+  (** Get the byte offset of the position.
+      NOTE: This is {i only} exposed to facilitate conversions from other position types.
+      Using this for anything else could lead to errors. *)
+  val offset : t -> int
 
   (** Get the 1-indexed line number of the position. *)
   val line : t -> int
@@ -42,7 +49,9 @@ module Span : sig
   (** Create a source span from a pair of lexer positions.
       Note that we expect these to be {i byte-indexed}, and they
       must come from the same file. *)
-  val create : Lexing.position -> Lexing.position -> t
+  val of_lex_pos : Lexing.position -> Lexing.position -> t
+
+  val file_start : string -> t
 
   (** {2 Accessors} *)
 
