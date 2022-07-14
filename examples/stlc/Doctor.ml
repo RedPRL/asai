@@ -39,4 +39,5 @@ struct
       "The parser encountered an error."
 end
 
-include Asai.Effects.Make(ErrorCode)
+module Server = Asai_lsp.Make(ErrorCode)
+include Server.Doctor

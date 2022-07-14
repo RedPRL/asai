@@ -4,7 +4,7 @@ open Asai
 open Syntax
 
 let locate (start, stop) (value : 'a) : 'a Loc.t =
-  {value; span = Span.create start stop}
+  {value; span = Span.of_lex_pos start stop}
 %}
 
 %token <string> ATOM

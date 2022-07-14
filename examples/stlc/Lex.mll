@@ -13,6 +13,7 @@ let keywords =
   make_table 0 [
     ("check", CHECK);
     ("ℕ", NAT);
+    ("nat", NAT);
     ("pair", PAIR);
     ("fst", FST);
     ("snd", SND);
@@ -47,7 +48,7 @@ rule skip_whitespace kont = parse
 and token = parse "" { skip_whitespace real_token lexbuf }
 
 and real_token = parse
-  | "λ"
+  | "λ" | "\\"
     { LAMBDA }
   | "→"
     { ARROW }

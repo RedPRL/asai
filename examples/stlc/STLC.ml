@@ -18,15 +18,16 @@ struct
     | Some (_, tp) -> tp
     | None ->
       let msg = Format.asprintf "Variable '%s' is not in scope." nm in
-      Doctor.build ~code:UnboundVariable msg
-      |> Doctor.cause "This variable was not in scope."
+      Doctor.build
+        ~code:UnboundVariable
+        ~cause:"This variable was not in scope."
+        ~message:msg
       |> Doctor.fatal
 
   let expected_connective conn tp =
-    let msg = Format.asprintf "Expected a %s, but got %a." conn pp_tp tp in
+    let message = Format.asprintf "Expected a %s, but got %a." conn pp_tp tp in
     let cause = Format.asprintf "I expected this to be %s." conn in
-    Doctor.build ~code:TypeError msg
-    |> Doctor.cause cause
+    Doctor.build ~code:TypeError ~cause ~message
     |> Doctor.fatal
 
   let rec equate expected actual =
@@ -40,9 +41,9 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      let msg = Format.asprintf "Expected type %a, but got %a." pp_tp expected pp_tp actual in
-      Doctor.build ~code:TypeError msg
-      |> Doctor.cause "This had the wrong type!"
+      let message = Format.asprintf "Expected type %a, but got %a." pp_tp expected pp_tp actual in
+      let cause = "This had the wrong type!" in
+      Doctor.build ~code:TypeError ~cause ~message
       |> Doctor.fatal
 
   let rec chk (tm : tm) (tp : tp) : unit =
@@ -108,16 +109,15 @@ struct
         mot
       end
     | _ ->
-      let msg = "Unable to infer type." in
-      Doctor.build ~code:TypeError msg
-      |> Doctor.cause "I couldn't infer the type of this term."
+      let message = "Unable to infer type." in
+      let cause = "I couldn't infer the type of this term." in
+      Doctor.build ~code:TypeError ~message ~cause
       |> Doctor.fatal
 end
 
 module Driver =
 struct
-  let load filepath =
-    Doctor.run_display ~display:Terminal.display @@ fun () ->
+  let load_file filepath =
     let lexbuf = Lexing.from_channel (open_in filepath) in
     lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filepath };
     let contents = 
@@ -130,21 +130,31 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Doctor.position (Pos.create @@ lexbuf.lex_curr_p) @@ fun () ->
-        let msg = Format.asprintf "Unrecognized token '%s'." tok in
-        Doctor.build ~code:LexerError msg
-        |> Doctor.cause "I could not recognize this token."
+        Doctor.position (Pos.of_lex_pos @@ lexbuf.lex_curr_p) @@ fun () ->
+        let message = Format.asprintf "Unrecognized token '%s'." tok in
+        let cause = "I could not recognize this token." in
+        Doctor.build ~code:LexerError ~cause ~message
         |> Doctor.fatal
       | Grammar.Error ->
-        Doctor.position (Pos.create @@ lexbuf.lex_curr_p) @@ fun () ->
-        let msg = "Failed to parse." in
-        Doctor.build ~code:LexerError msg
-        |> Doctor.cause "I couldn't figure out how to parse this."
+        Doctor.position (Pos.of_lex_pos @@ lexbuf.lex_curr_p) @@ fun () ->
+        let message = "Failed to parse." in
+        let cause = "I couldn't figure out how to parse this." in
+        Doctor.build ~code:ParseError ~cause ~message
         |> Doctor.fatal
     in
     Elab.Reader.run ~env:Emp @@ fun () ->
     Elab.chk tm tp
+
+  let load filepath =
+    let span = Span.file_start filepath in
+    Doctor.run_display ~span ~display:Terminal.display @@ fun () ->
+    load_file filepath
+
+  let server () =
+    let init _ = () in
+    Doctor.Server.run ~init ~load_file;
+    0
 end
 
 let () =
-  exit @@ Driver.load "./examples/stlc/example.lambda"
+  exit @@ Driver.server ()
