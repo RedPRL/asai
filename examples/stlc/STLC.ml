@@ -17,16 +17,17 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') env with
     | Some (_, tp) -> tp
     | None ->
-      let msg = Format.asprintf "Variable '%s' is not in scope." nm in
+      let cause = Format.dprintf "This variable was not in scope." in
+      let message = Format.dprintf "Variable '%s' is not in scope." nm in
       Doctor.build
         ~code:UnboundVariable
-        ~cause:"This variable was not in scope."
-        ~message:msg
+        ~cause
+        ~message
       |> Doctor.fatal
 
   let expected_connective conn tp =
-    let message = Format.asprintf "Expected a %s, but got %a." conn pp_tp tp in
-    let cause = Format.asprintf "I expected this to be %s." conn in
+    let message = Format.dprintf "Expected a %s, but got %a." conn pp_tp tp in
+    let cause = Format.dprintf "I expected this to be %s." conn in
     Doctor.build ~code:TypeError ~cause ~message
     |> Doctor.fatal
 
@@ -41,8 +42,8 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      let message = Format.asprintf "Expected type %a, but got %a." pp_tp expected pp_tp actual in
-      let cause = "This had the wrong type!" in
+      let message = Format.dprintf "Expected type %a, but got %a." pp_tp expected pp_tp actual in
+      let cause = Format.dprintf "This had the wrong type!" in
       Doctor.build ~code:TypeError ~cause ~message
       |> Doctor.fatal
 
@@ -109,8 +110,8 @@ struct
         mot
       end
     | _ ->
-      let message = "Unable to infer type." in
-      let cause = "I couldn't infer the type of this term." in
+      let message = Format.dprintf "Unable to infer type." in
+      let cause = Format.dprintf "I couldn't infer the type of this term." in
       Doctor.build ~code:TypeError ~message ~cause
       |> Doctor.fatal
 end
@@ -131,14 +132,14 @@ struct
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
         Doctor.position (Pos.of_lex_pos @@ lexbuf.lex_curr_p) @@ fun () ->
-        let message = Format.asprintf "Unrecognized token '%s'." tok in
-        let cause = "I could not recognize this token." in
+        let message = Format.dprintf "Unrecognized token '%s'." tok in
+        let cause = Format.dprintf "I could not recognize this token." in
         Doctor.build ~code:LexerError ~cause ~message
         |> Doctor.fatal
       | Grammar.Error ->
         Doctor.position (Pos.of_lex_pos @@ lexbuf.lex_curr_p) @@ fun () ->
-        let message = "Failed to parse." in
-        let cause = "I couldn't figure out how to parse this." in
+        let message = Format.dprintf "Failed to parse." in
+        let cause = Format.dprintf "I couldn't figure out how to parse this." in
         Doctor.build ~code:ParseError ~cause ~message
         |> Doctor.fatal
     in

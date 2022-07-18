@@ -61,14 +61,14 @@ struct
   let render_lsp_additional_info (uri : DocumentUri.t) (cause : Diagnostic.cause) : DiagnosticRelatedInformation.t =
     let range = Shims.Loc.lsp_range_of_span cause.location in
     let location = Location.create ~uri ~range in
-    let message = cause.message in
+    let message = Format.asprintf "@[<h>%t@]" cause.message in
     DiagnosticRelatedInformation.create ~location ~message
 
   let render_lsp_diagnostic (uri : DocumentUri.t) (diag : Diagnostic.t) : Lsp_Diagnostic.t =
     let range = Shims.Loc.lsp_range_of_span diag.cause.location in
     let severity = Shims.Diagnostic.lsp_severity_of_severity @@ ErrorCode.severity diag.code in
     let code = `Integer (ErrorCode.code_num diag.code) in
-    let message = diag.cause.message in
+    let message = Format.asprintf "@[<h>%t@]" diag.cause.message in
     let relatedInformation = List.map (render_lsp_additional_info uri) @@ Bwd.to_list diag.frames in
     Lsp_Diagnostic.create
       ~range

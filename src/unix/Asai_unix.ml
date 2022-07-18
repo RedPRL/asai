@@ -11,16 +11,6 @@ open Notty.Infix
 module Make (ErrorCode : ErrorCode.S) =
 struct
   module Diagnostic = Diagnostic.Make(ErrorCode)
-  (* Error [E1]: An error happened! Oh no *)
-
-  (*   🭁 file.cooltt *)
-  (*   │  *)
-  (* 1 │ λ x → let foo = x + y  *)
-  (*   ┊       ─────────────── *)
-  (* 2 │ in foo + z *)
-  (*   ┊ ┬───────── *)
-  (*   ┊ ╰╴ the message about the lines *)
-  (*   🬂 *)
 
   let vline ~attr height str =
     I.vcat @@ List.init height (fun _ -> I.string ~attr str)
@@ -48,10 +38,7 @@ struct
       I.string after in
 
     let message =
-      I.string ~attr:fringe_style "→ " <|> I.string ~attr:(highlight_style severity) cause.message
-    in
-    let message_lines =
-      List.length @@ String.split_on_char '\n' cause.message
+      I.string ~attr:fringe_style "→ " <|> I.strf ~attr:(highlight_style severity) "%t" cause.message
     in
 
 
@@ -67,7 +54,7 @@ struct
       List.map (fun n -> I.string ~attr:fringe_style @@ Int.to_string n) @@
       Span.line_numbers cause.location in
     let fringe_solid = vline ~attr:fringe_style (Span.height cause.location + 2) "│" in
-    let fringe_dotted = vline ~attr:fringe_style message_lines "┊" in
+    let fringe_dotted = vline ~attr:fringe_style (I.height message) "┊" in
     let fringe =
       I.string ~attr:fringe_style "🭁" <->
       fringe_solid <->
@@ -81,7 +68,7 @@ struct
     let header =
       I.vpad 0 1 @@
       I.string @@
-      Format.asprintf "%a [%a%d]: %s"
+      Format.asprintf "%a [%a%d]: %t"
         Severity.pp severity
         Severity.pp_short severity
         (ErrorCode.code_num diag.code)

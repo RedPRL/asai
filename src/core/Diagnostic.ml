@@ -3,23 +3,26 @@ open Loc
 
 module StringTbl = Hashtbl.Make(String)
 
+let foo = Format.asprintf "%s" "foo"
+
 module type S =
 sig
   type code
+  type message = Format.formatter -> unit
 
   type cause = {
     location : Span.t;
-    message : string
+    message : message
   }
 
   type t = {
-    message : string;
+    message : message;
     code : code;
     cause : cause;
     frames : cause bwd
   }
 
-  val build : code:code -> cause:cause -> string -> t
+  val build : code:code -> cause:cause -> message -> t
 
   val severity : t -> Severity.t
 
@@ -28,13 +31,16 @@ end
 
 module Make (ErrorCode : ErrorCode.S) : S with type code = ErrorCode.t =
 struct
+  type code = ErrorCode.t
+  type message = Format.formatter -> unit
+
   type cause = {
     location : Span.t;
-    message : string
+    message : message
   }
 
   type t = {
-    message : string;
+    message : message;
     code : ErrorCode.t;
     cause : cause;
     frames : cause bwd
@@ -43,7 +49,6 @@ struct
   let severity diag =
     ErrorCode.severity diag.code
 
-  type code = ErrorCode.t
 
   let build ~code ~cause message = {
     message;

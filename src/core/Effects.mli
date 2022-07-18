@@ -5,8 +5,7 @@ module Make (ErrorCode: ErrorCode.S) :
 sig
   module Diagnostic : module type of Diagnostic.Make(ErrorCode)
 
-
-  val build : code:ErrorCode.t -> cause:string -> message:string -> Diagnostic.t
+  val build : code:ErrorCode.t -> cause:Diagnostic.message -> message:Diagnostic.message -> Diagnostic.t
 
   val emit : Diagnostic.t -> unit
   val fatal : Diagnostic.t -> 'a
