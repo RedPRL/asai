@@ -1,4 +1,4 @@
 (test
- (name kai)
- (libraries asai algaeff menhirLib)
+ (name test)
+ (libraries asai algaeff menhirLib alcotest)
  (deps (universe)))

@@ -16,6 +16,7 @@ depends: [
   "algaeff"
   "bwd"
   "menhir" {>= "20220210"}
+  "alcotest" {with-test & >= "1.5"}
   "odoc" {with-doc}
 ]
 build: [

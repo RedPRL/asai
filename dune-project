@@ -31,4 +31,7 @@
    algaeff
    bwd
    ;; [TODO: Reed M, 07/06/2022] I should conditionally compile this!
-   (menhir (>= 20220210))))
+   (menhir (>= 20220210))
+   ;; Tests
+   (alcotest (and :with-test (>= 1.5)))
+   ))

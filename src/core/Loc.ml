@@ -37,11 +37,6 @@ let bytes_till_newline str start =
   in
   go 0 start
 
-(** Get the byte offset of the next codepoint. *)
-let next_codepoint str n = 
-  let decoded = String.get_utf_8_uchar str n in
-  Uchar.utf_decode_length decoded + n
-
 module Pos =
 struct
   (* See [NOTE: Bytes, Codepoints, and Grapheme Clusters] *)
@@ -143,8 +138,7 @@ struct
   let utf8_slice_lines str sp =
     let before = String.sub str sp.start_bol (sp.start - sp.start_bol) in
     let middle = utf8_slice str sp in
-    let after_stop = next_codepoint str sp.stop in
-    let after = String.sub str sp.stop (bytes_till_newline str after_stop) in
+    let after = String.sub str sp.stop (bytes_till_newline str sp.stop) in
     (before, middle, after)
 
   let start_pos sp : Pos.t = {
