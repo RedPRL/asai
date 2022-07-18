@@ -44,13 +44,28 @@ struct
     let executeCommandProvider =
       ExecuteCommandOptions.create ~commands:supported_commands ()
     in
+    (* [NOTE: Position Encodings]
+       For various historical reasons, the spec states that we are _required_ to support UTF-16.
+       This causes more trouble than it's worth, so we always select UTF-8 as our encoding, even
+       if the client doesn't support it. *)
+    let positionEncoding =
+      PositionEncodingKind.Utf8
+    in
     (* [FIXME: Reed M, 09/06/2022] The current verison of the LSP library doesn't support 'positionEncoding' *)
     ServerCapabilities.create
       ~textDocumentSync
       ~hoverProvider
       ~codeActionProvider
       ~executeCommandProvider
+      ~positionEncoding
       ()
+
+  let supports_utf8_encoding (init_params : InitializeParams.t) =
+    let position_encodings =
+      Option.value ~default:[] @@
+      Option.bind init_params.capabilities.general @@
+      fun gcap -> gcap.positionEncodings
+    in List.mem PositionEncodingKind.Utf8 position_encodings
 
   let get_root (init_params : InitializeParams.t) =
     match init_params.rootUri with
@@ -69,10 +84,14 @@ struct
     match req with
     | E (Initialize init_params as init_req) ->
       begin
-        Eio.traceln "Initializing...";
+        (* [HACK: Position Encodings]
+           If the client doesn't support UTF-8, we shouldn't give up, as it might be using UTF-8 anyways...
+           Therefore, we just produce a warning, and try to use UTF-8 regardless. *)
+        if not (supports_utf8_encoding init_params) then
+          Eio.traceln "Warning: client does not support UTF-8 encoding, which may lead to inconsistent positions.";
+
         let resp = InitializeResult.create ~capabilities:server_capabilities () in
         Request.respond id init_req resp;
-        Eio.traceln "Responded!";
         let notif =
           unwrap (Notification.recv ()) @@
           HandshakeError "Initialization must complete with an initialized notification."
