@@ -67,8 +67,7 @@ struct
     let severity = Diagnostic.severity diag in
     let header =
       I.vpad 0 1 @@
-      I.string @@
-      Format.asprintf "%a [%a%d]: %t"
+      I.strf "%a [%a%d]: %t"
         Severity.pp severity
         Severity.pp_short severity
         (ErrorCode.code_num diag.code)

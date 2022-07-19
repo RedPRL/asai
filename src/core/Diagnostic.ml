@@ -3,8 +3,6 @@ open Loc
 
 module StringTbl = Hashtbl.Make(String)
 
-let foo = Format.asprintf "%s" "foo"
-
 module type S =
 sig
   type code
