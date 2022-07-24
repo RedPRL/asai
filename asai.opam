@@ -4,8 +4,8 @@ synopsis: "A library for diagnostics and span-associated metadata"
 maintainer: ["Reed Mullanix <reedmullanix@gmail.com>"]
 authors: ["Reed Mullanix <reedmullanix@gmail.com>"]
 license: "Apache-2.0"
-homepage: "https://github.com/RedPRL/kai"
-bug-reports: "https://github.com/RedPRL/kai/issues"
+homepage: "https://github.com/RedPRL/asai"
+bug-reports: "https://github.com/RedPRL/asai/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.1"}
@@ -13,8 +13,8 @@ depends: [
   "lsp" {>= "1.12"}
   "eio" {>= "0.2"}
   "eio_main" {>= "0.2"}
-  "algaeff"
-  "bwd"
+  "algaeff" {>= "0.2"}
+  "bwd" {>= "2.0"}
   "menhir" {>= "20220210"}
   "alcotest" {with-test & >= "1.5"}
   "odoc" {with-doc}
@@ -34,7 +34,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/RedPRL/kai.git"
-pin-depends: [
-  [ "algaeff.~dev" "git+https://github.com/RedPRL/algaeff" ]
-  [ "bwd.2.0.0~dev" "git+https://github.com/RedPRL/ocaml-bwd"]
-]
