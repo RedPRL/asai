@@ -8,7 +8,7 @@
 (generate_opam_files true)
 
 (source
- (github RedPRL/kai))
+ (github RedPRL/asai))
 
 (authors "Reed Mullanix <reedmullanix@gmail.com>")
 
@@ -27,9 +27,8 @@
    (lsp (>= 1.12))
    (eio (>= 0.2))
    (eio_main (>= 0.2))
-   ;; Pinned Deps
-   algaeff
-   bwd
+   (algaeff (>= 0.2))
+   (bwd (>= 2.0))
    ;; [TODO: Reed M, 07/06/2022] I should conditionally compile this!
    (menhir (>= 20220210))
    ;; Tests
