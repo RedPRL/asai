@@ -15,7 +15,7 @@ sig
 
   val load_file : filepath:string -> string -> unit
 
-  (** Run the effects, and gather all diagostics encountered into a list. *)
+  (** Run the effects, and gather all diagnostics encountered into a list. *)
   val run : span:Span.t -> (unit -> unit) -> Diagnostic.t list
 
   (** Run the effects, and display any errors we encounter. *)
