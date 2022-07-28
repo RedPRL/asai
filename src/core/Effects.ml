@@ -41,7 +41,7 @@ struct
   let position pos k =
     Reader.scope (fun env -> { env with span = Span.spanning pos pos }) k
 
-  (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
+  (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that correct?? *)
   let run ~span k =
     let open Effect.Deep in
     (* [TODO: Reed M, 07/06/2022] This isn't thread safe, I should probably add a mutex for the hashtable. *)
@@ -67,7 +67,7 @@ struct
     end;
     Bwd.to_list @@ !diagnostics
 
-  (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that corrrect?? *)
+  (* [TODO: Reed M, 07/06/2022] Right now this returns an exit code, is that correct?? *)
   let run_display ~span ~display k =
     let open Effect.Deep in
     (* [TODO: Reed M, 07/06/2022] This isn't thread safe, I should probably add a mutex for the hashtable. *)

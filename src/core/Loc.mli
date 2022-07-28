@@ -7,9 +7,9 @@
     The problem is that these are fundamentally {i relative} concepts,
     insofar that they are dependent on various font-dependent factors.
     For instance, the existence of ZWJ sequences makes it impossible
-    to determine how wide a user will percieve a sequence of characters.
+    to determine how wide a user will perceive a sequence of characters.
 
-    Therefore, Kai only exposes semantically meaningful operations. When
+    Therefore, Asai only exposes semantically meaningful operations. When
     performing any sort of user-facing display, the only truly meaningful
     thing we can do is get a slice of what the user typed.
 *)

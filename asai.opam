@@ -33,4 +33,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/RedPRL/kai.git"
+dev-repo: "git+https://github.com/RedPRL/asai.git"

@@ -11,8 +11,8 @@
    1. Slicing becomes an O(n) operation, as we need to perform cluster
       counting during the slice.
    2. As a more practical matter, none of the OCaml lexers return cluster
-      counts for spans, instead returning raw byte indicies (ocamllex),
-      or codepoint indicies (sedlex).
+      counts for spans, instead returning raw byte indices (ocamllex),
+      or codepoint indices (sedlex).
 
    Codepoint indexing is also out, as slicing/indexing are O(n) operations,
    which is a total dealbreaker.
