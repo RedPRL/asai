@@ -59,4 +59,4 @@ let file_path sp = sp.file_path
 let begin_line_num sp = sp.begin_line_num
 let end_line_num sp = sp.end_line_num
 
-type 'a located = { span : t option; value : 'a }
+type 'a located = { loc : t option; value : 'a }

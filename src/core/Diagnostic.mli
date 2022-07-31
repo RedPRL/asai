@@ -1,53 +1,33 @@
 open Bwd
-open Loc
 
-module StringTbl := Hashtbl.Make(String)
+(** The type of single messages. 
 
-(** The signature of a diagnostic  *)
+    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings but a function awaiting a formatter. This is best paired with {!val:Format.dprintf}, which allows us to delay formatting choices. *)
+type message = Format.formatter -> unit
+
+(** The signature of a diagnostic module. *)
 module type S = sig
-  (** An abstract type of error codes. *)
-  type code
 
-  (** The type of error messages. 
+  (** The module of error codes. *)
+  module Code : Code.S
 
-      When we render a diagnostic, the layout engine of the rendering backend should be the
-      one making layout choices. This causes problems when error messages are strings;
-      all layout has already been performed, and we have no hope of doing it again
-      correctly! Therefore, encode error messages as things awaiting a formatter, which
-      allows the rendering backend to handle all layout-related decisions.
+  type nonrec message = message
 
-      This is best paired with {!Format.dprintf}, which allows us to delay all formatting
-      choices.
-  *)
-  type message = Format.formatter -> unit
-
-  (** A cause is some source span, along with a message
-      associated with the span. *)
-  type cause = {
-    location : Span.t;
-    message : message
-  }
-
-  (** The type of diagnostic messages. *)
+  (** The type of diagnostics. *)
   type t = {
-    message : message;
-    (** The main message of a diagnostic. *)
-    code : code;
-    (** The error code of a diagnostic. *)
-    cause : cause;
-    (** The main cause of an error. *)
-    frames : cause bwd;
-    (** A stack of extra information that may be relevant to the error. *)
+    code : Code.t;
+    (** The error code. *)
+    message : message Span.located;
+    (** The main message. *)
+    additional_marks : Span.t list;
+    (** Additional marking associated with the main message. *)
+    traces : message Span.located bwd;
+    (** The backtrace leading to this diagnostic. *)
   }
-
-  (** Construct *)
-  val build : code:code -> cause:cause -> message -> t
 
   (** The severity of a diagnostic. *)
   val severity : t -> Severity.t
-
-  type display = buffers:(string StringTbl.t) -> t -> unit
 end
 
-(** The functor used to generate diagnostics from an error code. *)
-module Make (ErrorCode : ErrorCode.S) : S with type code = ErrorCode.t
+(** The functor to generate a diagnostic module from an error code module. *)
+module Make (C : Code.S) : S with module Code := C

@@ -54,4 +54,4 @@ val end_line_num : t -> int
 
 (** {1 Auxiliary types} *)
 
-type 'a located = { span : t option; value : 'a }
+type 'a located = { loc : t option; value : 'a }
