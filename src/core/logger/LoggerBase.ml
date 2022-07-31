@@ -1,14 +1,19 @@
+module type Handler =
+sig
+  module Code : Code.S
+  module Diagnostic : Diagnostic.S with module Code := Code
+
+  type result
+  val print : Diagnostic.t -> unit
+  val fatal : Diagnostic.t -> result
+end
+
 module type S =
 sig
   module Code : Code.S
   module Diagnostic : Diagnostic.S with module Code := Code
 
-  module type Handler = 
-  sig
-    type result
-    val print : Diagnostic.t -> unit
-    val fatal : Diagnostic.t -> result
-  end
+  module type Handler = Handler with module Code := Code and module Diagnostic := Diagnostic
 
   module Run (H : Handler) :
   sig
@@ -27,16 +32,10 @@ sig
   end
 end
 
-
 module Make (C : Code.S) (D : Diagnostic.S with module Code := C) :
   S with module Code := C and module Diagnostic := D =
 struct
-  module type Handler = 
-  sig
-    type result
-    val print : D.t -> unit
-    val fatal : D.t -> result
-  end
+  module type Handler = Handler with module Code := C and module Diagnostic := D 
 
   module Perform =
   struct
