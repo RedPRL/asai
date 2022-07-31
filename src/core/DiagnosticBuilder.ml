@@ -7,6 +7,7 @@ sig
   module Diagnostic : Diagnostic.S with module Code := Code
 
   val messagef : ?loc:Span.t -> ?marks:Span.t list -> code:Code.t -> ('a, Format.formatter, unit, Diagnostic.t) format4 -> 'a
+  val kmessagef : (Diagnostic.t -> 'b) -> ?loc:Span.t -> ?marks:Span.t list -> code:Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
   val tracef : ?loc:Span.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
   val append_marks : Diagnostic.t -> Span.t list -> Diagnostic.t
 
@@ -19,14 +20,16 @@ struct
   type env = Diagnostic.message Span.located bwd
   module Traces = Algaeff.Reader.Make (struct type nonrec env = env end)
 
-  let messagef ?loc ?(marks=[]) ~code =
-    Format.kdprintf @@ fun message ->
+  let kmessagef k ?loc ?(marks=[]) ~code =
+    Format.kdprintf @@ fun message -> k @@
     D.{
       code;
       message = {loc; value = message};
       additional_marks = marks;
       traces = Traces.read ();
     }
+
+  let messagef ?loc ?marks ~code = kmessagef Fun.id ?loc ?marks ~code
 
   let append_marks d marks =
     D.{ d with additional_marks = d.additional_marks @ marks }
