@@ -1,4 +1,4 @@
-module type Handler = LoggerBase.Handler
+module type Handler = DiagnosticEmitter.Handler
 
 module type S =
 sig
@@ -36,22 +36,22 @@ module Make (C : Code.S) (D : Diagnostic.S with module Code := C) :
 struct
   module type Handler = Handler with module Code := C and module Diagnostic := D 
 
-  module LB = LoggerBase.Make(C)(D)
+  module DE = DiagnosticEmitter.Make(C)(D)
   module DB = DiagnosticBuilder.Make(C)(D)
 
   let messagef = DB.messagef
   let kmessagef = DB.kmessagef
   let tracef = DB.tracef
   let append_marks = DB.append_marks
-  let printf ?loc ?additional_marks ~code = DB.kmessagef LB.Perform.print ?loc ?additional_marks ~code
-  let fatalf ?loc ?additional_marks ~code = DB.kmessagef LB.Perform.fatal ?loc ?additional_marks ~code
+  let printf ?loc ?additional_marks ~code = DB.kmessagef DE.Perform.print ?loc ?additional_marks ~code
+  let fatalf ?loc ?additional_marks ~code = DB.kmessagef DE.Perform.fatal ?loc ?additional_marks ~code
 
   module Run (H : Handler) =
   struct
-    module LBRun = LB.Run (H)
-    let run f = DB.run @@ fun () -> LBRun.run f 
+    module DERun = DE.Run (H)
+    let run f = DB.run @@ fun () -> DERun.run f
   end
 
-  module TryWith = LB.TryWith
-  module Perform = LB.Perform
+  module TryWith = DE.TryWith
+  module Perform = DE.Perform
 end

@@ -1,4 +1,4 @@
-module type Handler = LoggerBase.Handler
+module type Handler = DiagnosticEmitter.Handler
 
 module type S =
 sig
