@@ -49,7 +49,7 @@ struct
   module Run (H : Handler) =
   struct
     module DERun = DE.Run (H)
-    let run f = DB.run @@ fun () -> DERun.run f
+    let run f = DB.run @@ fun () -> DERun.run f 
   end
 
   module TryWith = DE.TryWith

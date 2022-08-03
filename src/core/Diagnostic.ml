@@ -15,7 +15,7 @@ sig
     traces : message Span.located bwd;
   }
 
-  val severity : t -> Severity.t
+  val code_id : t -> Severity.t * int
 end
 
 module Make (C : Code.S) : S with module Code := C =
@@ -29,5 +29,5 @@ struct
     traces : message Span.located bwd;
   }
 
-  let severity d = C.severity d.code
+  let code_id d = C.id d.code
 end

@@ -1,6 +1,6 @@
 open Bwd
 
-(** The type of single messages. 
+(** The type of single messages.
 
     When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings but a function awaiting a formatter. This is best paired with {!val:Format.dprintf}, which allows us to delay formatting choices. *)
 type message = Format.formatter -> unit
@@ -25,8 +25,8 @@ module type S = sig
     (** The backtrace leading to this diagnostic. *)
   }
 
-  (** The severity of a diagnostic. *)
-  val severity : t -> Severity.t
+  (** The unique ID of the code, as a convenience function. *)
+  val code_id : t -> Code.id
 end
 
 (** The functor to generate a diagnostic module from an error code module. *)
