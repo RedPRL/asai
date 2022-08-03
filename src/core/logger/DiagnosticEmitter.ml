@@ -1,41 +1,10 @@
-module type Handler =
-sig
-  module Code : Code.S
-  module Diagnostic : Diagnostic.S with module Code := Code
-
-  type result
-  val print : Diagnostic.t -> unit
-  val fatal : Diagnostic.t -> result
-end
-
-module type S =
-sig
-  module Code : Code.S
-  module Diagnostic : Diagnostic.S with module Code := Code
-
-  module type Handler = Handler with module Code := Code and module Diagnostic := Diagnostic
-
-  module Run (H : Handler) :
-  sig
-    val run : (unit -> H.result) -> H.result
-  end
-
-  module TryWith (H : Handler) :
-  sig
-    val try_with : (unit -> H.result) -> H.result
-  end
-
-  module Perform :
-  sig
-    val print : Diagnostic.t -> unit
-    val fatal : Diagnostic.t -> 'a
-  end
-end
+module type Handler = DiagnosticEmitterSigs.Handler
+module type S = DiagnosticEmitterSigs.S
 
 module Make (C : Code.S) (D : Diagnostic.S with module Code := C) :
   S with module Code := C and module Diagnostic := D =
 struct
-  module type Handler = Handler with module Code := C and module Diagnostic := D 
+  module type Handler = Handler with module Code := C and module Diagnostic := D
 
   module Perform =
   struct
