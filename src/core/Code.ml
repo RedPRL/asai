@@ -8,7 +8,4 @@ sig
 
   (** Get the string representation. *)
   val to_string : t -> string
-
-  (** Get a long-form description of a code. *)
-  val description : t -> string
 end
