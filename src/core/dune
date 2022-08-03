@@ -2,3 +2,5 @@
  (name Asai)
  (public_name asai)
  (libraries algaeff bwd))
+
+(include_subdirs unqualified)

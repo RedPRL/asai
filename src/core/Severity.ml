@@ -6,7 +6,7 @@ type t =
   (** A low-severity, non fatal diagnostic. *)
   | Error
   (** A high-severity, fatal diagnostic. *)
-  | Panic
+  | InternalError
   (** An internal error. *)
 
 let pp fmt =
@@ -14,11 +14,11 @@ let pp fmt =
   | Info -> Format.fprintf fmt "Info"
   | Warning -> Format.fprintf fmt "Warning"
   | Error -> Format.fprintf fmt "Error"
-  | Panic -> Format.fprintf fmt "Internal Error"
+  | InternalError -> Format.fprintf fmt "Internal Error"
 
 let pp_short fmt =
   function
   | Info -> Format.fprintf fmt "I"
   | Warning -> Format.fprintf fmt "W"
   | Error -> Format.fprintf fmt "E"
-  | Panic -> Format.fprintf fmt "X"
+  | InternalError -> Format.fprintf fmt "X"
