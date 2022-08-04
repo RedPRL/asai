@@ -7,6 +7,8 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    env:
+      IS_OCAML_5: ${{ startsWith(inputs.ocaml-compiler, 'ocaml-variants.5') || startsWith(inputs.ocaml-compiler, 'ocaml-base-compiler.5') || startsWith(inputs.ocaml-compiler, '5') }}
     steps:
       - uses: actions/checkout@v3
       - name: "Set up OCaml"
@@ -16,7 +18,7 @@ jobs:
           cache-prefix: ${{ inputs.cache-prefix }}
           opam-repositories: |
             default: https://opam.ocaml.org
-            ${{ false || 'alpha: git+https://github.com/kit-ty-kate/opam-alpha-repository.git' }}
+            ${{ env.IS_OCAML_5 && 'alpha: git+https://github.com/kit-ty-kate/opam-alpha-repository.git' || '' }}
       - name: "Install the dependencies"
         shell: sh
         run: opam install --with-test ${{inputs.with-doc == 'true' && '--with-doc' || ''}} --deps-only --yes --verbose .
