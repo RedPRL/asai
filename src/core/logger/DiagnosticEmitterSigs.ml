@@ -3,8 +3,8 @@ sig
   module Code : Code.S
   module Diagnostic : Diagnostic.S with module Code := Code
 
-  (** The handler for the algebraic effects to print diagnostics. *)
-  val print : Diagnostic.t -> unit
+  (** The handler for the algebraic effects to emit diagnostics. *)
+  val emit : Diagnostic.t -> unit
 
   (** The result type for the exception handler {!val:fatal}. *)
   type result
@@ -32,7 +32,7 @@ sig
 
   module Perform :
   sig
-    val print : Diagnostic.t -> unit
+    val emit : Diagnostic.t -> unit
     val fatal : Diagnostic.t -> 'a
   end
 end

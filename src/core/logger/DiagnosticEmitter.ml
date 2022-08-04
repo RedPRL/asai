@@ -10,7 +10,7 @@ struct
   struct
     type _ Effect.t += Print : D.t -> unit Effect.t
     exception Fatal of D.t
-    let print d = Effect.perform @@ Print d
+    let emit d = Effect.perform @@ Print d
     let fatal d = raise @@ Fatal d
   end
   open Perform
@@ -23,7 +23,7 @@ struct
         effc = fun (type a) (eff : a Effect.t) ->
           match eff with
           | Print d -> Option.some @@ fun (k : (a, _) Effect.Deep.continuation) ->
-            Algaeff.Fun.Deep.finally k @@ fun () -> H.print d
+            Algaeff.Fun.Deep.finally k @@ fun () -> H.emit d
           | _ -> None }
 
     let run f = Effect.Deep.match_with f () handler
