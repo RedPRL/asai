@@ -6,21 +6,16 @@ on:
   pull_request:
 jobs:
   run:
-    strategy:
-      matrix:
-        include:
-          - ocaml-compiler: "ocaml-base-compiler.5.0.0~alpha0"
-            with-doc: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: "Set up OCaml"
         uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-compiler: ${{ inputs.ocaml-compiler }}
+          ocaml-compiler: "ocaml-base-compiler.5.0.0~alpha0"
           cache-prefix: ${{ inputs.cache-prefix }}
           opam-repositories: |
-            default: https://github.com/ocaml/opam-repository.git
+            default: https://opam.ocaml.org
             alpha: git+https://github.com/kit-ty-kate/opam-alpha-repository.git
       - name: "Install the dependencies"
         shell: sh
