@@ -13,8 +13,8 @@ struct
   let kmessagef = DB.kmessagef
   let tracef = DB.tracef
   let append_marks = DB.append_marks
-  let emitf ?loc ?additional_marks ~code = DB.kmessagef DE.Perform.emit ?loc ?additional_marks ~code
-  let fatalf ?loc ?additional_marks ~code = DB.kmessagef DE.Perform.fatal ?loc ?additional_marks ~code
+  let emitf ?loc ?additional_marks ?severity ~code = DB.kmessagef DE.Perform.emit ?loc ?additional_marks ?severity ~code
+  let fatalf ?loc ?additional_marks ?severity ~code = DB.kmessagef DE.Perform.fatal ?loc ?additional_marks ?severity ~code
 
   module Run (H : Handler) =
   struct

@@ -17,7 +17,9 @@ sig
   (** The type of diagnostics. *)
   type t = {
     code : Code.t;
-    (** The error code. *)
+    (** The message code. *)
+    severity : Severity.t;
+    (** Severity of the diagnostic. *)
     message : message Span.located;
     (** The main message. *)
     additional_marks : Span.t list;

@@ -9,6 +9,7 @@ struct
 
   type t = {
     code : C.t;
+    severity : Severity.t;
     message : message Span.located;
     additional_marks : Span.t list;
     traces : message Span.located bwd;
