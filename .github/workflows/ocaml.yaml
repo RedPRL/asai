@@ -14,8 +14,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: RedPRL/actions-ocaml@v2
+      - name: "Set up OCaml"
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          with-doc: ${{ matrix.with-doc }}
-          publish-doc-if-built: ${{ github.ref == 'refs/heads/main' }}
+          ocaml-compiler: ${{ inputs.ocaml-compiler }}
+          cache-prefix: ${{ inputs.cache-prefix }}
+          opam-repositories: |
+            alpha: git+https://github.com/kit-ty-kate/opam-alpha-repository.git
+      - name: "Install the dependencies"
+        shell: sh
+        run: opam install --with-test ${{inputs.with-doc == 'true' && '--with-doc' || ''}} --deps-only --yes --verbose .
+      - name: "Build the package"
+        shell: sh
+        run: opam exec -- dune build
+      - name: "Test the package"
+        shell: sh
+        run: opam exec -- dune runtest
+      - name: "Build the documentation"
+        if: ${{ inputs.with-doc == 'true' }}
+        shell: sh
+        run: opam exec -- dune build @doc
+      - name: "Publish the documentation"
+        if: ${{ inputs.with-doc == 'true' && inputs.publish-doc-if-built == 'true' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ inputs.github-token }}
+          publish_dir: "./_build/default/_doc/_html/"
