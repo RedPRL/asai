@@ -20,6 +20,7 @@ jobs:
           ocaml-compiler: ${{ inputs.ocaml-compiler }}
           cache-prefix: ${{ inputs.cache-prefix }}
           opam-repositories: |
+            default: https://github.com/ocaml/opam-repository.git
             alpha: git+https://github.com/kit-ty-kate/opam-alpha-repository.git
       - name: "Install the dependencies"
         shell: sh
