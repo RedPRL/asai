@@ -12,10 +12,7 @@
     As one would expect from a library that handles information associated with source-code
     positions, we provide a set of position types. These are defined as abstract types to
     ensure that proper care is taken when working with the more difficult bits of Unicode. *)
-open Loc
-module Pos = Pos
 module Span = Span
-module Loc = Loc
 
 (** {1 Diagnostics}
     Good diagnostics are a large part of what makes good tools, so we take special care to
@@ -23,11 +20,11 @@ module Loc = Loc
     which is intended to be a sum type representing all the high-level error categories
     that your tool may produce. *)
 
-module ErrorCode = ErrorCode
 module Severity = Severity
+module Code = Code
 module Diagnostic = Diagnostic
 
 (** {1 Effects}
     Managing the current span/position can become tedious, so Asai provides a series of effects for
     handling this. *)
-module Effects = Effects
+module Logger = Logger
