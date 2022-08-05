@@ -107,6 +107,7 @@ Temporary Items
 *.cmx
 *.cmxs
 *.cmxa
+_opam
 
 # ocamlbuild working directory
 _build/
