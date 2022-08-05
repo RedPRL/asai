@@ -1,0 +1,4 @@
+(library
+  (name Asai_compile)
+  (public_name asai.compile)
+  (libraries bwd asai))
