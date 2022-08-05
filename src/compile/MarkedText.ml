@@ -1,7 +1,7 @@
 open Bwd
 
 (** Styles *)
-type style = [`Context | `Highlight | `Mark]
+type style = [`Default | `Highlighted | `Marked]
 
 (** A segment is a styled string without control characters. *)
 type marked_string = style * string
