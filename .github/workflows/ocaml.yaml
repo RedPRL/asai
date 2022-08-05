@@ -7,10 +7,11 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    env:
-      IS_OCAML_5: ${{ startsWith(inputs.ocaml-compiler, 'ocaml-variants.5') || startsWith(inputs.ocaml-compiler, 'ocaml-base-compiler.5') || startsWith(inputs.ocaml-compiler, '5') }}
     steps:
       - uses: actions/checkout@v3
+      - name: "Detect OCaml 5"
+        shell: sh
+        run: "IS_OCAML_5=${{ startsWith(inputs.ocaml-compiler, 'ocaml-variants.5') || startsWith(inputs.ocaml-compiler, 'ocaml-base-compiler.5') || startsWith(inputs.ocaml-compiler, '5') }}" >> $GITHUB_ENV
       - name: "Set up OCaml"
         uses: ocaml/setup-ocaml@v2
         with:
