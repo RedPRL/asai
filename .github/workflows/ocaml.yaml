@@ -6,6 +6,11 @@ on:
   pull_request:
 jobs:
   run:
+    strategy:
+      matrix:
+        include:
+          - ocaml-compiler: "ocaml-base-compiler.5.0.0~alpha0"
+            with-doc: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
