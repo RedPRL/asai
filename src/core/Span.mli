@@ -35,8 +35,11 @@ type t
 *)
 val make : position -> position -> t
 
-(** [of_lex_pos pos] conversion [pos] of type {!type:Lexing.position} to a {!type:position}. The input [pos] must be in byte-indexed. (Therefore, [ocamllex] is compatible, but [sedlex] is not because it uses code points.) *)
-val of_lex_pos : Lexing.position -> position
+(** [of_lex_position pos] conversion [pos] of type {!type:Lexing.position} to a {!type:position}. The input [pos] must be in byte-indexed. (Therefore, [ocamllex] is compatible, but [sedlex] is not because it uses code points.) *)
+val of_lex_position : Lexing.position -> position
+
+(** [to_start_of_line pos] returns the position at the start of the line. It is an idempotent function. *)
+val to_start_of_line : position -> position
 
 (** [to_positions span] returns the pair of the beginning and ending positions of [span]. *)
 val to_positions : t -> position * position
