@@ -1,10 +1,10 @@
 open Bwd
 
 (** Styles *)
-type style = [`Default | `Highlighted | `Marked]
+type style = [`Highlighted | `Marked]
 
 (** A segment is a styled string without control characters. *)
-type marked_string = style * string
+type marked_string = style option * string
 
 (** A line is a list of segments. *)
 type marked_line = marked_string list
