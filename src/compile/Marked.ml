@@ -25,5 +25,5 @@ type t =
   { code : string
   ; severity : Asai.Severity.t
   ; message : message
-  ; traces : file bwd
+  ; traces : message bwd
   }

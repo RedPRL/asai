@@ -8,14 +8,16 @@ let add (op, sp) m =
   let fs = Option.value ~default:FileFlatter.empty fs in
   Some (FileFlatter.add (op, sp) fs)
 
-let is_highlighted : MarkedText.style option * OrderedPosition.t -> bool =
+let singleton x = add x empty
+
+let is_highlighted : Marked.style option * OrderedPosition.t -> bool =
   function Some `Highlighted, _ -> true | _ -> false
 
 let is_highlighted_block = List.exists is_highlighted
 
 let is_highlighted_blocks = List.exists is_highlighted_block
 
-let flatten ~threshold m =
-  let m = FileMap.map (FileFlatter.flatten ~threshold) m in
+let flatten ~splitting_threshold m : Flattened.file list =
+  let m = FileMap.map (FileFlatter.flatten ~splitting_threshold) m in
   let highlighted_files, other_files = FileMap.partition (fun _ -> is_highlighted_blocks) m in
   List.of_seq @@ Seq.append (FileMap.to_seq highlighted_files) (FileMap.to_seq other_files)

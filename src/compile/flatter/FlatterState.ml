@@ -2,7 +2,7 @@ type t = { marked : int; highlighted : int }
 
 let zero = {marked = 0; highlighted = 0}
 
-let style : t -> MarkedText.style option =
+let style : t -> Marked.style option =
   function
   | {marked = 0; highlighted = 0} -> None
   | {marked = _; highlighted = 0} -> Some `Marked

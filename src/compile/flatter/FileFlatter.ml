@@ -1,4 +1,4 @@
-type t = (OrderedPosition.t * MarkedText.style * [`Begin | `End]) list
+type t = (OrderedPosition.t * Marked.style * [`Begin | `End]) list
 
 let empty = []
 
@@ -11,9 +11,9 @@ open BwdNotation
 
 (* invariant: all Asai.Span.position should have the same filename *)
 type state =
-  { segments : (MarkedText.style option * Asai.Span.position) bwd
+  { segments : (Marked.style option * Asai.Span.position) bwd
   ; scanner_state : FlatterState.t
-  ; prev_style : MarkedText.style option
+  ; prev_style : Marked.style option
   ; cursor : Asai.Span.position
   }
 
@@ -25,7 +25,7 @@ let init_state (cursor : OrderedPosition.t) =
   ; cursor
   }
 
-let grouping ~threshold : Flattened.block -> Flattened.blocks =
+let grouping ~splitting_threshold : Flattened.block -> Flattened.blocks =
   let rec loop =
     let open Asai.Span in
     function
@@ -33,7 +33,7 @@ let grouping ~threshold : Flattened.block -> Flattened.blocks =
     | [p] -> p, [], []
     | p :: ps ->
       let q, qs, qss = loop ps in
-      if (snd q).line_num - (snd p).line_num >= threshold &&
+      if (snd q).line_num - (snd p).line_num >= splitting_threshold &&
          (fst p) = None (* not highlighted or marked *)
       then
         p, [], ((q::qs) :: qss)
@@ -46,7 +46,7 @@ let grouping ~threshold : Flattened.block -> Flattened.blocks =
     let p, ps, pss = loop ps in
     (p :: ps) :: pss
 
-let flatten ~threshold l =
+let flatten ~splitting_threshold l =
   match List.sort (fun (p1, _, _) (p2, _, _) -> OrderedPosition.compare p1 p2) l with
   | [] -> []
   | ((x, _, _) :: _) as l ->
@@ -65,4 +65,4 @@ let flatten ~threshold l =
           {st with scanner_state; cursor = pos}
     in
     let st = List.fold_left loop (init_state x) l in
-    grouping ~threshold @@ Bwd.to_list st.segments
+    grouping ~splitting_threshold @@ Bwd.to_list st.segments

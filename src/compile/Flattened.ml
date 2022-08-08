@@ -1,5 +1,5 @@
 (** Styles *)
-type style = MarkedText.style
+type style = Marked.style
 
 (** Flatten spans in a block. *)
 type block = (style option * Asai.Span.position) list
