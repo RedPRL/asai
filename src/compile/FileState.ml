@@ -25,7 +25,28 @@ let init_state (cursor : OrderedPosition.t) =
   ; cursor
   }
 
-let flatten l =
+let grouping ~threshold : Flattened.block -> Flattened.blocks =
+  let rec loop =
+    let open Asai.Span in
+    function
+    | [] -> assert false
+    | [p] -> p, [], []
+    | p :: ps ->
+      let q, qs, qss = loop ps in
+      if (snd q).line_num - (snd p).line_num >= threshold &&
+         (fst p) = None (* not highlighted or marked *)
+      then
+        p, [], ((q::qs) :: qss)
+      else
+        p, (q::qs), qss
+  in
+  function
+  | [] -> []
+  | ps ->
+    let p, ps, pss = loop ps in
+    (p :: ps) :: pss
+
+let flatten ~threshold l =
   match List.sort (fun (p1, _, _) (p2, _, _) -> OrderedPosition.compare p1 p2) l with
   | [] -> []
   | ((x, _, _) :: _) as l ->
@@ -43,4 +64,5 @@ let flatten l =
         else
           {st with scanner_state; cursor = pos}
     in
-    Bwd.to_list (List.fold_left loop (init_state x) l).segments
+    let st = List.fold_left loop (init_state x) l in
+    grouping ~threshold @@ Bwd.to_list st.segments
