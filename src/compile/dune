@@ -2,3 +2,5 @@
   (name Asai_compile)
   (public_name asai.compile)
   (libraries unix bwd asai))
+
+(include_subdirs unqualified)

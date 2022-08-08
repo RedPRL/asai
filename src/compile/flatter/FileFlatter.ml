@@ -12,7 +12,7 @@ open BwdNotation
 (* invariant: all Asai.Span.position should have the same filename *)
 type state =
   { segments : (MarkedText.style option * Asai.Span.position) bwd
-  ; scanner_state : ScannerState.t
+  ; scanner_state : FlatterState.t
   ; prev_style : MarkedText.style option
   ; cursor : Asai.Span.position
   }
@@ -20,7 +20,7 @@ type state =
 (* invariant: all Asai.Span.position should have the same filename *)
 let init_state (cursor : OrderedPosition.t) =
   { segments = Emp
-  ; scanner_state = ScannerState.zero
+  ; scanner_state = FlatterState.zero
   ; prev_style = None
   ; cursor
   }
@@ -51,11 +51,11 @@ let flatten ~threshold l =
   | [] -> []
   | ((x, _, _) :: _) as l ->
     let loop st ((pos : Asai.Span.position), style_change, be) =
-      let scanner_state = ScannerState.apply (style_change, be) st.scanner_state in
+      let scanner_state = FlatterState.apply (style_change, be) st.scanner_state in
       if st.cursor.offset = pos.offset then
         {st with scanner_state}
       else
-        let current_style = ScannerState.style st.scanner_state in
+        let current_style = FlatterState.style st.scanner_state in
         if st.prev_style <> current_style then
           {segments = st.segments #< (current_style, st.cursor);
            scanner_state;
