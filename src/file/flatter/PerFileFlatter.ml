@@ -11,7 +11,7 @@ open BwdNotation
 
 (* invariant: all Asai.Span.position should have the same filename *)
 type state =
-  { segments : (Marked.style option * Asai.Span.position) bwd
+  { segments : Flattened.marked_point bwd
   ; flatter_state : FlatterState.t
   ; prev_style : Marked.style option
   ; cursor : Asai.Span.position
@@ -26,6 +26,7 @@ let init_state (cursor : OrderedPosition.t) =
   }
 
 let grouping ~splitting_threshold : Flattened.block -> Flattened.block list =
+  let module F = Flattened in
   let rec loop =
     let open Asai.Span in
     function
@@ -33,8 +34,8 @@ let grouping ~splitting_threshold : Flattened.block -> Flattened.block list =
     | [p] -> p, [], []
     | p :: ps ->
       let q, qs, qss = loop ps in
-      if (snd q).line_num - (snd p).line_num >= splitting_threshold &&
-         (fst p) = None (* not highlighted or marked *)
+      if q.F.position.line_num - p.F.position.line_num >= splitting_threshold &&
+         p.F.style = None (* not highlighted or marked *)
       then
         p, [], ((q::qs) :: qss)
       else
@@ -47,6 +48,7 @@ let grouping ~splitting_threshold : Flattened.block -> Flattened.block list =
     (p :: ps) :: pss
 
 let flatten ~splitting_threshold l =
+  let module F = Flattened in
   match List.sort (fun (p1, _, _) (p2, _, _) -> OrderedPosition.compare p1 p2) l with
   | [] -> []
   | ((x, _, _) :: _) as l ->
@@ -57,7 +59,7 @@ let flatten ~splitting_threshold l =
       else
         let current_style = FlatterState.style st.flatter_state in
         if st.prev_style <> current_style then
-          {segments = st.segments #< (current_style, st.cursor);
+          {segments = st.segments #< F.{style = current_style; position = st.cursor};
            flatter_state;
            prev_style = current_style;
            cursor = pos}
@@ -66,5 +68,5 @@ let flatten ~splitting_threshold l =
     in
     let st = List.fold_left loop (init_state x) l in
     assert (FlatterState.style st.flatter_state = None);
-    let segments = st.segments #< (None, st.cursor) in
+    let segments = st.segments #< F.{style = None; position = st.cursor} in
     grouping ~splitting_threshold @@ Bwd.to_list segments

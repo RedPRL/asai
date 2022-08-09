@@ -10,8 +10,8 @@ let add (op, sp) m =
 
 let singleton x = add x empty
 
-let is_highlighted : Marked.style option * OrderedPosition.t -> bool =
-  function Some `Highlighted, _ -> true | _ -> false
+let is_highlighted : _ -> bool =
+  function Flattened.{style = Some `Highlighted; _} -> true | _ -> false
 
 let is_highlighted_block = List.exists is_highlighted
 

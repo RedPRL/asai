@@ -39,15 +39,15 @@ let mark_block (b : Flattened.block) : Marked.block =
         let segments = append_segment segments style cursor (find_eol cursor) in
         lines #< (Bwd.to_list segments)
       | p::ps ->
-        if cursor.line_num = (snd p).line_num then
-          let segments = append_segment segments style cursor (snd p) in
-          go lines segments (fst p) (snd p) ps
+        if cursor.line_num = p.position.line_num then
+          let segments = append_segment segments style cursor p.position in
+          go lines segments p.style p.position ps
         else
           let eol = find_eol cursor in
           let segments = append_segment segments style cursor eol in
           go (lines #< (Bwd.to_list segments)) Emp style (eol_to_next_line eol) (p :: ps)
     in
-    let start_pos = Asai.Span.to_start_of_line @@ snd @@ List.hd b in
+    let start_pos = Asai.Span.to_start_of_line @@ (List.hd b).position in
     { start_line_num = start_pos.line_num
     ; lines = Bwd.to_list @@ go Emp Emp None start_pos b
     }
