@@ -34,13 +34,15 @@ let make (begin_ : position) (end_ : position) : t =
     end_line_num = end_.line_num;
   }
 
-let of_lex_pos (pos : Lexing.position) : position =
+let of_lex_position (pos : Lexing.position) : position =
   {
     file_path = pos.pos_fname;
     offset = pos.pos_cnum;
     start_of_line = pos.pos_bol;
     line_num = pos.pos_lnum;
   }
+
+let to_start_of_line pos = {pos with offset = pos.start_of_line}
 
 let to_positions (sp : t) : position * position =
   {
