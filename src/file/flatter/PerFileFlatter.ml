@@ -25,7 +25,7 @@ let init_state (cursor : OrderedPosition.t) =
   ; cursor
   }
 
-let grouping ~splitting_threshold : Flattened.block -> Flattened.blocks =
+let grouping ~splitting_threshold : Flattened.block -> Flattened.block list =
   let rec loop =
     let open Asai.Span in
     function

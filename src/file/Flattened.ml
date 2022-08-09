@@ -1,10 +1,8 @@
 (** Styles *)
 type style = Marked.style
 
-(** Flatten spans in a block. *)
+(** Flattened spans in a block. *)
 type block = (style option * Asai.Span.position) list
 
-(** Flatten spans across multiple blocks. *)
-type blocks = block list
-
-type section = string * blocks
+(** A collection of flattened blocks from a file. (The first component is the file path.) *)
+type section = string * block list
