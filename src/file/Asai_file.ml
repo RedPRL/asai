@@ -1,11 +1,11 @@
-include Marked
-
 open Bwd
+
+module Marked = Marked
 
 module type S =
 sig
   module Code : Asai.Code.S
-  val format : splitting_threshold:int -> Code.t Asai.Diagnostic.t -> Code.t t
+  val format : splitting_threshold:int -> Code.t Asai.Diagnostic.t -> Code.t Marked.t
 end
 
 module Make (Code : Asai.Code.S) : S with module Code := Code
@@ -28,10 +28,11 @@ struct
 
   let format ~splitting_threshold (d : Code.t Asai.Diagnostic.t) =
     Reader.run @@ fun () ->
-    { code = d.code
-    ; severity = d.severity
-    ; message = format_message ~splitting_threshold ~additional_marks:d.additional_marks d.message
-    ; traces = Bwd.map (format_message ~splitting_threshold ~additional_marks:[]) d.traces
+    Marked.{
+      code = d.code;
+      severity = d.severity;
+      message = format_message ~splitting_threshold ~additional_marks:d.additional_marks d.message;
+      traces = Bwd.map (format_message ~splitting_threshold ~additional_marks:[]) d.traces;
     }
 end
 
