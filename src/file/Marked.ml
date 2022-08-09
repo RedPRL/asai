@@ -19,8 +19,8 @@ type section = { file_path : string; blocks : block list }
 type message = section list * Asai.Diagnostic.message
 
 (** a message *)
-type t =
-  { code : string
+type 'code t =
+  { code : 'code
   ; severity : Asai.Severity.t
   ; message : message
   ; traces : message bwd

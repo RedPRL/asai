@@ -5,7 +5,7 @@ open Bwd
 module type S =
 sig
   module Code : Asai.Code.S
-  val format : splitting_threshold:int -> Code.t Asai.Diagnostic.t -> t
+  val format : splitting_threshold:int -> Code.t Asai.Diagnostic.t -> Code.t t
 end
 
 module Make (Code : Asai.Code.S) : S with module Code := Code
@@ -28,7 +28,7 @@ struct
 
   let format ~splitting_threshold (d : Code.t Asai.Diagnostic.t) =
     Reader.run @@ fun () ->
-    { code = Code.to_string d.code
+    { code = d.code
     ; severity = d.severity
     ; message = format_message ~splitting_threshold ~additional_marks:d.additional_marks d.message
     ; traces = Bwd.map (format_message ~splitting_threshold ~additional_marks:[]) d.traces
