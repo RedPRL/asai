@@ -25,6 +25,6 @@ module Internal :
 sig
   module Reader = Reader
   module Flattened = Flattened
-  module Flatter = Flatter
+  module Flattener = Flattener
   module Marker = Marker
 end
