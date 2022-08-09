@@ -17,7 +17,7 @@ let is_highlighted_block = List.exists is_highlighted
 
 let is_highlighted_blocks = List.exists is_highlighted_block
 
-let flatten ~splitting_threshold m : Flattened.file list =
+let flatten ~splitting_threshold m : Flattened.section list =
   let m = FileMap.map (PerFileFlatter.flatten ~splitting_threshold) m in
-  let highlighted_files, other_files = FileMap.partition (fun _ -> is_highlighted_blocks) m in
-  List.of_seq @@ Seq.append (FileMap.to_seq highlighted_files) (FileMap.to_seq other_files)
+  let highlighted_sections, other_sections = FileMap.partition (fun _ -> is_highlighted_blocks) m in
+  List.of_seq @@ Seq.append (FileMap.to_seq highlighted_sections) (FileMap.to_seq other_sections)

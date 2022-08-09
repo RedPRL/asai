@@ -1,1 +1,1 @@
-val mark_file : Flattened.file -> Marked.file
+val mark_section : Flattened.section -> Marked.section

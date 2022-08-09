@@ -48,9 +48,9 @@ let mark_block (b : Flattened.block) : Marked.block =
     in
     let start_pos = Asai.Span.to_start_of_line @@ snd @@ List.hd b in
     { start_line_num = start_pos.line_num
-    ; text = Bwd.to_list @@ go Emp Emp None start_pos b
+    ; lines = Bwd.to_list @@ go Emp Emp None start_pos b
     }
 
 let mark_blocks = List.map mark_block
-let mark_file (file_path, bs) : Marked.file =
+let mark_section (file_path, bs) : Marked.section =
   { file_path; blocks = mark_blocks bs }

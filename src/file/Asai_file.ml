@@ -11,20 +11,20 @@ end
 module Make (Code : Asai.Code.S) : S with module Code := Code
 =
 struct
-  let format_files ~splitting_threshold ~additional_marks span =
-    let marked_files =
+  let format_sections ~splitting_threshold ~additional_marks span =
+    let marked_sections =
       match span with
       | None -> Flatter.empty
       | Some sp -> Flatter.singleton (`Highlighted, sp)
     in
-    let marked_files =
+    let marked_sections =
       (* add additional_marks *)
-      List.fold_right (fun sp -> Flatter.add (`Marked, sp)) additional_marks marked_files
+      List.fold_right (fun sp -> Flatter.add (`Marked, sp)) additional_marks marked_sections
     in
-    List.map Marker.mark_file @@ Flatter.flatten ~splitting_threshold marked_files
+    List.map Marker.mark_section @@ Flatter.flatten ~splitting_threshold marked_sections
 
   let format_message ~splitting_threshold ~additional_marks (msg : _ Asai.Span.located) =
-    format_files ~splitting_threshold ~additional_marks msg.loc, msg.value
+    format_sections ~splitting_threshold ~additional_marks msg.loc, msg.value
 
   let format ~splitting_threshold (d : Code.t Asai.Diagnostic.t) =
     Reader.run @@ fun () ->

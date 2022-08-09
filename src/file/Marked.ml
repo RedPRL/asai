@@ -10,15 +10,13 @@ type segment = style option * string
 type line = segment list
 
 (** A block is a collection of consecutive lines. *)
-type block = { start_line_num : int; text : line list }
+type block = { start_line_num : int; lines : line list }
 
-type blocks = block list
-
-(** A file consists of multiple blocks. *)
-type file = { file_path : string; blocks : block list }
+(** A section consists of multiple blocks from a file. *)
+type section = { file_path : string; blocks : block list }
 
 (** A multi-span consists of all formatted spans across multiple files. *)
-type message = file list * Asai.Diagnostic.message
+type message = section list * Asai.Diagnostic.message
 
 (** a message *)
 type t =
