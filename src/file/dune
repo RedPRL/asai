@@ -1,6 +1,6 @@
 (library
-  (name Asai_compile)
-  (public_name asai.compile)
+  (name Asai_file)
+  (public_name asai.file)
   (libraries unix bwd asai))
 
 (include_subdirs unqualified)

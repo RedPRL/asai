@@ -2,7 +2,14 @@ include Marked
 
 open Bwd
 
-module Make (C : Asai.Code.S) =
+module type S =
+sig
+  module Code : Asai.Code.S
+  val format : splitting_threshold:int -> Code.t Asai.Diagnostic.t -> t
+end
+
+module Make (Code : Asai.Code.S) : S with module Code := Code
+=
 struct
   let format_files ~splitting_threshold ~additional_marks span =
     let marked_files =
@@ -19,9 +26,9 @@ struct
   let format_message ~splitting_threshold ~additional_marks (msg : _ Asai.Span.located) =
     format_files ~splitting_threshold ~additional_marks msg.loc, msg.value
 
-  let format ~splitting_threshold (d : C.t Asai.Diagnostic.t) =
-    FileReader.run @@ fun () ->
-    { code = C.to_string d.code
+  let format ~splitting_threshold (d : Code.t Asai.Diagnostic.t) =
+    Reader.run @@ fun () ->
+    { code = Code.to_string d.code
     ; severity = d.severity
     ; message = format_message ~splitting_threshold ~additional_marks:d.additional_marks d.message
     ; traces = Bwd.map (format_message ~splitting_threshold ~additional_marks:[]) d.traces
@@ -30,7 +37,7 @@ end
 
 module Internal =
 struct
-  module FileReader = FileReader
+  module Reader = Reader
   module Flattened = Flattened
   module Flatter = Flatter
   module Marker = Marker

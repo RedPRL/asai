@@ -1,4 +1,4 @@
-module R = FileReader
+module R = Reader
 
 type position = Asai.Span.position
 
