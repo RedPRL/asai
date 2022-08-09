@@ -12,7 +12,7 @@ open BwdNotation
 (* invariant: all Asai.Span.position should have the same filename *)
 type state =
   { segments : Flattened.marked_point bwd
-  ; flatter_state : FlatterState.t
+  ; flatter_state : FlattenerState.t
   ; prev_style : Marked.style option
   ; cursor : Asai.Span.position
   }
@@ -20,7 +20,7 @@ type state =
 (* invariant: all Asai.Span.position should have the same filename *)
 let init_state (cursor : OrderedPosition.t) =
   { segments = Emp
-  ; flatter_state = FlatterState.zero
+  ; flatter_state = FlattenerState.zero
   ; prev_style = None
   ; cursor
   }
@@ -53,11 +53,11 @@ let flatten ~splitting_threshold l =
   | [] -> []
   | ((x, _, _) :: _) as l ->
     let loop st ((pos : Asai.Span.position), style_change, be) =
-      let flatter_state = FlatterState.apply (style_change, be) st.flatter_state in
+      let flatter_state = FlattenerState.apply (style_change, be) st.flatter_state in
       if st.cursor.offset = pos.offset then
         {st with flatter_state}
       else
-        let current_style = FlatterState.style st.flatter_state in
+        let current_style = FlattenerState.style st.flatter_state in
         if st.prev_style <> current_style then
           {segments = st.segments #< F.{style = current_style; position = st.cursor};
            flatter_state;
@@ -67,6 +67,6 @@ let flatten ~splitting_threshold l =
           {st with flatter_state; cursor = pos}
     in
     let st = List.fold_left loop (init_state x) l in
-    assert (FlatterState.style st.flatter_state = None);
+    assert (FlattenerState.style st.flatter_state = None);
     let segments = st.segments #< F.{style = None; position = st.cursor} in
     grouping ~splitting_threshold @@ Bwd.to_list segments
