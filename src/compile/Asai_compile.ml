@@ -27,3 +27,11 @@ struct
     ; traces = Bwd.map (format_message ~splitting_threshold ~additional_marks:[]) d.traces
     }
 end
+
+module Internal =
+struct
+  module FileReader = FileReader
+  module Flattened = Flattened
+  module Flatter = Flatter
+  module Marker = Marker
+end
