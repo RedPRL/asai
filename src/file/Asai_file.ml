@@ -2,7 +2,7 @@ open Bwd
 
 module Marked = Marked
 
-let format_sections ~splitting_threshold ~additional_marks span =
+let assemble_sections ~splitting_threshold ~additional_marks span =
   let marked_sections =
     match span with
     | None -> Flattener.empty
@@ -14,16 +14,16 @@ let format_sections ~splitting_threshold ~additional_marks span =
   in
   List.map Marker.mark_section @@ Flattener.flatten ~splitting_threshold marked_sections
 
-let format_message ~splitting_threshold ~additional_marks (msg : _ Asai.Span.located) =
-  format_sections ~splitting_threshold ~additional_marks msg.loc, msg.value
+let assemble_message ~splitting_threshold ~additional_marks (msg : _ Asai.Span.located) =
+  assemble_sections ~splitting_threshold ~additional_marks msg.loc, msg.value
 
-let format ~splitting_threshold (d : 'code Asai.Diagnostic.t) =
+let assemble ~splitting_threshold (d : 'code Asai.Diagnostic.t) =
   Reader.run @@ fun () ->
   Marked.{
     code = d.code;
     severity = d.severity;
-    message = format_message ~splitting_threshold ~additional_marks:d.additional_marks d.message;
-    traces = Bwd.map (format_message ~splitting_threshold ~additional_marks:[]) d.traces;
+    message = assemble_message ~splitting_threshold ~additional_marks:d.additional_marks d.message;
+    traces = Bwd.map (assemble_message ~splitting_threshold ~additional_marks:[]) d.traces;
   }
 
 module Internal =
