@@ -1,13 +1,12 @@
 module type Handler = LoggerSigs.Handler
 module type S = LoggerSigs.S
 
-module Make (C : Code.S) (D : Diagnostic.S with module Code := C) :
-  S with module Code := C and module Diagnostic := D =
+module Make (Code : Code.S) : S with module Code := Code =
 struct
-  module type Handler = Handler with module Code := C and module Diagnostic := D
+  module type Handler = Handler with module Code := Code
 
-  module DE = DiagnosticEmitter.Make(C)(D)
-  module DB = DiagnosticBuilder.Make(C)(D)
+  module DE = DiagnosticEmitter.Make(Code)
+  module DB = DiagnosticBuilder.Make(Code)
 
   let messagef = DB.messagef
   let kmessagef = DB.kmessagef

@@ -3,17 +3,16 @@ open BwdNotation
 
 module type S = DiagnosticBuilderSigs.S
 
-module Make (C : Code.S) (D : Diagnostic.S with module Code := C) :
-  S with module Code := C and module Diagnostic := D =
+module Make (Code : Code.S) : S with module Code := Code =
 struct
   type env = Diagnostic.message Span.located bwd
   module Traces = Algaeff.Reader.Make (struct type nonrec env = env end)
 
   let kmessagef k ?loc ?(additional_marks=[]) ?severity ~code =
     Format.kdprintf @@ fun message -> k @@
-    D.{
+    Diagnostic.{
       code;
-      severity = Option.value ~default:(C.default_severity code) severity;
+      severity = Option.value ~default:(Code.default_severity code) severity;
       message = {loc; value = message};
       additional_marks;
       traces = Traces.read ();
@@ -23,7 +22,7 @@ struct
     kmessagef Fun.id ?loc ?additional_marks ?severity ~code
 
   let append_marks d marks =
-    D.{ d with additional_marks = d.additional_marks @ marks }
+    Diagnostic.{ d with additional_marks = d.additional_marks @ marks }
 
   let tracef ?loc fmt =
     fmt |> Format.kdprintf @@ fun message f ->
