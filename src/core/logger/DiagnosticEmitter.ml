@@ -1,15 +1,14 @@
 module type Handler = DiagnosticEmitterSigs.Handler
 module type S = DiagnosticEmitterSigs.S
 
-module Make (C : Code.S) (D : Diagnostic.S with module Code := C) :
-  S with module Code := C and module Diagnostic := D =
+module Make (Code : Code.S) : S with module Code := Code =
 struct
-  module type Handler = Handler with module Code := C and module Diagnostic := D
+  module type Handler = Handler with module Code := Code
 
   module Perform =
   struct
-    type _ Effect.t += Print : D.t -> unit Effect.t
-    exception Fatal of D.t
+    type _ Effect.t += Print : Code.t Diagnostic.t -> unit Effect.t
+    exception Fatal of Code.t Diagnostic.t
     let emit d = Effect.perform @@ Print d
     let fatal d = raise @@ Fatal d
   end

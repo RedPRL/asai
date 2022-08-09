@@ -1,24 +1,22 @@
 module type Handler =
 sig
   module Code : Code.S
-  module Diagnostic : Diagnostic.S with module Code := Code
 
   (** The handler for the algebraic effects to emit diagnostics. *)
-  val emit : Diagnostic.t -> unit
+  val emit : Code.t Diagnostic.t -> unit
 
   (** The result type for the exception handler {!val:fatal}. *)
   type result
 
   (** The handler for the exceptions that carry diagnostics. *)
-  val fatal : Diagnostic.t -> result
+  val fatal : Code.t Diagnostic.t -> result
 end
 
 module type S =
 sig
   module Code : Code.S
-  module Diagnostic : Diagnostic.S with module Code := Code
 
-  module type Handler = Handler with module Code := Code and module Diagnostic := Diagnostic
+  module type Handler = Handler with module Code := Code
 
   module Run (H : Handler) :
   sig
@@ -32,7 +30,7 @@ sig
 
   module Perform :
   sig
-    val emit : Diagnostic.t -> unit
-    val fatal : Diagnostic.t -> 'a
+    val emit : Code.t Diagnostic.t -> unit
+    val fatal : Code.t Diagnostic.t -> 'a
   end
 end

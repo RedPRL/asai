@@ -1,17 +1,20 @@
 open Bwd
 
-type message = DiagnosticSigs.message
-module type S = DiagnosticSigs.S
+(** The type of single messages.
 
-module Make (C : Code.S) : S with module Code := C =
-struct
-  type nonrec message = message
+    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings but a function awaiting a formatter. This is best paired with {!val:Format.dprintf}, which allows us to delay formatting choices. *)
+type message = Format.formatter -> unit
 
-  type t = {
-    code : C.t;
-    severity : Severity.t;
-    message : message Span.located;
-    additional_marks : Span.t list;
-    traces : message Span.located bwd;
-  }
-end
+(** The type of diagnostics. *)
+type 'code t = {
+  code : 'code;
+  (** The message code. *)
+  severity : Severity.t;
+  (** Severity of the diagnostic. *)
+  message : message Span.located;
+  (** The main message. *)
+  additional_marks : Span.t list;
+  (** Additional marking associated with the main message. *)
+  traces : message Span.located bwd;
+  (** The backtrace leading to this diagnostic. *)
+}
