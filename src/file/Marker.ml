@@ -4,8 +4,9 @@ type position = Asai.Span.position
 
 let find_eol (pos : Asai.Span.position) =
   let eof = R.length pos.file_path in
+  assert (pos.offset <= eof);
   let rec go i =
-    if i < eof && R.unsafe_get pos.file_path i = '\n' then
+    if i = eof || R.unsafe_get pos.file_path i = '\n' then
       i
     else
       go (i+1)
