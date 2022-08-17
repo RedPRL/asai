@@ -18,3 +18,6 @@ type 'code t = {
   traces : message Span.located bwd;
   (** The backtrace leading to this diagnostic. *)
 }
+
+(** Mapping the code *)
+let map f d = {d with code = f d.code}
