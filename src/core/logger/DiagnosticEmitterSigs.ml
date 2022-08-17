@@ -1,36 +1,18 @@
-module type Handler =
-sig
-  module Code : Code.S
-
-  (** The handler for the algebraic effects to emit diagnostics. *)
-  val emit : Code.t Diagnostic.t -> unit
-
-  (** The result type for the exception handler {!val:fatal}. *)
-  type result
-
-  (** The handler for the exceptions that carry diagnostics. *)
-  val fatal : Code.t Diagnostic.t -> result
-end
-
 module type S =
 sig
   module Code : Code.S
 
-  module type Handler = Handler with module Code := Code
+  (** Emit a diagnostic and continue the computation. *)
+  val emit : Code.t Diagnostic.t -> unit
 
-  module Run (H : Handler) :
-  sig
-    val run : (unit -> H.result) -> H.result
-  end
+  (** Emit a diagnostic and abort the computation. *)
+  val fatal: Code.t Diagnostic.t -> 'a
 
-  module TryWith (H : Handler) :
-  sig
-    val try_with : (unit -> H.result) -> H.result
-  end
+  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle emitted diagnostics before continuing
+      the computation, and [fatal] to handle diagnostics after aborting the computation. *)
+  val run : emit:(Code.t Diagnostic.t -> unit) -> fatal:(Code.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
-  module Perform :
-  sig
-    val emit : Code.t Diagnostic.t -> unit
-    val fatal : Code.t Diagnostic.t -> 'a
-  end
+  (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept emitted diagnostics before continuing
+      the computation, and [fatal] to intercept diagnostics after aborting the computation. *)
+  val try_with : ?emit:(Code.t Diagnostic.t -> unit) -> ?fatal:(Code.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 end
