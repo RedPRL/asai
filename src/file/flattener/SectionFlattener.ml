@@ -7,7 +7,7 @@ let add (op, sp) l =
   (begin_, op, `Begin) :: (end_, op, `End) :: l
 
 open Bwd
-open BwdNotation
+open Bwd.Infix
 
 (* invariant: all Asai.Span.position should have the same filename *)
 type state =

@@ -27,7 +27,7 @@ module Make (R : Reader.S) = struct
     R.unsafe_get begin_.file_path (begin_.offset + i)
 
   open Bwd
-  open BwdNotation
+  open Bwd.Infix
 
   let append_segment segments style begin_ end_ =
     match read_between begin_ end_ with
