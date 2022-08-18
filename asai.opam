@@ -14,7 +14,7 @@ depends: [
   "eio" {>= "0.2"}
   "eio_main" {>= "0.2"}
   "algaeff" {>= "0.2"}
-  "bwd" {>= "2.0"}
+  "bwd" {>= "2.1"}
   "menhir" {>= "20220210"}
   "alcotest" {with-test & >= "1.5"}
   "odoc" {with-doc}
