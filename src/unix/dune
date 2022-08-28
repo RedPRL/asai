@@ -1,4 +1,4 @@
 (library
   (name Asai_unix)
   (public_name asai.unix)
-  (libraries bwd asai notty notty.unix))
+  (libraries bwd asai asai.file notty notty.unix))
