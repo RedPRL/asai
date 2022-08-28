@@ -32,6 +32,7 @@ let line_numbers_of_block ({start_line_num ; lines} : Asai_file.Marked.block) =
 let marked ({code = _; severity; message = msg; traces} : 'code Asai_file.Marked.t) =
   let segment (style,seg) = 
     match style with
+      (* TODO: how to display `Marked text? *)
       | None | Some `Marked -> I.string seg
       | Some `Highlighted -> I.string ~attr:(underline_style severity) seg
   in
