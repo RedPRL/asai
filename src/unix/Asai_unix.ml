@@ -98,13 +98,15 @@ struct
         (m.traces |> Bwd.map (display_message m.code m.severity))
         [display_message m.code m.severity m.message] |> Bwd.to_list |> List.rev |> Array.of_list
     in
+    let len = Array.length traces in
     let open Notty_unix in
     let rec loop t i =
       Term.image t (traces.(i) <-> 
+                    I.strf "%d/%d" (i + 1) len <->
                     I.string "Use Arrow keys to navigate up and down the stack trace" <->
                     I.string "Press Enter to Quit");
       match Term.event t with
-      | `Key (`Arrow `Up, _) -> loop t (if i + 1 < Array.length traces then i + 1 else i)
+      | `Key (`Arrow `Up, _) -> loop t (if i + 1 < len then i + 1 else i)
       | `Key (`Arrow `Down, _) -> loop t (if i - 1 >= 0 then i - 1 else i)
       | `Key (`Enter, _) -> ()
       | _ -> loop t i
