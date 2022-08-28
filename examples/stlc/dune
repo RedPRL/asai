@@ -7,4 +7,4 @@
 (executable
  (name STLC)
  (public_name asai_stlc)
- (libraries asai asai.lsp asai.unix algaeff menhirLib))
+ (libraries asai asai.unix algaeff menhirLib))
