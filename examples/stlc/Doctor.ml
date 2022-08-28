@@ -1,31 +1,24 @@
 open Asai.Severity
 
-module ErrorCode =
-struct
-  type t =
-    | TypeError
-    | UnboundVariable
-    | RequiresAnnotation
-    | LexerError
-    | ParseError
 
-  let severity =
+type code =
+  | TypeError
+  | UnboundVariable
+  | RequiresAnnotation
+  | LexerError
+  | ParseError
+module Code : Asai.Code.S with type t = code =
+struct
+  type t = code 
+
+  let default_severity =
     function
     | TypeError -> Error
     | UnboundVariable -> Error
     | RequiresAnnotation -> Error
     | LexerError -> Error
     | ParseError -> Error
-
-  let code_num =
-    function
-    | TypeError -> 1
-    | UnboundVariable -> 2
-    | RequiresAnnotation -> 3
-    | LexerError -> 4
-    | ParseError -> 4
-
-  let description = 
+  let to_string = 
     function
     | TypeError ->
       "The typechecker encountered a type error."
@@ -39,5 +32,5 @@ struct
       "The parser encountered an error."
 end
 
-module Server = Asai_lsp.Make(ErrorCode)
-include Server.Doctor
+module Logger = Asai.Logger.Make(Code)
+include Logger

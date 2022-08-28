@@ -3,8 +3,8 @@ open Asai
 
 open Syntax
 
-let locate (start, stop) (value : 'a) : 'a Loc.t =
-  {value; span = Span.of_lex_pos start stop}
+let locate (start, stop) (value : 'a) : 'a Span.located =
+  {value; loc = Some (Span.make (Span.of_lex_position start) (Span.of_lex_position stop))}
 %}
 
 %token <string> ATOM
