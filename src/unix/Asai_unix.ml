@@ -37,7 +37,6 @@ struct
         (* TODO: how to display `Marked text? *)
         | None | Some `Marked -> I.string seg
         | Some `Highlighted -> 
-          Printf.printf "HIGHLIGHTED: %s\n" (String.escaped seg);
           I.string ~attr:(underline_style severity) seg
     in
     let line segs =
@@ -76,7 +75,6 @@ struct
     header <->
     (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
 
-
   let display_marked debug (m : 'code Asai_file.Marked.t) =
     I.vpad 1 1 (display_message m.code m.severity m.message) <->
     if debug then
@@ -92,4 +90,24 @@ struct
   let display ?(display_traces = false) diag =
     let m = Assemble.assemble ~splitting_threshold:5 diag in
     Notty_unix.output_image (display_marked display_traces m)
+
+  let interactive_trace diag =
+    let m = Assemble.assemble ~splitting_threshold:5 diag in
+    let traces = 
+      Bwd.append 
+      (m.traces |> Bwd.map (display_message m.code m.severity))
+      [display_message m.code m.severity m.message] |> Bwd.to_list |> List.rev |> Array.of_list
+    in
+    let open Notty_unix in
+    let rec loop t i =
+      Term.image t traces.(i);
+      match Term.event t with
+        | `Key (`Arrow `Up, _) -> loop t (if i + 1 < Array.length traces then i + 1 else i)
+        | `Key (`Arrow `Down, _) -> loop t (if i - 1 >= 0 then i - 1 else i)
+        | `Key (`Enter, _) -> ()
+        | _ -> loop t i
+    in
+    let t = Term.create () in
+    loop t 0;
+    Term.release t
 end

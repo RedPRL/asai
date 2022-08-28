@@ -136,12 +136,26 @@ struct
     Elab.Reader.run ~env:{ctx = Emp ; loc = None} @@ fun () ->
     Elab.chk tm tp
 
-  let load debug filepath =
-    let display = Terminal.display ~display_traces:debug in
+  let load mode filepath =
+    let display = 
+      match mode with
+        | `Debug -> Terminal.display ~display_traces:true
+        | `Normal ->  Terminal.display ~display_traces:false
+        | `Interactive -> Terminal.interactive_trace
+    in
     Doctor.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
 end
 
 let () =
-  Driver.load (if Array.length Sys.argv > 2 then bool_of_string @@ Sys.argv.(2) else false) (Sys.argv.(1))
+  let mode = 
+    if Array.length Sys.argv < 2 then
+      `Normal
+    else
+      match Sys.argv.(2) with
+        | "--debug" | "-d" -> `Debug
+        | "--interactive" | "-i" -> `Interactive
+        | _ -> failwith "Unrecognized argument"
+  in
+  Driver.load mode Sys.argv.(1)
