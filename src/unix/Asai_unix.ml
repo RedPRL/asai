@@ -43,7 +43,7 @@ struct
       segs |> List.map segment |> I.hcat 
     in
     let block (b : Asai_file.Marked.block) =
-      (* We want to display the error message under whatever block contains the highlihgted text *)
+      (* We want to display the error message under whatever block contains the highlighted text *)
       (b.lines |> List.map line |> I.vcat) <->
       if List.exists (List.exists (function (Some `Highlighted,_) -> true | _ -> false)) b.lines then
         I.vpad 1 0 @@ I.strf "→ %t" msg
