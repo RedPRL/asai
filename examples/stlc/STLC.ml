@@ -136,11 +136,12 @@ struct
     Elab.Reader.run ~env:{ctx = Emp ; loc = None} @@ fun () ->
     Elab.chk tm tp
 
-  let load filepath =
-    Doctor.run ~emit:Terminal.display ~fatal:Terminal.display @@ fun () ->
+  let load debug filepath =
+    let display = Terminal.display ~display_traces:debug in
+    Doctor.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
 end
 
 let () =
-  Driver.load (Sys.argv.(1))
+  Driver.load (if Array.length Sys.argv > 2 then bool_of_string @@ Sys.argv.(2) else false) (Sys.argv.(1))

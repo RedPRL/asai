@@ -31,7 +31,7 @@ struct
     List.map (fun n -> I.string ~attr:fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
-  let marked ({code = _; severity; message = msg; traces} : 'code Asai_file.Marked.t) =
+  let marked debug ({code = _; severity; message = msg; traces} : 'code Asai_file.Marked.t) =
     let segment (style,seg) = 
       match style with
         (* TODO: how to display `Marked text? *)
@@ -71,15 +71,17 @@ struct
       (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
     in
     I.vpad 1 1 (message msg) <->
+    if debug then
     I.string "Trace" <->
     I.string "---------------------------------------------" <->
     I.string "" <->
     (traces |> Bwd.map (fun t -> t |> message |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
-
-
+    else
+    I.void 0 0
+  
   module Assemble = Asai_file.Assembler.Make(Asai_file.FileReader)
 
-  let display diag =
+  let display ?(display_traces = false) diag =
     let m = Assemble.assemble ~splitting_threshold:5 diag in
-    Notty_unix.output_image (marked m)
+    Notty_unix.output_image (marked display_traces m)
 end
