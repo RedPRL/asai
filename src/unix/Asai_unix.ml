@@ -79,7 +79,7 @@ struct
     I.vpad 1 1 (display_message m.code m.severity m.message) <->
     if debug then
       I.string "Trace" <->
-      I.string "---------------------------------------------" <->
+      I.string "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" <->
       I.string "" <->
       (m.traces |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
     else
