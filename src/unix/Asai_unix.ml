@@ -26,21 +26,21 @@ struct
 
   let fringe_style = A.(fg @@ gray 8)
 
-  let line_numbers_of_block ({start_line_num ; lines} : Asai_file.Marked.block) = 
+  let line_numbers_of_block ({start_line_num ; lines} : Asai_file.Marked.block) =
     column ~align:`Right @@
     List.map (fun n -> I.string ~attr:fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
   let display_message code severity (sections,msg) =
-    let segment (style,seg) = 
+    let segment (style,seg) =
       match style with
       (* TODO: how to display `Marked text? *)
       | None | Some `Marked -> I.string seg
-      | Some `Highlighted -> 
+      | Some `Highlighted ->
         I.string ~attr:(underline_style severity) seg
     in
     let line segs =
-      segs |> List.map segment |> I.hcat 
+      segs |> List.map segment |> I.hcat
     in
     let block (b : Asai_file.Marked.block) =
       (* We want to display the error message under whatever block contains the highlighted text *)
@@ -51,10 +51,10 @@ struct
         I.void 0 0
     in
     let section ({file_path ; blocks} : Asai_file.Marked.section) =
-      let line_numbers = blocks |> List.map line_numbers_of_block in 
+      let line_numbers = blocks |> List.map line_numbers_of_block in
       let fringes = line_numbers |> List.map (fun img -> vline ~attr:fringe_style (I.height img) "│") in
       let line_numbers = line_numbers |> List.map (I.vpad 0 2) |> column ~align:`Right |> I.vcrop 0 2 in
-      let fringe = 
+      let fringe =
         I.string ~attr:fringe_style ("🭁") <->
         I.string ~attr:fringe_style "│" <->
         (fringes |> List.map (fun img -> img <-> vline ~attr:fringe_style 2 "┊") |> I.vcat |> I.vcrop 0 2) <->
@@ -81,7 +81,7 @@ struct
       I.string "Trace" <->
       I.string "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" <->
       I.string "" <->
-      (m.traces |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
+      (m.backtrace |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
     else
       I.void 0 0
 
@@ -93,15 +93,15 @@ struct
 
   let interactive_trace diag =
     let m = Assemble.assemble ~splitting_threshold:5 diag in
-    let traces = 
-      Bwd.append 
-        (m.traces |> Bwd.map (display_message m.code m.severity))
+    let traces =
+      Bwd.append
+        (m.backtrace |> Bwd.map (display_message m.code m.severity))
         [display_message m.code m.severity m.message] |> Bwd.to_list |> List.rev |> Array.of_list
     in
     let len = Array.length traces in
     let open Notty_unix in
     let rec loop t i =
-      Term.image t (traces.(i) <-> 
+      Term.image t (traces.(i) <->
                     I.strf "%d/%d" (i + 1) len <->
                     I.string "Use Arrow keys to navigate up and down the stack trace" <->
                     I.string "Press Enter to Quit");

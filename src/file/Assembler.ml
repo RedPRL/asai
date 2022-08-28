@@ -30,6 +30,6 @@ struct
       code = d.code;
       severity = d.severity;
       message = message ~splitting_threshold ~additional_marks:d.additional_marks d.message;
-      traces = Bwd.map (message ~splitting_threshold ~additional_marks:[]) d.traces;
+      backtrace = Bwd.map (message ~splitting_threshold ~additional_marks:[]) d.backtrace;
     }
 end
