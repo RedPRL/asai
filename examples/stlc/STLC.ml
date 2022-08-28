@@ -118,12 +118,12 @@ struct
     let lexbuf = Lexing.from_channel (open_in filepath) in
     lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filepath };
     (* let contents = 
-      let ch = open_in filepath in
-      let str = really_input_string ch (in_channel_length ch) in
-      close_in ch;
-      str
-    in
-    Doctor.load_file ~filepath @@ contents; *)
+       let ch = open_in filepath in
+       let str = really_input_string ch (in_channel_length ch) in
+       close_in ch;
+       str
+       in
+       Doctor.load_file ~filepath @@ contents; *)
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
@@ -139,9 +139,9 @@ struct
   let load mode filepath =
     let display = 
       match mode with
-        | `Debug -> Terminal.display ~display_traces:true
-        | `Normal ->  Terminal.display ~display_traces:false
-        | `Interactive -> Terminal.interactive_trace
+      | `Debug -> Terminal.display ~display_traces:true
+      | `Normal ->  Terminal.display ~display_traces:false
+      | `Interactive -> Terminal.interactive_trace
     in
     Doctor.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
@@ -154,8 +154,8 @@ let () =
       `Normal
     else
       match Sys.argv.(2) with
-        | "--debug" | "-d" -> `Debug
-        | "--interactive" | "-i" -> `Interactive
-        | _ -> failwith "Unrecognized argument"
+      | "--debug" | "-d" -> `Debug
+      | "--interactive" | "-i" -> `Interactive
+      | _ -> failwith "Unrecognized argument"
   in
   Driver.load mode Sys.argv.(1)

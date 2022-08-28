@@ -34,10 +34,10 @@ struct
   let display_message code severity (sections,msg) =
     let segment (style,seg) = 
       match style with
-        (* TODO: how to display `Marked text? *)
-        | None | Some `Marked -> I.string seg
-        | Some `Highlighted -> 
-          I.string ~attr:(underline_style severity) seg
+      (* TODO: how to display `Marked text? *)
+      | None | Some `Marked -> I.string seg
+      | Some `Highlighted -> 
+        I.string ~attr:(underline_style severity) seg
     in
     let line segs =
       segs |> List.map segment |> I.hcat 
@@ -78,13 +78,13 @@ struct
   let display_marked debug (m : 'code Asai_file.Marked.t) =
     I.vpad 1 1 (display_message m.code m.severity m.message) <->
     if debug then
-    I.string "Trace" <->
-    I.string "---------------------------------------------" <->
-    I.string "" <->
-    (m.traces |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
+      I.string "Trace" <->
+      I.string "---------------------------------------------" <->
+      I.string "" <->
+      (m.traces |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
     else
-    I.void 0 0
-  
+      I.void 0 0
+
   module Assemble = Asai_file.Assembler.Make(Asai_file.FileReader)
 
   let display ?(display_traces = false) diag =
@@ -95,19 +95,19 @@ struct
     let m = Assemble.assemble ~splitting_threshold:5 diag in
     let traces = 
       Bwd.append 
-      (m.traces |> Bwd.map (display_message m.code m.severity))
-      [display_message m.code m.severity m.message] |> Bwd.to_list |> List.rev |> Array.of_list
+        (m.traces |> Bwd.map (display_message m.code m.severity))
+        [display_message m.code m.severity m.message] |> Bwd.to_list |> List.rev |> Array.of_list
     in
     let open Notty_unix in
     let rec loop t i =
       Term.image t (traces.(i) <-> 
-        I.string "Use Arrow keys to navigate up and down the stack trace" <->
-        I.string "Press Enter to Quit");
+                    I.string "Use Arrow keys to navigate up and down the stack trace" <->
+                    I.string "Press Enter to Quit");
       match Term.event t with
-        | `Key (`Arrow `Up, _) -> loop t (if i + 1 < Array.length traces then i + 1 else i)
-        | `Key (`Arrow `Down, _) -> loop t (if i - 1 >= 0 then i - 1 else i)
-        | `Key (`Enter, _) -> ()
-        | _ -> loop t i
+      | `Key (`Arrow `Up, _) -> loop t (if i + 1 < Array.length traces then i + 1 else i)
+      | `Key (`Arrow `Down, _) -> loop t (if i - 1 >= 0 then i - 1 else i)
+      | `Key (`Enter, _) -> ()
+      | _ -> loop t i
     in
     let t = Term.create () in
     loop t 0;
