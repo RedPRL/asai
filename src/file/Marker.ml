@@ -19,6 +19,8 @@ module Make (R : Reader.S) = struct
 
   let eol_to_next_line (pos : position) =
     { pos with
+      (* Need to update our offset to skip the newline char *)
+      offset = pos.offset + 1;
       start_of_line = pos.offset + 1;
       line_num = pos.line_num + 1 }
 

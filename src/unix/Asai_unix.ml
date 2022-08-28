@@ -31,18 +31,25 @@ struct
     List.map (fun n -> I.string ~attr:fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
-  let marked debug ({code = _; severity; message = msg; traces} : 'code Asai_file.Marked.t) =
+  let display_message code severity (sections,msg) =
     let segment (style,seg) = 
       match style with
         (* TODO: how to display `Marked text? *)
         | None | Some `Marked -> I.string seg
-        | Some `Highlighted -> I.string ~attr:(underline_style severity) seg
+        | Some `Highlighted -> 
+          Printf.printf "HIGHLIGHTED: %s\n" (String.escaped seg);
+          I.string ~attr:(underline_style severity) seg
     in
     let line segs =
       segs |> List.map segment |> I.hcat 
     in
     let block (b : Asai_file.Marked.block) =
-      b.lines |> List.map line |> I.vcat
+      (* We want to display the error message under whatever block contains the highlihgted text *)
+      (b.lines |> List.map line |> I.vcat) <->
+      if List.exists (List.exists (function (Some `Highlighted,_) -> true | _ -> false)) b.lines then
+        I.vpad 1 0 @@ I.strf "→ %t" msg
+      else
+        I.void 0 0
     in
     let section ({file_path ; blocks} : Asai_file.Marked.section) =
       let line_numbers = blocks |> List.map line_numbers_of_block in 
@@ -60,22 +67,23 @@ struct
       let body = I.vpad 0 1 (I.string file_path) <-> blocks in
       (I.hpad 0 1 side_panel <|> body) |> I.vpad 0 1
     in
-    let message (sections,msg) =
-      let header =
-        I.vpad 0 1 @@
-        I.strf "%a: %t"
-          Severity.pp severity
-          msg
-      in
-      header <->
-      (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
+    let header =
+      I.vpad 0 1 @@
+      I.strf "%a: %s"
+        Severity.pp severity
+        (Code.to_string code)
     in
-    I.vpad 1 1 (message msg) <->
+    header <->
+    (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
+
+
+  let display_marked debug (m : 'code Asai_file.Marked.t) =
+    I.vpad 1 1 (display_message m.code m.severity m.message) <->
     if debug then
     I.string "Trace" <->
     I.string "---------------------------------------------" <->
     I.string "" <->
-    (traces |> Bwd.map (fun t -> t |> message |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
+    (m.traces |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
     else
     I.void 0 0
   
@@ -83,5 +91,5 @@ struct
 
   let display ?(display_traces = false) diag =
     let m = Assemble.assemble ~splitting_threshold:5 diag in
-    Notty_unix.output_image (marked display_traces m)
+    Notty_unix.output_image (display_marked display_traces m)
 end
