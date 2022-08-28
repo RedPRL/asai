@@ -68,10 +68,13 @@ struct
           msg
       in
       header <->
-      (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat)
+      (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
     in
-    I.vpad 1 2 (message msg) <->
-    (traces |> Bwd.map (fun t -> t |> message |> I.vpad 0 2) |> Bwd.to_list |> I.vcat)
+    I.vpad 1 1 (message msg) <->
+    I.string "Trace" <->
+    I.string "---------------------------------------------" <->
+    I.string "" <->
+    (traces |> Bwd.map (fun t -> t |> message |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
 
 
   module Assemble = Asai_file.Assembler.Make(Asai_file.FileReader)
