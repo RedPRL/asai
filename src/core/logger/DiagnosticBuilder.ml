@@ -8,6 +8,8 @@ struct
   type env = Diagnostic.message Span.located bwd
   module Traces = Algaeff.Reader.Make (struct type nonrec env = env end)
 
+  let backtrace = Traces.read
+
   let kmessagef k ?loc ?(additional_marks=[]) ?severity ~code =
     Format.kdprintf @@ fun message -> k @@
     Diagnostic.{
@@ -15,7 +17,7 @@ struct
       severity = Option.value ~default:(Code.default_severity code) severity;
       message = {loc; value = message};
       additional_marks;
-      traces = Traces.read ();
+      backtrace = Traces.read ();
     }
 
   let messagef ?loc ?additional_marks ?severity ~code =
@@ -28,6 +30,6 @@ struct
     fmt |> Format.kdprintf @@ fun message f ->
     Traces.scope (fun bt -> bt #< { loc; value = message }) f
 
-  let run f = Traces.run ~env:Emp f
+  let run ?(init=Emp) f = Traces.run ~env:init f
 
 end

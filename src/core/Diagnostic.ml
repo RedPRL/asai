@@ -15,6 +15,9 @@ type 'code t = {
   (** The main message. *)
   additional_marks : Span.t list;
   (** Additional marking associated with the main message. *)
-  traces : message Span.located bwd;
+  backtrace : message Span.located bwd;
   (** The backtrace leading to this diagnostic. *)
 }
+
+(** Mapping the code *)
+let map f d = {d with code = f d.code}

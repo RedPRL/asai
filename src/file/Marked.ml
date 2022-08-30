@@ -23,5 +23,5 @@ type 'code t =
   { code : 'code
   ; severity : Asai.Severity.t
   ; message : message
-  ; traces : message bwd
+  ; backtrace : message bwd
   }
