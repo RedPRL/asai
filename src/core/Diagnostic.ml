@@ -20,4 +20,4 @@ type ('code,'phase) t = {
 }
 
 (** Mapping the code *)
-let map f d = {d with code = f d.code}
+let map f g d = {d with code = f d.code ; backtrace = Bwd.map (fun (p,t) -> (g p,t)) d.backtrace}

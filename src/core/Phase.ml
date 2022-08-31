@@ -1,6 +1,6 @@
 module type S =
 sig
-  (** The type of tace tags. *)
+  (** The type of trace phases. *)
   type t
 
   (** Get the string representation. *)

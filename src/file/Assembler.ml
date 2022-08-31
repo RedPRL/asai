@@ -30,6 +30,6 @@ struct
       code = d.code;
       severity = d.severity;
       message = message ~splitting_threshold ~additional_marks:d.additional_marks d.message;
-      backtrace = Bwd.map (fun (tag,msg) -> (tag,message ~splitting_threshold ~additional_marks:[] msg)) d.backtrace;
+      backtrace = Bwd.map (fun (p,t) -> (p,message ~splitting_threshold ~additional_marks:[] t)) d.backtrace;
     }
 end
