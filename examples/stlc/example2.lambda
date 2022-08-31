@@ -1,0 +1,1 @@
+(check (λ f (λ x (f x))) (→ (→ nat nat) (→ (× nat nat) nat)))

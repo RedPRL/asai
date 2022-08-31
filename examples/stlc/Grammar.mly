@@ -57,3 +57,5 @@ term_:
     { Suc a }
   | LPR; NAT_REC; z = term; s = term; scrut = term; RPR
     { NatRec(z, s, scrut) }
+  | LPR; f = term; x = term; RPR
+    { Ap (f,x) }

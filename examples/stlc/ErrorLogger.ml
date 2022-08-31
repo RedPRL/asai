@@ -7,6 +7,11 @@ type code =
   | RequiresAnnotation
   | LexerError
   | ParseError
+
+type phase =
+  | Elaboration
+  | Conversion
+
 module Code : Asai.Code.S with type t = code =
 struct
   type t = code 
@@ -32,5 +37,13 @@ struct
       "The parser encountered an error."
 end
 
-module Logger = Asai.Logger.Make(Code)
-include Logger
+module Phase : Asai.Phase.S with type t = phase = 
+struct
+  type t = phase
+
+  let to_string = function
+    | Elaboration -> "Elaboration"
+    | Conversion -> "Conversion"
+end
+
+include Asai.Logger.Make(Code)(Phase)

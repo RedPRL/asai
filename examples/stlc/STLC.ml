@@ -3,7 +3,7 @@ open Bwd
 
 open Syntax
 
-module Terminal = Asai_unix.Make(Doctor.Code)
+module Terminal = Asai_unix.Make(ErrorLogger.Code)(ErrorLogger.Phase)
 
 module Elab =
 struct
@@ -25,13 +25,13 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Doctor.fatalf ?loc ~code:UnboundVariable "Variable '%s' is not in scope" nm
+      ErrorLogger.fatalf ?loc ~code:UnboundVariable "Variable '%s' is not in scope" nm
 
   let expected_connective conn tp =
-    Doctor.fatalf ?loc:(get_loc ()) ~code:TypeError  "Expected a %s, but got %a." conn pp_tp tp
+    ErrorLogger.fatalf ?loc:(get_loc ()) ~code:TypeError  "Expected a %s, but got %a." conn pp_tp tp
 
   let rec equate expected actual =
-    Doctor.tracef "When Equating" @@ fun () ->
+    ErrorLogger.tracef ?loc:(get_loc ()) Conversion "When Equating %a with %a" pp_tp expected pp_tp actual @@ fun () ->
     match expected, actual with
     | Fun (a0, b0), Fun (a1, b1) ->
       equate a0 a1;
@@ -42,10 +42,10 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Doctor.fatalf ?loc:(get_loc ()) ~code:TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
+      ErrorLogger.fatalf ?loc:(get_loc ()) ~code:TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
-    Doctor.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
+    ErrorLogger.tracef ?loc:tm.loc Elaboration "When checking against %a" Syntax.pp_tp tp @@ fun () ->
     locate tm.loc @@ fun () ->
     match tm.value, tp with
     | Lam (nm, body), Fun (a, b) ->
@@ -71,7 +71,7 @@ struct
       equate tp actual_tp
 
   and syn (tm : tm) : tp =
-    Doctor.tracef ?loc:tm.loc "When synthesizing" @@ fun () ->
+    ErrorLogger.tracef ?loc:tm.loc Elaboration "When synthesizing" @@ fun () ->
     locate tm.loc @@ fun () ->
     match tm.value with
     | Var nm ->
@@ -109,7 +109,7 @@ struct
         mot
       end
     | _ ->
-      Doctor.fatalf ?loc:(get_loc ()) ~code:TypeError "Unable to infer type"
+      ErrorLogger.fatalf ?loc:(get_loc ()) ~code:TypeError "Unable to infer type"
 end
 
 module Driver =
@@ -121,10 +121,10 @@ struct
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
         let pos = Span.of_lex_position lexbuf.lex_curr_p in
-        Doctor.fatalf ~loc:(Span.make pos pos) ~code:LexerError "Unrecognized token '%s'" tok
+        ErrorLogger.fatalf ~loc:(Span.make pos {pos with offset = pos.offset + 1}) ~code:LexerError "Unrecognized token '%s'" tok
       | Grammar.Error ->
         let pos = Span.of_lex_position lexbuf.lex_curr_p in
-        Doctor.fatalf ~loc:(Span.make pos pos) ~code:LexerError "Failed to parse"
+        ErrorLogger.fatalf ~loc:(Span.make pos {pos with offset = pos.offset + 1}) ~code:LexerError "Failed to parse"
     in
     Elab.Reader.run ~env:{ctx = Emp ; loc = None} @@ fun () ->
     Elab.chk tm tp
@@ -132,23 +132,25 @@ struct
   let load mode filepath =
     let display = 
       match mode with
-      | `Debug -> Terminal.display ~display_traces:true
-      | `Normal ->  Terminal.display ~display_traces:false
-      | `Interactive -> Terminal.interactive_trace
+      | `Debug -> Terminal.display (fun _ -> true)
+      | `Normal ->  Terminal.display (fun _ -> false)
+      | `Interactive phases -> Terminal.interactive_trace phases
     in
-    Doctor.run ~emit:display ~fatal:display @@ fun () ->
+    ErrorLogger.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
 end
 
 let () =
   let mode = 
-    if Array.length Sys.argv < 2 then
+    if Array.length Sys.argv < 3 then
       `Normal
     else
       match Sys.argv.(2) with
       | "--debug" | "-d" -> `Debug
-      | "--interactive" | "-i" -> `Interactive
+      | "--interactive" | "-i" -> `Interactive (fun _ -> true)
+      | "--interactive=elab" | "-i=elab" -> `Interactive (function ErrorLogger.Elaboration -> true | _ -> false)
+      | "--interactive=conv" | "-i=conv" -> `Interactive (function ErrorLogger.Conversion -> true | _ -> false)
       | _ -> failwith "Unrecognized argument"
   in
   Driver.load mode Sys.argv.(1)
