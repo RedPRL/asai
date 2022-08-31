@@ -5,7 +5,7 @@ open Asai
 open Notty
 open Notty.Infix
 
-module Make (Code : Code.S) =
+module Make (Code : Code.S) (Phase : Phase.S) =
 struct
   let vline ~attr height str =
     I.vcat @@ List.init height (fun _ -> I.string ~attr str)
@@ -75,27 +75,31 @@ struct
     header <->
     (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
 
-  let display_marked debug (m : 'code Asai_file.Marked.t) =
+  let display_marked trace_phases (m : ('code,'phase) Asai_file.Marked.t) =
+    let traces = 
+      (m.backtrace |> Bwd.filter_map (fun (p,t) -> if trace_phases p then t |> display_message m.code m.severity |> I.vpad 0 1 |> Option.some else None) 
+       |> Bwd.to_list |> List.rev)
+    in
     I.vpad 1 1 (display_message m.code m.severity m.message) <->
-    if debug then
+    if List.length traces > 0 then
       I.string "Trace" <->
       I.string "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" <->
       I.string "" <->
-      (m.backtrace |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
+      I.vcat traces
     else
       I.void 0 0
 
   module Assemble = Asai_file.Assembler.Make(Asai_file.FileReader)
 
-  let display ?(display_traces = false) diag =
+  let display trace_phases diag =
     let m = Assemble.assemble ~splitting_threshold:5 diag in
-    Notty_unix.output_image (display_marked display_traces m)
+    Notty_unix.output_image (display_marked trace_phases m)
 
-  let interactive_trace diag =
+  let interactive_trace trace_phases diag =
     let m = Assemble.assemble ~splitting_threshold:5 diag in
     let traces =
       Bwd.append
-        (m.backtrace |> Bwd.map (display_message m.code m.severity))
+        (m.backtrace |> Bwd.filter_map (fun (p,t) -> if trace_phases p then t |> display_message m.code m.severity |> Option.some else None))
         [display_message m.code m.severity m.message] |> Bwd.to_list |> List.rev |> Array.of_list
     in
     let len = Array.length traces in

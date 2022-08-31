@@ -4,14 +4,14 @@ open Asai
 (** {1 Display}
     This module provides functions to display and interact with Asai diagnostics in UNIX terminals.
 *)
-module Make (Code : Code.S) : sig
-  (** [display ?display_traces diag] displays the message provided in [diag],
-      along with relevant text from its span, optionally displaying the traces in [diag]
+module Make (Code : Code.S) (Phase : Phase.S) : sig
+  (** [display trace_phases diag] displays the message provided in [diag],
+      along with relevant text from its span, optionally displaying the traces in [diag] filtered by [trace_phases]
   *)
-  val display : ?display_traces:bool -> Code.t Diagnostic.t -> unit
+  val display : (Phase.t -> bool) -> (Code.t, Phase.t) Diagnostic.t -> unit
 
-  (** [interactive_trace diag] drops the user in a small interactive terminal app where they can cycle through
-      the message provided in [diag] and its traces
+  (** [interactive_trace trace_phases diag] drops the user in a small interactive terminal app where they can cycle through
+      the message provided in [diag] and its traces, filtered by [trace_phases]
   *)
-  val interactive_trace : Code.t Diagnostic.t -> unit
+  val interactive_trace : (Phase.t -> bool) -> (Code.t, Phase.t) Diagnostic.t -> unit
 end

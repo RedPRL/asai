@@ -1,9 +1,9 @@
 module type S = DiagnosticEmitterSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code =
+module Make (Code : Code.S) (Phase : Phase.S) : S with module Code := Code and module Phase := Phase =
 struct
-  type _ Effect.t += Emit : Code.t Diagnostic.t -> unit Effect.t
-  exception Fatal of Code.t Diagnostic.t
+  type _ Effect.t += Emit : (Code.t, Phase.t) Diagnostic.t -> unit Effect.t
+  exception Fatal of (Code.t, Phase.t) Diagnostic.t
 
   let emit d = Effect.perform @@ Emit d
   let fatal d = raise @@ Fatal d

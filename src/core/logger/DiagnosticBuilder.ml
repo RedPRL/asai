@@ -3,9 +3,9 @@ open Bwd.Infix
 
 module type S = DiagnosticBuilderSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code =
+module Make (Code : Code.S) (Phase : Phase.S) : S with module Code := Code and module Phase := Phase =
 struct
-  type env = Diagnostic.message Span.located bwd
+  type env = (Phase.t * Diagnostic.message Span.located) bwd
   module Traces = Algaeff.Reader.Make (struct type nonrec env = env end)
 
   let backtrace = Traces.read
@@ -26,9 +26,9 @@ struct
   let append_marks d marks =
     Diagnostic.{ d with additional_marks = d.additional_marks @ marks }
 
-  let tracef ?loc fmt =
+  let tracef ?loc tag fmt =
     fmt |> Format.kdprintf @@ fun message f ->
-    Traces.scope (fun bt -> bt #< { loc; value = message }) f
+    Traces.scope (fun bt -> bt #< (tag,{ loc; value = message })) f
 
   let run ?(init=Emp) f = Traces.run ~env:init f
 

@@ -6,7 +6,7 @@ open Bwd
 type message = Format.formatter -> unit
 
 (** The type of diagnostics. *)
-type 'code t = {
+type ('code,'phase) t = {
   code : 'code;
   (** The message code. *)
   severity : Severity.t;
@@ -15,7 +15,7 @@ type 'code t = {
   (** The main message. *)
   additional_marks : Span.t list;
   (** Additional marking associated with the main message. *)
-  backtrace : message Span.located bwd;
+  backtrace : ('phase * message Span.located) bwd;
   (** The backtrace leading to this diagnostic. *)
 }
 

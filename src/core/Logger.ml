@@ -1,9 +1,9 @@
 module type S = LoggerSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code =
+module Make (Code : Code.S) (Phase : Phase.S) : S with module Code := Code and module Phase := Phase =
 struct
-  module DE = DiagnosticEmitter.Make(Code)
-  module DB = DiagnosticBuilder.Make(Code)
+  module DE = DiagnosticEmitter.Make(Code)(Phase)
+  module DB = DiagnosticBuilder.Make(Code)(Phase)
 
   let backtrace = DB.backtrace
   let messagef = DB.messagef

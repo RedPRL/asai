@@ -22,6 +22,7 @@ module Span = Span
 
 module Severity = Severity
 module Code = Code
+module Phase = Phase
 module Diagnostic = Diagnostic
 
 (** {1 Effects}
