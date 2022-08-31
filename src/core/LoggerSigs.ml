@@ -41,7 +41,7 @@ sig
         module M1 = Logger.Make(Code1)
         module M2 = Logger.Make(Code2)
 
-            M1.bridge (Diagnostic.map code_mapper) M2.run @@ fun () -> ...
+            M1.bridge (Diagnostic.map code_mapper phase_mapper) M2.run @@ fun () -> ...
       ]}
   *)
   val bridge :
