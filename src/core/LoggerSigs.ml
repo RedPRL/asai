@@ -11,6 +11,10 @@ sig
   (** [tracef ~loc format ...] record a frame. *)
   val tracef : ?loc:Span.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
 
+  (** [ktracef kont ~loc format ... x] record a frame, running [kont x] to create a thunk that will be run with the new backtrace.
+      The call [kont x] itself is run with the current backtrace, and the thunk returned by [kont x] is run with the new backtrace augmented with the frame. *)
+  val ktracef : ('a -> unit -> 'b) -> ?loc:Span.t -> ('c, Format.formatter, unit, 'a -> 'b) format4 -> 'c
+
   (** [append_marks msg marks] appends [marks] to the additional marks of [msg]. *)
   val append_marks : Code.t Diagnostic.t -> Span.t list -> Code.t Diagnostic.t
 

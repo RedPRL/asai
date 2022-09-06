@@ -26,9 +26,11 @@ struct
   let append_marks d marks =
     Diagnostic.{ d with additional_marks = d.additional_marks @ marks }
 
-  let tracef ?loc fmt =
-    fmt |> Format.kdprintf @@ fun message f ->
-    Traces.scope (fun bt -> bt #< { loc; value = message }) f
+  let ktracef k ?loc fmt =
+    fmt |> Format.kdprintf @@ fun message x ->
+    Traces.scope (fun bt -> bt #< { loc; value = message }) @@ k x
+
+  let tracef ?loc fmt = ktracef Fun.id ?loc fmt
 
   let run ?(init=Emp) f = Traces.run ~env:init f
 
