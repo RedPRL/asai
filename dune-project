@@ -28,7 +28,7 @@
    (eio (>= 0.2))
    (eio_main (>= 0.2))
    (algaeff (>= 0.2))
-   (bwd (>= 2.0))
+   (bwd (>= 2.1))
    ;; [TODO: Reed M, 07/06/2022] I should conditionally compile this!
    (menhir (>= 20220210))
    ;; Tests
