@@ -9,6 +9,7 @@ struct
   let messagef = DB.messagef
   let kmessagef = DB.kmessagef
   let tracef = DB.tracef
+  let ktracef = DB.ktracef
   let append_marks = DB.append_marks
   let emit = DE.emit
   let emitf ?loc ?additional_marks ?severity ~code = DB.kmessagef emit ?loc ?additional_marks ?severity ~code
