@@ -3,7 +3,7 @@ sig
   (** The type of message codes. *)
   type t
 
-  (** Get the default_severity of the code. *)
+  (** Get the default severity of the code. *)
   val default_severity : t -> Severity.t
 
   (** Get the string representation. *)
