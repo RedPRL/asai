@@ -9,7 +9,7 @@ bug-reports: "https://github.com/RedPRL/asai/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.1"}
-  "notty" {>= "0.2"}
+  "notty" {>= "0.2.3"}
   "lsp" {>= "1.12"}
   "eio" {>= "0.2"}
   "eio_main" {>= "0.2"}
