@@ -17,7 +17,7 @@ struct
     Reader.scope (fun env -> {env with loc}) k
 
   let get_loc () =
-    let env = Reader.read () in 
+    let env = Reader.read () in
     env.loc
 
   let lookup nm =
@@ -120,17 +120,15 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        let pos = Span.of_lex_position lexbuf.lex_curr_p in
-        Doctor.fatalf ~loc:(Span.make pos pos) LexerError "Unrecognized token '%s'" tok
+        Doctor.fatalf ~loc:(Span.of_lex lexbuf) LexerError {|Unrecognized token "%s"|} (String.escaped tok)
       | Grammar.Error ->
-        let pos = Span.of_lex_position lexbuf.lex_curr_p in
-        Doctor.fatalf ~loc:(Span.make pos pos) LexerError "Failed to parse"
+        Doctor.fatalf ~loc:(Span.of_lex lexbuf) LexerError "Failed to parse"
     in
     Elab.Reader.run ~env:{ctx = Emp ; loc = None} @@ fun () ->
     Elab.chk tm tp
 
   let load mode filepath =
-    let display = 
+    let display =
       match mode with
       | `Debug -> Terminal.display ~display_traces:true
       | `Normal ->  Terminal.display ~display_traces:false
@@ -142,8 +140,8 @@ struct
 end
 
 let () =
-  let mode = 
-    if Array.length Sys.argv < 2 then
+  let mode =
+    if Array.length Sys.argv <= 2 then
       `Normal
     else
       match Sys.argv.(2) with
