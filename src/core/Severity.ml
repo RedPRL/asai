@@ -1,13 +1,9 @@
-(** Severity Levels *)
+(** Severity levels *)
 type t =
   | Info
-  (** A completely innocuous diagnostic. *)
   | Warning
-  (** A low-severity, non fatal diagnostic. *)
   | Error
-  (** A high-severity, fatal diagnostic. *)
   | InternalError
-  (** An internal error. *)
 
 let pp fmt =
   function
