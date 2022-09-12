@@ -10,7 +10,7 @@ struct
 
   let backtrace = Traces.read
 
-  let kmessagef k ?loc ?(additional_marks=[]) ?severity ~code =
+  let kmessagef k ?loc ?(additional_marks=[]) ?severity code =
     Format.kdprintf @@ fun message -> k @@
     Diagnostic.{
       code;
@@ -20,8 +20,8 @@ struct
       backtrace = Traces.read ();
     }
 
-  let messagef ?loc ?additional_marks ?severity ~code =
-    kmessagef Fun.id ?loc ?additional_marks ?severity ~code
+  let messagef ?loc ?additional_marks ?severity code =
+    kmessagef Fun.id ?loc ?additional_marks ?severity code
 
   let append_marks d marks =
     Diagnostic.{ d with additional_marks = d.additional_marks @ marks }
