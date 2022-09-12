@@ -25,10 +25,10 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Doctor.fatalf ?loc ~code:UnboundVariable "Variable '%s' is not in scope" nm
+      Doctor.fatalf ?loc UnboundVariable "Variable '%s' is not in scope" nm
 
   let expected_connective conn tp =
-    Doctor.fatalf ?loc:(get_loc ()) ~code:TypeError  "Expected a %s, but got %a." conn pp_tp tp
+    Doctor.fatalf ?loc:(get_loc ()) TypeError "Expected a %s, but got %a." conn pp_tp tp
 
   let rec equate expected actual =
     Doctor.tracef "When Equating" @@ fun () ->
@@ -42,7 +42,7 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Doctor.fatalf ?loc:(get_loc ()) ~code:TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
+      Doctor.fatalf ?loc:(get_loc ()) TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
     Doctor.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
@@ -109,7 +109,7 @@ struct
         mot
       end
     | _ ->
-      Doctor.fatalf ?loc:(get_loc ()) ~code:TypeError "Unable to infer type"
+      Doctor.fatalf ?loc:(get_loc ()) TypeError "Unable to infer type"
 end
 
 module Driver =
@@ -121,10 +121,10 @@ struct
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
         let pos = Span.of_lex_position lexbuf.lex_curr_p in
-        Doctor.fatalf ~loc:(Span.make pos pos) ~code:LexerError "Unrecognized token '%s'" tok
+        Doctor.fatalf ~loc:(Span.make pos pos) LexerError "Unrecognized token '%s'" tok
       | Grammar.Error ->
         let pos = Span.of_lex_position lexbuf.lex_curr_p in
-        Doctor.fatalf ~loc:(Span.make pos pos) ~code:LexerError "Failed to parse"
+        Doctor.fatalf ~loc:(Span.make pos pos) LexerError "Failed to parse"
     in
     Elab.Reader.run ~env:{ctx = Emp ; loc = None} @@ fun () ->
     Elab.chk tm tp
