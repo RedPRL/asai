@@ -42,6 +42,12 @@ let of_lex_position (pos : Lexing.position) : position =
     line_num = pos.pos_lnum;
   }
 
+let of_lex lexbuf =
+  let start = of_lex_position @@ Lexing.lexeme_start_p lexbuf
+  and end_ = of_lex_position @@ Lexing.lexeme_end_p lexbuf
+  in
+  make start end_
+
 let to_start_of_line pos = {pos with offset = pos.start_of_line}
 
 let to_positions (sp : t) : position * position =
