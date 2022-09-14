@@ -16,13 +16,13 @@ struct
 
   let highlight_style (severity : Severity.t) =
     let open A in
+    st underline ++
     match severity with
+    | Hint -> fg blue
     | Info -> fg green
     | Warning -> fg yellow
-    | Error | InternalError -> fg red
-
-  let underline_style severity =
-    A.st A.underline ++ highlight_style severity
+    | Error -> fg red
+    | Bug -> bg red ++ fg black
 
   let fringe_style = A.(fg @@ gray 8)
 
@@ -37,7 +37,7 @@ struct
       (* TODO: how to display `Marked text? *)
       | None | Some `Marked -> I.string A.empty seg
       | Some `Highlighted ->
-        I.string (underline_style severity) seg
+        I.string (highlight_style severity) seg
     in
     let line segs =
       segs |> List.map segment |> I.hcat
@@ -68,8 +68,8 @@ struct
     in
     let header =
       I.vpad 0 1 @@
-      I.strf "%a: %s"
-        Severity.pp severity
+      I.strf "%s: %s"
+        (Severity.to_string severity)
         (Code.to_string code)
     in
     header <->
