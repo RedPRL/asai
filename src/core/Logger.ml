@@ -16,6 +16,6 @@ struct
   let fatal = DE.fatal
   let fatalf ?loc ?additional_marks ?severity code = DB.kmessagef fatal ?loc ?additional_marks ?severity code
   let run ?init_backtrace ~emit ~fatal f = DB.run ?init:init_backtrace @@ fun () -> DE.run ~emit ~fatal f
-  let bridge m run f = run ?init_backtrace:(Some (backtrace ())) ~emit:(fun d -> emit (m d)) ~fatal:(fun d -> fatal (m d)) f
+  let wrap m run f = run ?init_backtrace:(Some (backtrace ())) ~emit:(fun d -> emit (m d)) ~fatal:(fun d -> fatal (m d)) f
   let try_with = DE.try_with
 end
