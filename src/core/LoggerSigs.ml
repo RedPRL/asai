@@ -30,8 +30,8 @@ sig
   (** [fatalf ~loc ~additional_marks code format ...] constructs a diagnostic and abort the current computation. *)
   val fatalf : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Severity.t -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
-  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle emitted diagnostics before continuing
-      the computation, and [fatal] to handle diagnostics after aborting the computation. *)
+  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing
+      the computation, and [fatal] to handle fatal diagnostics after aborting the computation. *)
   val run : ?init_backtrace:Diagnostic.message Span.located Bwd.bwd
     -> emit:(Code.t Diagnostic.t -> unit) -> fatal:(Code.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
