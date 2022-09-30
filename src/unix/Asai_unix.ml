@@ -51,7 +51,7 @@ struct
       (* We want to display the error message under whatever block contains the highlighted text *)
       (b.lines |> List.map line |> I.vcat) <->
       if List.exists (List.exists (function (Some `Highlighted,_) -> true | _ -> false)) b.lines then
-        I.vpad 1 0 @@ I.strf "[%s] %t" (Code.to_string code) msg
+        I.pad ~t:1 @@ I.strf "[%s] %t" (Code.to_string code) msg
       else
         I.void 0 0
     in
@@ -67,12 +67,12 @@ struct
         I.string fringe_style "█"
       in
       let side_panel = I.pad ~t:2 ~l:1 ~r:1 line_numbers <|> fringe in
-      let blocks = blocks |> List.map (fun b -> block b |> I.pad ~b:2) |> I.vcat in
+      let blocks = blocks |> List.map (fun b -> block b |> I.pad ~b:1) |> I.vcat in
       let body = I.pad ~b:1 (I.string A.empty file_path) <-> blocks in
-      (I.pad ~r:1 side_panel <|> body) |> I.pad ~b:1
+      I.pad ~r:1 side_panel <|> body
     in
     if sections = [] then
-      I.pad ~b:2 @@ I.strf "[%s] %t" (Code.to_string code) msg
+      I.strf "[%s] %t" (Code.to_string code) msg
     else
       (sections |> List.map (fun s -> s |> section |> I.pad ~b:1) |> I.vcat) |> I.crop ~b:2
 
@@ -100,7 +100,7 @@ struct
     let len = Array.length traces in
     let open Notty_unix in
     let rec loop t i =
-      Term.image t (traces.(i) <->
+      Term.image t (I.pad ~b:1 traces.(i) <->
                     I.strf "%d/%d" (i + 1) len <->
                     I.string A.empty "Use arrow keys to navigate up and down the stack trace" <->
                     I.string A.empty "Press Enter to Quit");
