@@ -24,18 +24,23 @@ struct
     | Error -> fg red
     | Bug -> bg red ++ fg black
 
-  let fringe_style = A.(fg @@ gray 8)
+  let marked_style = A.st A.underline
+
+  let fringe_style = A.fg @@ A.gray 8
 
   let line_numbers_of_block ({start_line_num ; lines} : Asai_file.Marked.block) =
     column ~align:`Right @@
     List.map (fun n -> I.string fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
-  let display_message code severity (sections,msg) =
-    let segment (style,seg) =
+  let display_message code severity (sections, msg) =
+    let segment (style, seg) =
       match style with
       (* TODO: how to display `Marked text? *)
-      | None | Some `Marked -> I.string A.empty seg
+      | None ->
+        I.string A.empty seg
+      | Some `Marked ->
+        I.string marked_style seg
       | Some `Highlighted ->
         I.string (highlight_style severity) seg
     in
@@ -46,42 +51,36 @@ struct
       (* We want to display the error message under whatever block contains the highlighted text *)
       (b.lines |> List.map line |> I.vcat) <->
       if List.exists (List.exists (function (Some `Highlighted,_) -> true | _ -> false)) b.lines then
-        I.vpad 1 0 @@ I.strf "→ %t" msg
+        I.vpad 1 0 @@ I.strf "[%s] %t" (Code.to_string code) msg
       else
         I.void 0 0
     in
     let section ({file_path ; blocks} : Asai_file.Marked.section) =
       let line_numbers = blocks |> List.map line_numbers_of_block in
       let fringes = line_numbers |> List.map (fun img -> vline fringe_style (I.height img) "│") in
-      let line_numbers = line_numbers |> List.map (I.vpad 0 2) |> column ~align:`Right |> I.vcrop 0 2 in
+      let line_numbers = line_numbers |> List.map (I.pad ~b:2) |> column ~align:`Right |> I.crop ~b:2 in
       let fringe =
         I.string fringe_style ("🭁") <->
         I.string fringe_style "│" <->
-        (fringes |> List.map (fun img -> img <-> vline fringe_style 2 "┊") |> I.vcat |> I.vcrop 0 2) <->
+        (fringes |> List.map (fun img -> img <-> vline fringe_style 2 "┊") |> I.vcat |> I.crop ~b:2) <->
         I.string fringe_style "│" <->
-        I.string fringe_style "🭁"
+        I.string fringe_style "█"
       in
-      let side_panel = I.vpad 2 0 line_numbers <|> fringe in
-      let blocks = blocks |> List.map (fun b -> block b |> I.vpad 0 2) |> I.vcat in
-      let body = I.vpad 0 1 (I.string A.empty file_path) <-> blocks in
-      (I.hpad 0 1 side_panel <|> body) |> I.vpad 0 1
+      let side_panel = I.pad ~t:2 ~l:1 ~r:1 line_numbers <|> fringe in
+      let blocks = blocks |> List.map (fun b -> block b |> I.pad ~b:2) |> I.vcat in
+      let body = I.pad ~b:1 (I.string A.empty file_path) <-> blocks in
+      (I.pad ~r:1 side_panel <|> body) |> I.pad ~b:1
     in
-    let header =
-      I.vpad 0 1 @@
-      I.strf "%s: %s"
-        (Severity.to_string severity)
-        (Code.to_string code)
-    in
-    header <->
-    (sections |> List.map (fun s -> s |> section |> I.vpad 0 2) |> I.vcat) |> I.vcrop 0 2
+    if sections = [] then
+      I.pad ~b:2 @@ I.strf "[%s] %t" (Code.to_string code) msg
+    else
+      (sections |> List.map (fun s -> s |> section |> I.pad ~b:1) |> I.vcat) |> I.crop ~b:2
 
   let display_marked debug (m : 'code Asai_file.Marked.t) =
-    I.vpad 1 1 (display_message m.code m.severity m.message) <->
+    I.pad ~t:1 ~b:1 (display_message m.code m.severity m.message) <->
     if debug then
-      I.string A.empty "Trace" <->
-      I.string A.empty "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" <->
-      I.string A.empty "" <->
-      (m.backtrace |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.vpad 0 1) |> Bwd.to_list |> List.rev |> I.vcat)
+      I.pad ~b:1 (I.string A.empty ">>> Trace") <->
+      (m.backtrace |> Bwd.map (fun t -> t |> display_message m.code m.severity |> I.pad ~b:1) |> Bwd.to_list |> List.rev |> I.vcat)
     else
       I.void 0 0
 
@@ -103,7 +102,7 @@ struct
     let rec loop t i =
       Term.image t (traces.(i) <->
                     I.strf "%d/%d" (i + 1) len <->
-                    I.string A.empty "Use Arrow keys to navigate up and down the stack trace" <->
+                    I.string A.empty "Use arrow keys to navigate up and down the stack trace" <->
                     I.string A.empty "Press Enter to Quit");
       match Term.event t with
       | `Key (`Arrow `Up, _) -> loop t (if i + 1 < len then i + 1 else i)
