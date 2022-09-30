@@ -3,35 +3,29 @@ open Bwd
 
 open Syntax
 
-module Terminal = Asai_unix.Make(Doctor.Code)
+module Terminal = Asai_unix.Make(ErrorCode)
+module Logger = Asai.Logger.Make(ErrorCode)
 
 module Elab =
 struct
-  type env = {ctx : (string * tp) bwd ; loc : Span.t option}
+  type env = (string * tp) bwd
   module Reader = Algaeff.Reader.Make (struct type nonrec env = env end)
 
   let bind_var nm tp k =
-    Reader.scope (fun env -> {env with ctx = Snoc(env.ctx, (nm, tp))}) k
+    Reader.scope (fun env -> Snoc(env, (nm, tp))) k
 
-  let locate loc k =
-    Reader.scope (fun env -> {env with loc}) k
-
-  let get_loc () =
-    let env = Reader.read () in
-    env.loc
-
-  let lookup nm =
-    let {ctx ; loc} = Reader.read () in
+  let lookup ?loc nm =
+    let ctx = Reader.read () in
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Doctor.fatalf ?loc UnboundVariable "Variable '%s' is not in scope" nm
+      Logger.fatalf ?loc `UnboundVariable "Variable '%s' is not in scope" nm
 
-  let expected_connective conn tp =
-    Doctor.fatalf ?loc:(get_loc ()) TypeError "Expected a %s, but got %a." conn pp_tp tp
+  let expected_connective ?loc conn tp =
+    Logger.fatalf ?loc `TypeError "Expected a %s, but got %a." conn pp_tp tp
 
-  let rec equate expected actual =
-    Doctor.tracef "When Equating" @@ fun () ->
+  let rec equate ?loc expected actual =
+    Logger.tracef ?loc "When equating terms" @@ fun () ->
     match expected, actual with
     | Fun (a0, b0), Fun (a1, b1) ->
       equate a0 a1;
@@ -42,40 +36,38 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Doctor.fatalf ?loc:(get_loc ()) TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
+      Logger.fatalf ?loc `TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
-    Doctor.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
-    locate tm.loc @@ fun () ->
+    Logger.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
     match tm.value, tp with
     | Lam (nm, body), Fun (a, b) ->
       bind_var nm a @@ fun () ->
       chk body b
     | Lam (_, _), _ ->
-      expected_connective "function type" tp
+      expected_connective ?loc:tm.loc "function type" tp
     | Pair (l, r), Tuple (a, b) ->
       chk l a;
       chk r b;
     | Pair (_, _), _ ->
-      expected_connective "pair type" tp
+      expected_connective ?loc:tm.loc "pair type" tp
     | Lit _, Nat ->
       ()
     | Lit _, _ ->
-      expected_connective "ℕ" tp
+      expected_connective ?loc:tm.loc "ℕ" tp
     | Suc n, Nat ->
       chk n Nat
     | Suc _, _ ->
-      expected_connective "ℕ" tp
+      expected_connective ?loc:tm.loc "ℕ" tp
     | _ ->
       let actual_tp = syn tm in
-      equate tp actual_tp
+      equate ?loc:tm.loc tp actual_tp
 
   and syn (tm : tm) : tp =
-    Doctor.tracef ?loc:tm.loc "When synthesizing" @@ fun () ->
-    locate tm.loc @@ fun () ->
+    Logger.tracef ?loc:tm.loc "When synthesizing" @@ fun () ->
     match tm.value with
     | Var nm ->
-      lookup nm
+      lookup ?loc:tm.loc nm
     | Ap (fn, arg) ->
       begin
         match syn fn with
@@ -83,7 +75,7 @@ struct
           chk arg a;
           b
         | tp ->
-          expected_connective "function type" tp
+          expected_connective ?loc:tm.loc "function type" tp
       end
     | Fst tm ->
       begin
@@ -91,7 +83,7 @@ struct
         | Tuple (l, _) ->
           l
         | tp ->
-          expected_connective "pair type" tp
+          expected_connective ?loc:tm.loc "pair type" tp
       end
     | Snd tm ->
       begin
@@ -99,7 +91,7 @@ struct
         | Tuple (_, r) ->
           r
         | tp ->
-          expected_connective "pair type" tp
+          expected_connective ?loc:tm.loc "pair type" tp
       end
     | NatRec (z, s, scrut) ->
       begin
@@ -109,7 +101,7 @@ struct
         mot
       end
     | _ ->
-      Doctor.fatalf ?loc:(get_loc ()) TypeError "Unable to infer type"
+      Logger.fatalf ?loc:tm.loc `TypeError "Unable to infer type"
 end
 
 module Driver =
@@ -120,11 +112,11 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Doctor.fatalf ~loc:(Span.of_lex lexbuf) LexerError {|Unrecognized token "%s"|} (String.escaped tok)
+        Logger.fatalf ~loc:(Span.of_lex lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
       | Grammar.Error ->
-        Doctor.fatalf ~loc:(Span.of_lex lexbuf) LexerError "Failed to parse"
+        Logger.fatalf ~loc:(Span.of_lex lexbuf) `LexingError "Failed to parse"
     in
-    Elab.Reader.run ~env:{ctx = Emp ; loc = None} @@ fun () ->
+    Elab.Reader.run ~env:Emp @@ fun () ->
     Elab.chk tm tp
 
   let load mode filepath =
@@ -134,7 +126,7 @@ struct
       | `Normal ->  Terminal.display ~display_traces:false
       | `Interactive -> Terminal.interactive_trace
     in
-    Doctor.run ~emit:display ~fatal:display @@ fun () ->
+    Logger.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
 end
