@@ -5,7 +5,7 @@
     we produce a large amount of information that needs to be associated with some span
     in the original source code. The most obvious case is error messages and other diagnostics,
     but this also includes types, identifier provenance, and so on. Managing this information
-    is an annoying, repetitive, and error-prone task, which is exactly the problem Asai aims to
+    is an annoying, repetitive, and error-prone task, which is exactly the problem asai aims to
     solve. *)
 
 (** {1 Location Types}
@@ -16,7 +16,7 @@ module Span = Span
 
 (** {1 Diagnostics}
     Good diagnostics are a large part of what makes good tools, so we take special care to
-    handle these specially. In Asai, all diagnostics are parameterized by an [ErrorCode],
+    handle these specially. In asai, all diagnostics are parameterized by an [ErrorCode],
     which is intended to be a sum type representing all the high-level error categories
     that your tool may produce. *)
 
@@ -25,6 +25,6 @@ module Code = Code
 module Diagnostic = Diagnostic
 
 (** {1 Effects}
-    Managing the current span/position can become tedious, so Asai provides a series of effects for
+    Managing the current span/position can become tedious, so asai provides a series of effects for
     handling this. *)
 module Logger = Logger

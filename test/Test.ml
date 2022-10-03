@@ -1,3 +1,3 @@
-let () = Alcotest.run "Asai Tests" [
+let () = Alcotest.run "asai Tests" [
     "Location Tests", LocTests.tests
   ]
