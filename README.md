@@ -1,4 +1,4 @@
-# 🩺 asai 浅い: Compiler Diagnostics
+# 🩺 asai 浅い: Compiler Diagnostics ⚠️
 
 _asai_ is a library for printing compiler diagnostics, and tracking span-associated metadata.
 
