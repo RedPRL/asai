@@ -5,6 +5,7 @@ open Syntax
 
 module Terminal = Asai_unix.Make(ErrorCode)
 module Logger = Asai.Logger.Make(ErrorCode)
+module Server = Asai_lsp.Make(ErrorCode)(Logger)
 
 module Elab =
 struct
@@ -129,16 +130,14 @@ struct
     Logger.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
+  let server () =
+    Server.run ~init:(fun _ -> ()) ~load_file:load_file
+
 end
 
 let () =
-  let mode =
-    if Array.length Sys.argv <= 2 then
-      `Normal
-    else
-      match Sys.argv.(2) with
-      | "--debug" | "-d" -> `Debug
-      | "--interactive" | "-i" -> `Interactive
-      | _ -> failwith "Unrecognized argument"
-  in
-  Driver.load mode Sys.argv.(1)
+  match Sys.argv.(1) with
+  | "--server" -> Driver.server ()
+  | "--debug" -> Driver.load `Debug Sys.argv.(2)
+  | "--interactive" -> Driver.load `Interactive Sys.argv.(2)
+  | filepath -> Driver.load `Normal filepath
