@@ -1,9 +1,7 @@
 open Lsp.Types
 module RPC := Jsonrpc
 
-module Make (ErrorCode: Asai.ErrorCode.S) : sig
-  module Doctor : module type of Asai.Effects.Make(ErrorCode)
-
+module Make (Code : Asai.Code.S) (Logger: Asai.Logger.S with module Code := Code) : sig
   type lsp_error =
     | DecodeError of string
     | HandshakeError of string

@@ -9,10 +9,9 @@ module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (ErrorCode : ErrorCode.S) =
+module Make (Code : Code.S) (Logger : Logger.S with module Code := Code) =
 struct
-  module Doctor = Effects.Make(ErrorCode)
-  module Diagnostic = Doctor.Diagnostic
+  type diagnostic = Code.t Asai.Diagnostic.t
 
   type server = {
     lsp_io : LspEio.io;
@@ -46,7 +45,7 @@ struct
       Some (Format.asprintf "Lsp Error: Unknown notification %s" err)
     | _ -> None
 
-  let recv () = 
+  let recv () =
     let server = State.get () in
     LspEio.recv server.lsp_io
 
@@ -58,27 +57,27 @@ struct
     let msg = Broadcast.to_jsonrpc notif in
     send (RPC.Packet.Notification msg)
 
-  let render_lsp_additional_info (uri : DocumentUri.t) (cause : Diagnostic.cause) : DiagnosticRelatedInformation.t =
-    let range = Shims.Loc.lsp_range_of_span cause.location in
+  let render_lsp_backtrace (uri : DocumentUri.t) (message : Asai.Diagnostic.message Span.located) : DiagnosticRelatedInformation.t =
+    let range = Shims.Loc.lsp_range_of_span message.loc in
     let location = Location.create ~uri ~range in
-    let message = Format.asprintf "@[<h>%t@]" cause.message in
+    let message = Format.asprintf "@[<h>%t@]" message.value in
     DiagnosticRelatedInformation.create ~location ~message
 
-  let render_lsp_diagnostic (uri : DocumentUri.t) (diag : Diagnostic.t) : Lsp_Diagnostic.t =
-    let range = Shims.Loc.lsp_range_of_span diag.cause.location in
-    let severity = Shims.Diagnostic.lsp_severity_of_severity @@ ErrorCode.severity diag.code in
-    let code = `Integer (ErrorCode.code_num diag.code) in
-    let message = Format.asprintf "@[<h>%t@]" diag.cause.message in
-    let relatedInformation = List.map (render_lsp_additional_info uri) @@ Bwd.to_list diag.frames in
+  let render_lsp_diagnostic (uri : DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
+    let range = Shims.Loc.lsp_range_of_span diag.message.loc in
+    let severity = Shims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
+    let message = Format.asprintf "@[<h>%t@]" diag.message.value in
+    let code = `String (Code.to_string diag.code) in
+    let relatedInformation = List.map (render_lsp_backtrace uri) @@ Bwd.to_list diag.backtrace in
     Lsp_Diagnostic.create
       ~range
-      ~severity
       ~code
+      ~severity
       ~message
       ~relatedInformation
       ()
 
-  let publish_diagnostics path (diagnostics : Diagnostic.t list) =
+  let publish_diagnostics path (diagnostics : diagnostic list) =
     let uri = DocumentUri.of_path path in
     let diagnostics = List.map (render_lsp_diagnostic uri) diagnostics in
     let params = PublishDiagnosticsParams.create ~uri ~diagnostics () in
@@ -92,8 +91,15 @@ struct
     let server = State.get () in
     let path = DocumentUri.to_path uri in
     Eio.traceln "Loading file: %s@." path;
-    let diagnostics = Doctor.run ~span:(Span.file_start path) (fun () -> server.load_file path) in
-    publish_diagnostics path diagnostics
+    (* The LSP protocol doesn't allow for incremental publishing of diagnostics.
+       Therefore, we need to accumulate all the diagnostics encountered during
+       a run, and publish them in one go. *)
+    let diagnostics = ref [] in
+    let push_diagnostic d =
+      diagnostics := d :: !diagnostics
+    in
+    Logger.run ~emit:push_diagnostic ~fatal:push_diagnostic (fun () -> server.load_file path);
+    publish_diagnostics path !diagnostics
 
   let should_shutdown () =
     let server = State.get () in
@@ -101,6 +107,14 @@ struct
 
   let initiate_shutdown () =
     State.modify @@ fun st -> { st with should_shutdown = true }
+
+  (* [TODO: Reed M, 12/12/2022] No code actions for now. *)
+  let code_action (params : CodeActionParams.t) : CodeActionResult.t =
+    None
+
+  (* [TODO: Reed M, 12/12/2022] No hovers for now. *)
+  let hover (params : HoverParams.t) : Hover.t option =
+    None
 
   module Request =
   struct
@@ -115,6 +129,10 @@ struct
         raise @@ LspError (HandshakeError err)
       | Shutdown ->
         initiate_shutdown ()
+      | CodeAction params ->
+        code_action params
+      | TextDocumentHover params ->
+        hover params
       | _ ->
         raise @@ LspError (UnknownRequest mthd)
 
@@ -148,7 +166,7 @@ struct
   struct
     type t = Lsp.Client_notification.t
 
-    let dispatch : string -> t -> unit = 
+    let dispatch : string -> t -> unit =
       fun mthd ->
       function
       | TextDocumentDidOpen doc ->
@@ -178,7 +196,7 @@ struct
       | _ -> None
   end
 
-  let run env ~init ~load_file k = 
+  let run env ~init ~load_file k =
     let lsp_io = LspEio.init env in
     let init = {
       lsp_io;

@@ -33,7 +33,7 @@ struct
   (* NOTE: We should never really recieve an invalid header, as
      that would indicate a broken client implementation. Therefore,
      we just bail out when we see an invalid header, as there's 
-     way we can really recover anyways. *)
+     no way we can really recover anyways. *)
   type header_error =
     | InvalidHeader of string
     | InvalidContentLength of string

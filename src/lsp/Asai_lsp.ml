@@ -1,14 +1,11 @@
 open Lsp.Types
 
-
 module RPC = Jsonrpc
 
-module Make (ErrorCode : Asai.ErrorCode.S) =
+module Make (Code : Asai.Code.S) (Logger : Asai.Logger.S with module Code := Code) =
 struct
-
-  module Effects = Effects.Make(ErrorCode)
-  module Doctor = Effects.Doctor
-  open Effects
+  module Server = Server.Make(Code)(Logger)
+  open Server
 
   let unwrap opt err =
     match opt with
@@ -49,7 +46,7 @@ struct
        This causes more trouble than it's worth, so we always select UTF-8 as our encoding, even
        if the client doesn't support it. *)
     let positionEncoding =
-      PositionEncodingKind.Utf8
+      PositionEncodingKind.UTF8
     in
     (* [FIXME: Reed M, 09/06/2022] The current verison of the LSP library doesn't support 'positionEncoding' *)
     ServerCapabilities.create
@@ -65,7 +62,7 @@ struct
       Option.value ~default:[] @@
       Option.bind init_params.capabilities.general @@
       fun gcap -> gcap.positionEncodings
-    in List.mem PositionEncodingKind.Utf8 position_encodings
+    in List.mem PositionEncodingKind.UTF8 position_encodings
 
   let get_root (init_params : InitializeParams.t) =
     match init_params.rootUri with
@@ -146,7 +143,7 @@ struct
 
   let run ~init ~load_file =
     Eio_main.run @@ fun env ->
-    Effects.run env ~init ~load_file @@ fun () ->
+    Server.run env ~init ~load_file @@ fun () ->
     begin
       initialize ();
       event_loop ()
