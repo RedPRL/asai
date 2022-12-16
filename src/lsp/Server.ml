@@ -109,11 +109,11 @@ struct
     State.modify @@ fun st -> { st with should_shutdown = true }
 
   (* [TODO: Reed M, 12/12/2022] No code actions for now. *)
-  let code_action (params : CodeActionParams.t) : CodeActionResult.t =
+  let code_action (_params : CodeActionParams.t) : CodeActionResult.t =
     None
 
   (* [TODO: Reed M, 12/12/2022] No hovers for now. *)
-  let hover (params : HoverParams.t) : Hover.t option =
+  let hover (_params : HoverParams.t) : Hover.t option =
     None
 
   module Request =
