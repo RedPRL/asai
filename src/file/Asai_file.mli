@@ -1,7 +1,7 @@
 (** Read files and flatten spans into marked text. *)
 
 (** Definition of marked text. *)
-module Marked = Marked
+module MarkedDiagnostic = MarkedDiagnostic
 
 (** Generic content reader. *)
 module Reader = Reader

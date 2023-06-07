@@ -1,4 +1,4 @@
-type t = (OrderedPosition.t * Marked.style * [`Begin | `End]) list
+type t = (OrderedPosition.t * MarkedDiagnostic.style * [`Begin | `End]) list
 
 let empty = []
 
@@ -13,7 +13,7 @@ open Bwd.Infix
 type state =
   { segments : Flattened.marked_point bwd
   ; flattener_state : FlattenerState.t
-  ; prev_style : Marked.style option
+  ; prev_style : MarkedDiagnostic.style option
   ; cursor : Asai.Span.position
   }
 

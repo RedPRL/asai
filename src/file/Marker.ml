@@ -1,6 +1,6 @@
 module type S =
 sig
-  val mark_section : Flattened.section -> Marked.section
+  val mark_section : Flattened.section -> MarkedDiagnostic.section
 end
 
 module Make (R : Reader.S) = struct
@@ -36,7 +36,7 @@ module Make (R : Reader.S) = struct
     | "" -> segments
     | s -> segments #< (style, s)
 
-  let mark_block (b : Flattened.block) : Marked.block =
+  let mark_block (b : Flattened.block) : MarkedDiagnostic.block =
     if b = [] then invalid_arg "mark_block"
     else
       let rec go lines segments style (cursor : position) : Flattened.block -> _ =
@@ -59,6 +59,6 @@ module Make (R : Reader.S) = struct
       }
 
   let mark_blocks = List.map mark_block
-  let mark_section (file_path, bs) : Marked.section =
+  let mark_section (file_path, bs) : MarkedDiagnostic.section =
     { file_path; blocks = mark_blocks bs }
 end

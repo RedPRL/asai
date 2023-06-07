@@ -1,5 +1,5 @@
 (** Styles *)
-type style = Marked.style
+type style = MarkedDiagnostic.style
 
 (** A point with a style. *)
 type marked_point = {style : style option; position : Asai.Span.position}

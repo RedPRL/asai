@@ -2,7 +2,7 @@ open Bwd
 
 module type S =
 sig
-  val assemble : splitting_threshold:int -> 'code Asai.Diagnostic.t -> 'code Marked.t
+  val assemble : splitting_threshold:int -> 'code Asai.Diagnostic.t -> 'code MarkedDiagnostic.t
 end
 
 module Make (R : Reader.S) =
@@ -26,7 +26,7 @@ struct
 
   let assemble ~splitting_threshold (d : 'code Asai.Diagnostic.t) =
     R.run @@ fun () ->
-    Marked.{
+    MarkedDiagnostic.{
       code = d.code;
       severity = d.severity;
       message = message ~splitting_threshold ~additional_marks:d.additional_marks d.message;

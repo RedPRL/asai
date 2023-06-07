@@ -1,4 +1,4 @@
-module Marked = Marked
+module MarkedDiagnostic = MarkedDiagnostic
 module Reader = Reader
 module FileReader = FileReader
 module Assembler = Assembler
