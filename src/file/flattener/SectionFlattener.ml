@@ -1,10 +1,10 @@
-type t = (OrderedPosition.t * MarkedDiagnostic.style * [`Begin | `End]) list
+type t = (OrderedPosition.t * (MarkedDiagnostic.style * int)) list
 
 let empty = []
 
 let add (op, sp) l =
   let begin_, end_ = Asai.Span.to_positions sp in
-  (begin_, op, `Begin) :: (end_, op, `End) :: l
+  (begin_, (op, 1)) :: (end_, (op, -1)) :: l
 
 open Bwd
 open Bwd.Infix
@@ -25,27 +25,20 @@ let init_state (cursor : OrderedPosition.t) =
   ; cursor
   }
 
-let grouping ~splitting_threshold : Flattened.block -> Flattened.block list =
-  let module F = Flattened in
-  let rec loop =
-    let open Asai.Span in
-    function
-    | [] -> assert false
-    | [p] -> p, [], []
-    | p :: ps ->
-      let q, qs, qss = loop ps in
-      if q.F.position.line_num - p.F.position.line_num >= splitting_threshold &&
-         p.F.style = None (* not highlighted or marked *)
-      then
-        p, [], ((q::qs) :: qss)
-      else
-        p, (q::qs), qss
-  in
+let grouping_aux ~splitting_threshold (p : Flattened.marked_point) : Flattened.marked_point list list -> Flattened.marked_point list list =
   function
-  | [] -> []
-  | ps ->
-    let p, ps, pss = loop ps in
-    (p :: ps) :: pss
+  | [] -> [[p]]
+  | [] :: qss -> [p] :: qss
+  | (q :: _ as qs) :: qss ->
+    if q.position.line_num - p.position.line_num >= splitting_threshold &&
+       p.style = None (* not highlighted or marked *)
+    then
+      [p] :: qs :: qss
+    else
+      (p :: qs) :: qss
+
+let grouping ~splitting_threshold (input : Flattened.block) : Flattened.block list =
+  List.fold_right (grouping_aux ~splitting_threshold) input []
 
 let flatten ~splitting_threshold l =
   let module F = Flattened in
