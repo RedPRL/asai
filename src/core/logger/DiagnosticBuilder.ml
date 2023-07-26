@@ -28,7 +28,7 @@ struct
 
   let ktracef k ?loc fmt =
     fmt |> Format.kdprintf @@ fun message x ->
-    Traces.scope (fun bt -> bt #< { loc; value = message }) @@ k x
+    Traces.scope (fun bt -> bt <: { loc; value = message }) @@ k x
 
   let tracef ?loc fmt = ktracef Fun.id ?loc fmt
 

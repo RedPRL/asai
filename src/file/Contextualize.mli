@@ -1,11 +1,8 @@
 open Bwd
-
-(** Styles *)
-type style = [`Highlighted | `Marked]
-type 'a styled = style option * 'a
+open Asai
 
 (** A segment is a styled string without any control character (including new lines). *)
-type segment = string styled
+type segment = string Flattener.styled
 
 (** A line is a list of segments. *)
 type line = segment list
@@ -22,13 +19,19 @@ type section =
   ; blocks : block list (** The blocks within a block. *)
   }
 
-(** A multi-span is a diagnostic with all formatted spans across multiple files. *)
-type message = section list * Asai.Diagnostic.message
+type 'a contextualized =
+  { value : 'a
+  ; context : section list
+  }
 
-(** A diagnostic rendered with actual (formatted) text. *)
 type 'code t =
   { code : 'code (** The error code. *)
-  ; severity : Asai.Severity.t (** The severity of the message. *)
-  ; message : message (** The marked message. *)
-  ; backtrace : message bwd
+  ; severity : Severity.t (** The severity of the message. *)
+  ; message : Diagnostic.message contextualized (** The marked message. *)
+  ; backtrace : Diagnostic.message contextualized bwd
   }
+
+module Make : Reader.S ->
+  sig
+    val contextualize : splitting_threshold:int -> 'code Asai.Diagnostic.t -> 'code t
+  end

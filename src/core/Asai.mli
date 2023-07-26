@@ -28,3 +28,8 @@ module Diagnostic = Diagnostic
     Managing the current span/position can become tedious, so asai provides a series of effects for
     handling this. *)
 module Logger = Logger
+
+(** {1 Utilities}
+
+    A module that flattens the highlighting. *)
+module Flattener = Flattener

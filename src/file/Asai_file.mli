@@ -1,22 +1,7 @@
 (** Read files and flatten spans into marked text. *)
 
-(** Definition of marked text. *)
-module MarkedDiagnostic = MarkedDiagnostic
-
-(** Generic content reader. *)
+(** Content readers. *)
 module Reader = Reader
 
-(** File reader. *)
-module FileReader = FileReader
-
-(** Assembler. *)
-module Assembler = Assembler
-
-(**/**)
-
-module Internal :
-sig
-  module Flattened = Flattened
-  module Flattener = Flattener
-  module Marker = Marker
-end
+(** Text assembler. *)
+module Contextualize = Contextualize
