@@ -1,8 +1,25 @@
 open Bwd
-open Asai
+
+module Highlighting =
+struct
+  type t = [`Primary | `Related]
+  let equal (x : t) (y : t) : bool = x = y
+
+  let compare (x : t) (y : t) : int =
+    match x, y with
+    | `Primary, `Primary -> 0
+    | `Primary, `Related -> 1
+    | `Related, `Primary -> -1
+    | `Related, `Related -> 0
+
+  let is_primary t = t = `Primary
+end
+
+type highlighting = Highlighting.t
+type 'a styled = { style : highlighting option; value : 'a }
 
 (** A segment is a styled string without any control character (including new lines). *)
-type segment = string Flattener.styled
+type segment = string styled
 
 (** A line is a list of segments. *)
 type line = segment list
@@ -24,14 +41,9 @@ type 'a contextualized =
   ; context : section list
   }
 
-type 'code t =
+type 'code diagnostic =
   { code : 'code (** The error code. *)
   ; severity : Severity.t (** The severity of the message. *)
   ; message : Diagnostic.message contextualized (** The marked message. *)
   ; backtrace : Diagnostic.message contextualized bwd
   }
-
-module Make : Reader.S ->
-  sig
-    val contextualize : splitting_threshold:int -> 'code Asai.Diagnostic.t -> 'code t
-  end

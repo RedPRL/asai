@@ -6,4 +6,6 @@ module Diagnostic = Diagnostic
 
 module Logger = Logger
 
-module Flattener = Flattener
+module Context = Context
+module Reader = Reader
+module Contextualize = Contextualize

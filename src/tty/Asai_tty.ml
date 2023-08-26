@@ -1,11 +1,9 @@
 open Bwd
-
-open Asai
-
 open Notty
 open Notty.Infix
 
-module C = Asai_file.Contextualize
+open Asai
+module C = Context
 
 module Make (Code : Code.S) =
 struct
@@ -38,7 +36,6 @@ struct
   let display_message code severity C.{context = sections; value = msg} =
     let segment ({style; value = seg} : C.segment) =
       match style with
-      (* TODO: how to display `Contextualze text? *)
       | None ->
         I.string A.empty seg
       | Some `Primary ->
@@ -52,7 +49,7 @@ struct
     let block (b : C.block) =
       (* We want to display the error message under whatever block contains the highlighted text *)
       (b.lines |> List.map line |> I.vcat) <->
-      if List.exists (List.exists (function Asai.Flattener.{style = Some `Primary; _} -> true | _ -> false)) b.lines then
+      if List.exists (List.exists (function C.{style = Some `Primary; _} -> true | _ -> false)) b.lines then
         I.pad ~t:1 @@ I.strf "[%s] %t" (Code.to_string code) msg
       else
         I.void 0 0
@@ -78,7 +75,7 @@ struct
     else
       (sections |> List.map (fun s -> s |> section |> I.pad ~b:1) |> I.vcat) |> I.crop ~b:2
 
-  let display_marked debug (m : 'code C.t) =
+  let display_marked debug (m : 'code C.diagnostic) =
     I.pad ~t:1 ~b:1 (display_message m.code m.severity m.message) <->
     if debug then
       I.pad ~b:1 (I.string A.empty ">>> Trace") <->
@@ -86,14 +83,14 @@ struct
     else
       I.void 0 0
 
-  module C = C.Make(Asai_file.Reader.File)
+  module D = Contextualize.Make(FileReader)
 
   let display ?(display_traces = false) diag =
-    let m = C.contextualize ~splitting_threshold:5 diag in
+    let m = D.contextualize ~splitting_threshold:5 diag in
     Notty_unix.output_image (display_marked display_traces m)
 
   let interactive_trace diag =
-    let m = C.contextualize ~splitting_threshold:5 diag in
+    let m = D.contextualize ~splitting_threshold:5 diag in
     let traces =
       Bwd.append
         (m.backtrace |> Bwd.map (display_message m.code m.severity))

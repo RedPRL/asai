@@ -1,40 +1,9 @@
 open Bwd
 open Bwd.Infix
 
-open Asai
+open Context
 
-type segment = string Flattener.styled
-
-type line = segment list
-
-type block =
-  { start_line_num : int
-  ; lines : line list
-  }
-
-type section =
-  { file_path : string
-  ; blocks : block list
-  }
-
-type 'a contextualized =
-  { value : 'a
-  ; context : section list
-  }
-
-type 'code t =
-  { code : 'code (** The error code. *)
-  ; severity : Severity.t (** The severity of the message. *)
-  ; message : Diagnostic.message contextualized (** The marked message. *)
-  ; backtrace : Diagnostic.message contextualized bwd
-  }
-
-module Make (R : Reader.S) :
-sig
-  val contextualize : splitting_threshold:int -> 'code Asai.Diagnostic.t -> 'code t
-end
-
-= struct
+module Make (R : Reader.S) = struct
   type position = Span.position
 
   (** [find_eol pos] finds the position of the next ['\n']. If the end of file is reached before ['\n'], then the position of the end of the file is returned. *)
@@ -64,20 +33,19 @@ end
   let is_empty_span (begin_, end_ : position * position) : bool =
     begin_.offset = end_.offset
 
-  let append_segment (segments : segment bwd) Flattener.{style; value = span} : segment bwd =
+  let append_segment (segments : segment bwd) {style; value = span} : segment bwd =
     if is_empty_span span
     then segments
     else segments <: {style; value = read_between span}
 
-  let contextualize_block : Span.position Flattener.styled list -> block =
-    let open Asai in
+  let contextualize_block : Span.position styled list -> block =
     function
     | [] -> invalid_arg "contextualize_block"
     | (b :: _) as bs ->
       let start_pos = Span.to_start_of_line b.value in
-      let[@tailcall] rec go ~lines ~segments Flattener.{style; value = cursor} : position Flattener.styled list -> line bwd =
+      let[@tailcall] rec go ~lines ~segments {style; value = cursor} : position styled list -> line bwd =
         function
-        | p::ps when cursor.Span.line_num = p.Flattener.value.Span.line_num ->
+        | p::ps when cursor.Span.line_num = p.value.Span.line_num ->
           let segments = append_segment segments {style; value = cursor, p.value} in
           go ~lines ~segments p ps
         | ps ->
@@ -97,20 +65,11 @@ end
   let contextualize_section (file_path, bs) : section =
     { file_path; blocks = contextualize_blocks bs }
 
-  let group p =
-    function
-    | [] -> []
-    | x :: xs ->
-      let[@tail_mod_cons] rec go acc x =
-        function
-        | [] -> [acc @> [x]]
-        | y :: ys when p x y -> (go[@tailcall]) (acc <: x) y ys
-        | y :: ys -> (acc @> [x]) :: (go[@tailcall]) Emp y ys
-      in
-      go Emp x xs
 
-  let split_block ~splitting_threshold : Span.position Flattener.styled list -> _ list list =
-    group @@ fun p q -> p.Flattener.value.Span.line_num - q.value.line_num <= splitting_threshold || p.style <> None
+  let split_block ~splitting_threshold =
+    Utils.group @@ fun p q ->
+    p.style <> None ||
+    p.value.Span.line_num - q.value.line_num <= splitting_threshold
 
   let split_section ~splitting_threshold (file, block) = file, split_block ~splitting_threshold block
 

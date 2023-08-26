@@ -1,23 +1,7 @@
 open Bwd
 open Bwd.Infix
 
-module Highlighting =
-struct
-  type t = [`Primary | `Related]
-  let equal (x : t) (y : t) : bool = x = y
-
-  let compare (x : t) (y : t) : int =
-    match x, y with
-    | `Primary, `Primary -> 0
-    | `Primary, `Related -> 1
-    | `Related, `Primary -> -1
-    | `Related, `Related -> 0
-
-  let is_primary t = t = `Primary
-end
-
-type highlighting = Highlighting.t
-type 'a styled = { style : highlighting option; value : 'a }
+open Context
 
 module File =
 struct

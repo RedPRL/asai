@@ -29,7 +29,8 @@ module Diagnostic = Diagnostic
     handling this. *)
 module Logger = Logger
 
-(** {1 Utilities}
-
-    A module that flattens the highlighting. *)
-module Flattener = Flattener
+(** {1 Contextualization}
+    Turning spans into actual texts. *)
+module Context = Context
+module Reader = Reader
+module Contextualize = Contextualize
