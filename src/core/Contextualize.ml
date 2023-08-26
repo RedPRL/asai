@@ -26,57 +26,46 @@ module Make (R : Reader.S) = struct
       start_of_line = pos.offset + 1;
       line_num = pos.line_num + 1 }
 
-  let read_between (begin_, end_ : position * position) : string =
+  let read_between (begin_ : position) (end_ : position) : string =
     String.init (end_.offset - begin_.offset) @@ fun i ->
     R.unsafe_get begin_.file_path (begin_.offset + i)
-
-  let is_empty_span (begin_, end_ : position * position) : bool =
-    begin_.offset = end_.offset
-
-  let append_segment (segments : segment bwd) {style; value = span} : segment bwd =
-    if is_empty_span span
-    then segments
-    else segments <: {style; value = read_between span}
 
   let contextualize_block : Span.position styled list -> block =
     function
     | [] -> invalid_arg "contextualize_block"
     | (b :: _) as bs ->
       let start_pos = Span.to_start_of_line b.value in
-      let[@tailcall] rec go ~lines ~segments {style; value = cursor} : position styled list -> line bwd =
+      let[@tailcall] rec go ~lines ~segments (cur : _ styled) : _ styled list -> _ =
         function
-        | p::ps when cursor.Span.line_num = p.value.Span.line_num ->
-          let segments = append_segment segments {style; value = cursor, p.value} in
+        | p::ps when cur.value.Span.line_num = p.value.Span.line_num ->
+          (* Still on the same line *)
+          let segments = segments <: {style = cur.style; value = read_between cur.value p.value} in
           go ~lines ~segments p ps
         | ps ->
-          (* Shift to the next line *)
-          let eol = find_eol cursor in
-          let segments = append_segment segments {style; value = cursor, eol} in
+          (* Shifting to the next line *)
+          let eol = find_eol cur.value in
+          let segments = segments <: {style = cur.style; value = read_between cur.value eol} in
           let lines = lines <: Bwd.to_list segments in
           (* Continue the process if [ps] is not empty. *)
-          if ps = [] then lines
-          else go ~lines ~segments:Emp {style; value = eol_to_next_line eol} ps
+          match ps with
+          | [] -> assert (cur.style = None); lines
+          | _ -> go ~lines ~segments:Emp {style = cur.style; value = eol_to_next_line eol} ps
       in
       { start_line_num = start_pos.line_num
       ; lines = Bwd.to_list @@ go ~lines:Emp ~segments:Emp {style = None; value = start_pos} bs
       }
 
   let contextualize_blocks = List.map contextualize_block
+
   let contextualize_section (file_path, bs) : section =
     { file_path; blocks = contextualize_blocks bs }
 
+  let context_of_located ~splitting_threshold ~additional_marks loc =
+    List.map contextualize_section @@
+    Flattener.flatten ~splitting_threshold ~additional_marks loc
 
-  let split_block ~splitting_threshold =
-    Utils.group @@ fun p q ->
-    p.style <> None ||
-    p.value.Span.line_num - q.value.line_num <= splitting_threshold
-
-  let split_section ~splitting_threshold (file, block) = file, split_block ~splitting_threshold block
-
-  let contextualize_located ~splitting_threshold ~additional_marks Span.{loc; value} =
-    let f = Option.fold ~none:Flattener.empty ~some:(Flattener.singleton `Primary) loc in
-    let f = List.fold_left (fun f sp -> Flattener.add `Related sp f) f additional_marks in
-    {value; context = List.map contextualize_section @@ List.map (split_section ~splitting_threshold) @@ Flattener.flatten f}
+  let contextualize_located ~splitting_threshold ~additional_marks Span.{value; loc} =
+    {value; context = context_of_located ~splitting_threshold ~additional_marks loc}
 
   let contextualize ~splitting_threshold (d : 'code Diagnostic.t) : _ =
     R.run @@ fun () ->
