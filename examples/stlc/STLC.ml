@@ -3,7 +3,7 @@ open Bwd
 
 open Syntax
 
-module Terminal = Asai_unix.Make(ErrorCode)
+module Terminal = Asai_tty.Make(ErrorCode)
 module Logger = Asai.Logger.Make(ErrorCode)
 module Server = Asai_lsp.Make(ErrorCode)(Logger)
 

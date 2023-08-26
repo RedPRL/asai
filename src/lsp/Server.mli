@@ -36,7 +36,7 @@ module Make (Code : Asai.Code.S) (Logger: Asai.Logger.S with module Code := Code
     val recv : unit -> t option
   end
 
-  val run : Eio.Stdenv.t
+  val run : Eio_unix.Stdenv.base
     -> init:(string option -> unit)
     -> load_file:(string -> unit)
     -> (unit -> 'a)

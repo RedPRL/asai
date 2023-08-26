@@ -5,7 +5,7 @@ module RPC = Jsonrpc
 
 type io = {
   input : Buf_read.t;
-  output : Flow.sink;
+  output : Eio_unix.sink;
 }
 
 (** See https://microsoft.github.io/language-server-protocol/specifications/specification-current/#headerPart *)
@@ -25,14 +25,14 @@ struct
     { empty with content_length }
 
   let is_content_length key =
-    String.equal (String.lowercase_ascii @@ String.trim key) "content-length" 
+    String.equal (String.lowercase_ascii @@ String.trim key) "content-length"
 
   let is_content_type key =
-    String.equal (String.lowercase_ascii @@ String.trim key) "content-type" 
+    String.equal (String.lowercase_ascii @@ String.trim key) "content-type"
 
   (* NOTE: We should never really recieve an invalid header, as
      that would indicate a broken client implementation. Therefore,
-     we just bail out when we see an invalid header, as there's 
+     we just bail out when we see an invalid header, as there's
      no way we can really recover anyways. *)
   type header_error =
     | InvalidHeader of string
@@ -89,7 +89,7 @@ end
 
 module Message =
 struct
-  let read io = 
+  let read io =
     try
       let header = Header.read io in
       let len = header.content_length in
@@ -97,7 +97,7 @@ struct
       Some (RPC.Packet.t_of_yojson json)
     with
     | Sys_error _
-    | End_of_file  ->
+    | End_of_file ->
       None
 
   let write io packet =
@@ -109,10 +109,10 @@ struct
     Flow.copy_string data io.output
 end
 
-let init (env : Stdenv.t) = {
+let init (env : Eio_unix.Stdenv.base) = {
   (* [TODO: Reed M, 09/06/2022] I should think about this buffer size... *)
-  input = Buf_read.of_flow  ~max_size:1_000_000 @@ Stdenv.stdin env;
-  output = Stdenv.stdout env
+  input = Buf_read.of_flow ~max_size:1_000_000 env#stdin;
+  output = env#stdout
 }
 
 let recv io =

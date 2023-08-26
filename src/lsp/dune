@@ -1,4 +1,4 @@
 (library
   (name Asai_lsp)
   (public_name asai.lsp)
-  (libraries algaeff asai asai.file lsp eio eio_main))
+  (libraries algaeff lsp eio eio_main asai))

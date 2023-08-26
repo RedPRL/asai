@@ -1,0 +1,4 @@
+(library
+  (name Asai_tty)
+  (public_name asai.tty)
+  (libraries bwd notty notty.unix asai asai.file))
