@@ -111,8 +111,8 @@ end
 
 let init (env : Eio_unix.Stdenv.base) = {
   (* [TODO: Reed M, 09/06/2022] I should think about this buffer size... *)
-  input = Buf_read.of_flow ~max_size:1_000_000 env#stdin;
-  output = env#stdout
+  input = Buf_read.of_flow ~max_size:1_000_000 @@ Eio.Stdenv.stdin env;
+  output = Eio.Stdenv.stdout env
 }
 
 let recv io =
