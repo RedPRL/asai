@@ -1,9 +1,9 @@
 open Bwd
-
-open Asai
-
 open Notty
 open Notty.Infix
+
+open Asai
+module C = Context
 
 module Make (Code : Code.S) =
 struct
@@ -28,34 +28,33 @@ struct
 
   let fringe_style = A.fg @@ A.gray 8
 
-  let line_numbers_of_block ({start_line_num ; lines} : Asai_file.Marked.block) =
+  let line_numbers_of_block ({start_line_num ; lines} : C.block) =
     column ~align:`Right @@
     List.map (fun n -> I.string fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
-  let display_message code severity (sections, msg) =
-    let segment (style, seg) =
+  let display_message code severity C.{context = sections; value = msg} =
+    let segment ({style; value = seg} : C.segment) =
       match style with
-      (* TODO: how to display `Marked text? *)
       | None ->
         I.string A.empty seg
-      | Some `Marked ->
-        I.string marked_style seg
-      | Some `Highlighted ->
+      | Some `Primary ->
         I.string (highlight_style severity) seg
+      | Some `Related ->
+        I.string marked_style seg
     in
-    let line segs =
+    let line (segs : C.line) =
       segs |> List.map segment |> I.hcat
     in
-    let block (b : Asai_file.Marked.block) =
+    let block (b : C.block) =
       (* We want to display the error message under whatever block contains the highlighted text *)
       (b.lines |> List.map line |> I.vcat) <->
-      if List.exists (List.exists (function (Some `Highlighted,_) -> true | _ -> false)) b.lines then
+      if List.exists (List.exists (function C.{style = Some `Primary; _} -> true | _ -> false)) b.lines then
         I.pad ~t:1 @@ I.strf "[%s] %t" (Code.to_string code) msg
       else
         I.void 0 0
     in
-    let section ({file_path ; blocks} : Asai_file.Marked.section) =
+    let section ({file_path ; blocks} : C.section) =
       let line_numbers = blocks |> List.map line_numbers_of_block in
       let fringes = line_numbers |> List.map (fun img -> vline fringe_style (I.height img) "│") in
       let line_numbers = line_numbers |> List.map (I.pad ~b:2) |> column ~align:`Right |> I.crop ~b:2 in
@@ -76,7 +75,7 @@ struct
     else
       (sections |> List.map (fun s -> s |> section |> I.pad ~b:1) |> I.vcat) |> I.crop ~b:2
 
-  let display_marked debug (m : 'code Asai_file.Marked.t) =
+  let display_marked debug (m : 'code C.diagnostic) =
     I.pad ~t:1 ~b:1 (display_message m.code m.severity m.message) <->
     if debug then
       I.pad ~b:1 (I.string A.empty ">>> Trace") <->
@@ -84,14 +83,14 @@ struct
     else
       I.void 0 0
 
-  module Assemble = Asai_file.Assembler.Make(Asai_file.FileReader)
+  module D = Contextualize.Make(FileReader)
 
   let display ?(display_traces = false) diag =
-    let m = Assemble.assemble ~splitting_threshold:5 diag in
+    let m = D.contextualize ~splitting_threshold:5 diag in
     Notty_unix.output_image (display_marked display_traces m)
 
   let interactive_trace diag =
-    let m = Assemble.assemble ~splitting_threshold:5 diag in
+    let m = D.contextualize ~splitting_threshold:5 diag in
     let traces =
       Bwd.append
         (m.backtrace |> Bwd.map (display_message m.code m.severity))

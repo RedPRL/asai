@@ -24,6 +24,9 @@ type position = {
   (** The 1-indexed line number of the line that contains the position. *)
 }
 
+(** A convenience module for positions in the same file. *)
+module SingleFilePosition : Map.OrderedType with type t = position
+
 (** The abstract type of spans. *)
 type t
 

@@ -28,3 +28,9 @@ module Diagnostic = Diagnostic
     Managing the current span/position can become tedious, so asai provides a series of effects for
     handling this. *)
 module Logger = Logger
+
+(** {1 Contextualization}
+    Turning spans into actual texts. *)
+module Context = Context
+module Reader = Reader
+module Contextualize = Contextualize
