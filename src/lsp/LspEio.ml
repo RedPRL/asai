@@ -5,7 +5,7 @@ module RPC = Jsonrpc
 
 type io = {
   input : Buf_read.t;
-  output : Eio_unix.sink;
+  output : Eio_unix.sink_ty Eio_unix.sink;
 }
 
 (** See https://microsoft.github.io/language-server-protocol/specifications/specification-current/#headerPart *)
