@@ -1,6 +1,6 @@
 module type S = DiagnosticEmitterSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code =
+module Make (Code : Diagnostic.Code) : S with module Code := Code =
 struct
   type _ Effect.t += Emit : Code.t Diagnostic.t -> unit Effect.t
   exception Fatal of Code.t Diagnostic.t

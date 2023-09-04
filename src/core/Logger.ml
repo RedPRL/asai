@@ -1,6 +1,6 @@
 module type S = LoggerSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code =
+module Make (Code : Diagnostic.Code) : S with module Code := Code =
 struct
   module DE = DiagnosticEmitter.Make(Code)
   module DB = DiagnosticBuilder.Make(Code)

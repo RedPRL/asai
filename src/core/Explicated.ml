@@ -12,7 +12,7 @@ struct
     | `Related, `Primary -> -1
     | `Related, `Related -> 0
 
-  let is_primary t = t = `Primary
+  let is_primary (x : t) = x = `Primary
 end
 
 type highlighting = Highlighting.t
@@ -42,8 +42,8 @@ type 'a contextualized =
   }
 
 type 'code diagnostic =
-  { code : 'code (** The error code. *)
-  ; severity : Severity.t (** The severity of the message. *)
+  { severity : Diagnostic.severity (** The severity of the message. *)
+  ; code : 'code (** The error code. *)
   ; message : Diagnostic.message contextualized (** The marked message. *)
   ; backtrace : Diagnostic.message contextualized bwd
   }

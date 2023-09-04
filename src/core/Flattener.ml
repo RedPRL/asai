@@ -1,9 +1,9 @@
 open Bwd
 open Bwd.Infix
 
-open Context
+open Explicated
 
-type block = Span.position Context.styled list
+type block = Span.position styled list
 type section = string * block list
 
 type 'a marked =

@@ -15,10 +15,10 @@ type position = {
   (** The absolute file path of the file that contains the position. *)
 
   offset : int;
-  (** The byte offset of the position relative to the beginning of the file. *)
+  (** The 0-indexed byte offset of the position relative to the beginning of the file. *)
 
   start_of_line : int;
-  (** The byte offset pointing to the start of the line that contains the position. *)
+  (** The 0-indexed byte offset pointing to the start of the line that contains the position. *)
 
   line_num : int;
   (** The 1-indexed line number of the line that contains the position. *)

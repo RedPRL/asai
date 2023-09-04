@@ -3,7 +3,7 @@ open Bwd.Infix
 
 module type S = DiagnosticBuilderSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code =
+module Make (Code : Diagnostic.Code) : S with module Code := Code =
 struct
   type env = Diagnostic.message Span.located bwd
   module Traces = Algaeff.Reader.Make (struct type nonrec env = env end)

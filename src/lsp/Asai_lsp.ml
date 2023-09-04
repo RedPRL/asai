@@ -2,7 +2,7 @@ open Lsp.Types
 
 module RPC = Jsonrpc
 
-module Make (Code : Asai.Code.S) (Logger : Asai.Logger.S with module Code := Code) =
+module Make (Code : Asai.Diagnostic.Code) (Logger : Asai.Logger.S with module Code := Code) =
 struct
   module Server = Server.Make(Code)(Logger)
   open Server

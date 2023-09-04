@@ -1,6 +1,6 @@
 module type S =
 sig
-  module Code : Code.S
+  module Code : Diagnostic.Code
 
   (** Emit a diagnostic and continue the computation. *)
   val emit : Code.t Diagnostic.t -> unit

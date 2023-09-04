@@ -1,12 +1,12 @@
 module type S =
 sig
-  module Code : Code.S
+  module Code : Diagnostic.Code
 
   (** [messagef ~loc ~additional_marks code format ...] constructs a diagnostic along with the backtrace frames recorded via [tracef]. *)
-  val messagef : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Severity.t -> Code.t -> ('a, Format.formatter, unit, Code.t Diagnostic.t) format4 -> 'a
+  val messagef : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Diagnostic.severity -> Code.t -> ('a, Format.formatter, unit, Code.t Diagnostic.t) format4 -> 'a
 
   (** [kmessagef kont ~loc ~additional_marks code format ...] constructs a diagnostic and then apply [kont] to the resulting diagnostic. *)
-  val kmessagef : (Code.t Diagnostic.t -> 'b) -> ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Severity.t -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  val kmessagef : (Code.t Diagnostic.t -> 'b) -> ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Diagnostic.severity -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** [tracef ~loc format ...] record a frame. *)
   val tracef : ?loc:Span.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
@@ -22,13 +22,13 @@ sig
   val emit : Code.t Diagnostic.t -> unit
 
   (** [emitf ~loc ~additional_marks code format ...] constructs and emits a diagnostic. *)
-  val emitf : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Severity.t -> Code.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
+  val emitf : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Diagnostic.severity -> Code.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
   (** Emit a diagnostic and abort the computation. *)
   val fatal: Code.t Diagnostic.t -> 'a
 
   (** [fatalf ~loc ~additional_marks code format ...] constructs a diagnostic and abort the current computation. *)
-  val fatalf : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Severity.t -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  val fatalf : ?loc:Span.t -> ?additional_marks:Span.t list -> ?severity:Diagnostic.severity -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing
       the computation, and [fatal] to handle fatal diagnostics after aborting the computation. *)

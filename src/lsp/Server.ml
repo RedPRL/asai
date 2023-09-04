@@ -9,7 +9,7 @@ module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (Code : Code.S) (Logger : Logger.S with module Code := Code) =
+module Make (Code : Asai.Diagnostic.Code) (Logger : Logger.S with module Code := Code) =
 struct
   type diagnostic = Code.t Asai.Diagnostic.t
 

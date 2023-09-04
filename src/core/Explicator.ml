@@ -1,9 +1,11 @@
 open Bwd
 open Bwd.Infix
 
-open Context
+include Explicated
 
-module Make (R : Reader.S) = struct
+module type Reader = Reader.S
+
+module Make (R : Reader) = struct
   type position = Span.position
 
   (** [find_eol pos] finds the position of the next ['\n']. If the end of file is reached before ['\n'], then the position of the end of the file is returned. *)

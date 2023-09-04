@@ -4,7 +4,7 @@ open Asai
 (** {1 Display}
     This module provides functions to display and interact with asai diagnostics in UNIX terminals.
 *)
-module Make (Code : Code.S) : sig
+module Make (Code : Diagnostic.Code) : sig
   (** [display ?display_traces diag] displays the message provided in [diag],
       along with relevant text from its span, optionally displaying the traces in [diag]
   *)

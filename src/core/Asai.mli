@@ -1,36 +1,29 @@
-(** Diagnostics and other span-associated metadata.*)
+(** Core of error reporting *)
 
 (** {1 Introduction}
-    When we write any sort of tool that processes source code (compiler, interpreter, etc),
-    we produce a large amount of information that needs to be associated with some span
-    in the original source code. The most obvious case is error messages and other diagnostics,
-    but this also includes types, identifier provenance, and so on. Managing this information
-    is an annoying, repetitive, and error-prone task, which is exactly the problem asai aims to
-    solve. *)
 
-(** {1 Location Types}
-    As one would expect from a library that handles information associated with source-code
-    positions, we provide a set of position types. These are defined as abstract types to
-    ensure that proper care is taken when working with the more difficult bits of Unicode. *)
+    asai provides a generic interface for generating and formatting messages for end users to see.
+    Intended applications include compiler errors and warnings. *)
+
+(** {1 Locations} *)
+
 module Span = Span
 
 (** {1 Diagnostics}
-    Good diagnostics are a large part of what makes good tools, so we take special care to
-    handle these specially. In asai, all diagnostics are parameterized by an [ErrorCode],
-    which is intended to be a sum type representing all the high-level error categories
-    that your tool may produce. *)
 
-module Severity = Severity
-module Code = Code
+    A diagnostic is a message for the end user, for example a compiler warning or error. *)
+
 module Diagnostic = Diagnostic
 
-(** {1 Effects}
-    Managing the current span/position can become tedious, so asai provides a series of effects for
-    handling this. *)
+(** {1 Algebraic Effects}
+
+    Algebraic effects to generate and handle diagnostics. When adopting asai, it is expected that
+    one would use {!Logger.Make} to generate diagnostics. *)
+
 module Logger = Logger
 
 (** {1 Contextualization}
-    Turning spans into actual texts. *)
-module Context = Context
-module Reader = Reader
-module Contextualize = Contextualize
+
+    These modules turn spans into highlighted code. *)
+
+module Explicator = Explicator
