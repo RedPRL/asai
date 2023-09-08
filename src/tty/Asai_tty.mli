@@ -2,7 +2,13 @@
 open Asai
 
 (** {1 Display}
-    This module provides functions to display and interact with asai diagnostics in UNIX terminals.
+    This module provides functions to display or interact with diagnostics in UNIX terminals.
+
+    [@@@alert unstable
+      "The TTY backend will likely change in significant ways in the future to account for more features."
+    ]
+
+    @unstable
 *)
 module Make (Code : Diagnostic.Code) : sig
   (** [display ?display_traces diag] displays the message provided in [diag],

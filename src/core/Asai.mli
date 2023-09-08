@@ -1,11 +1,6 @@
 (** Core of error reporting *)
 
-(** {1 Introduction}
-
-    asai provides a generic interface for generating and formatting messages for end users to see.
-    Intended applications include compiler errors and warnings. *)
-
-(** {1 Locations} *)
+(** {1 Positions, Spans, and Locations} *)
 
 module Span = Span
 
@@ -15,15 +10,14 @@ module Span = Span
 
 module Diagnostic = Diagnostic
 
-(** {1 Algebraic Effects}
+(** {1 Creating Diagnostics}
 
-    Algebraic effects to generate and handle diagnostics. When adopting asai, it is expected that
-    one would use {!Logger.Make} to generate diagnostics. *)
+    Generating and handling diagnostics using algebraic effects. *)
 
 module Logger = Logger
 
-(** {1 Contextualization}
+(** {1 Explication}
 
-    These modules turn spans into highlighted code. *)
+    Turning {!type:Span.t} into highlighted code suitable for rendering. *)
 
 module Explicator = Explicator

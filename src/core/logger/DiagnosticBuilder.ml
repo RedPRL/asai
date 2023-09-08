@@ -23,9 +23,6 @@ struct
   let messagef ?loc ?additional_marks ?severity code =
     kmessagef Fun.id ?loc ?additional_marks ?severity code
 
-  let append_marks d marks =
-    Diagnostic.{ d with additional_marks = d.additional_marks @ marks }
-
   let ktracef k ?loc fmt =
     fmt |> Format.kdprintf @@ fun message x ->
     Traces.scope (fun bt -> bt <: { loc; value = message }) @@ k x

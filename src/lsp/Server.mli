@@ -1,7 +1,7 @@
 open Lsp.Types
 module RPC := Jsonrpc
 
-module Make (Code : Asai.Diagnostic.Code) (Logger: Asai.Logger.S with module Code := Code) : sig
+module Make (Code : Asai.Diagnostic.Code) : sig
   type lsp_error =
     | DecodeError of string
     | HandshakeError of string
@@ -39,6 +39,11 @@ module Make (Code : Asai.Diagnostic.Code) (Logger: Asai.Logger.S with module Cod
   val run : Eio_unix.Stdenv.base
     -> init:(string option -> unit)
     -> load_file:(string -> unit)
+    -> inner_run:
+         (?init_backtrace:Asai.Diagnostic.message Asai.Span.located Bwd.bwd
+          -> emit:(Code.t Asai.Diagnostic.t -> unit)
+          -> fatal:(Code.t Asai.Diagnostic.t -> unit)
+          -> (unit -> unit) -> unit)
     -> (unit -> 'a)
     -> 'a
 end

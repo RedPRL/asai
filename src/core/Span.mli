@@ -1,11 +1,4 @@
-(** The type of locations and single spans.
-
-    All positions are byte-oriented. Here are some popular alternatives:
-    + Unicode characters (which may not match user-perceived characters)
-    + Unicode grapheme clusters (user-perceived characters; see the {{: https://erratique.ch/software/uuseg}uuseg} library)
-    + Column numbers (visual width of a string in display)
-
-    It takes at least linear time to count Unicode characters (except when UTF-32 is in use) or Unicode grapheme clusters from raw bytes. Column numbers are even worse---they are not well-defined: The visual column width of a string highly depends on the eventual renderer (e.g., web browsers, text editors, or terminal emulators) and there is no reliable protocol to communicate the active rendering convention. The rendering result can depend on the fonts (e.g., whether certain emoji sequences are supported, and how CJK characters whose East Asian width is "Ambiguous" are rendered), the locale (the data in [LC_CTYPE]), and other settings (such as the tab size). Many applications use the heuristics implemented in the POSIX function [wcswidth], ignoring all the tricky cases. We use only semantically well-defined units. In sum, we believe {e bytes} are the only efficient and portable position unit. *)
+(** The type of locations and single spans. *)
 
 (** {1 Types} *)
 
@@ -24,21 +17,21 @@ type position = {
   (** The 1-indexed line number of the line that contains the position. *)
 }
 
-(** A convenience module for positions in the same file. *)
-module SingleFilePosition : Map.OrderedType with type t = position
-
 (** The abstract type of spans. *)
 type t
 
+(** An auxiliary type to package data with spans. This can be useful for specifying the location of a token. *)
+type 'a located = { loc : t option; value : 'a }
+
 (** {1 Builders} *)
 
-(** [make beginning ending] builds the span [\[begining, ending)] (not including the byte at the ending position) in from a pair of positions [beginning] and [ending].
+(** [make beginning ending] builds the span [\[begining, ending)] (not including the byte at the ending position) from a pair of positions [beginning] and [ending].
 
-    @raise Invalid_argument if the positions do not share the same file path or if [end_] comes before [begin_]. The comparison of file paths is done by [String.equal] without any path normalization.
+    @raise Invalid_argument if the positions do not share the same file path or if [end_] comes before [begin_]. (It is okay if [end_] equals to [begin_], which means the span is empty.) The comparison of file paths is done by [String.equal] without any path normalization.
 *)
 val make : position -> position -> t
 
-(** [of_lex_position pos] conversion [pos] of type {!type:Lexing.position} to a {!type:position}. The input [pos] must be in byte-indexed. (Therefore, [ocamllex] is compatible, but [sedlex] is not because it uses code points.) *)
+(** [of_lex_position pos] converts an OCaml lexer position [pos] of type {!type:Lexing.position} into a {!type:position}. The input [pos] must be byte-indexed. (Therefore, the OCaml tool [ocamllex] is compatible, but the OCaml library [sedlex] is not because it uses Unicode code points.) *)
 val of_lex_position : Lexing.position -> position
 
 (** [of_lex lexbuf] is [make (of_lex_position (Lexing.lexeme_start_p lexbuf)) (of_lex_position (Lexing.lexeme_end_p lexbuf))], a convenience function. *)
@@ -47,7 +40,7 @@ val of_lex : Lexing.lexbuf -> t
 (** [to_start_of_line pos] returns the position at the start of the line. It is an idempotent function. *)
 val to_start_of_line : position -> position
 
-(** [to_positions span] returns the pair of the beginning and ending positions of [span]. *)
+(** [to_positions] is the right inverse of {!val:make} (up to currying and uncurrying). [to_positions span] returning the pair of the beginning and ending positions of [span]. *)
 val to_positions : t -> position * position
 
 (** {1 Accessors} *)
@@ -60,7 +53,3 @@ val begin_line_num : t -> int
 
 (** [end_line_num span] returns the 1-indexed line number of the ending position. *)
 val end_line_num : t -> int
-
-(** {1 Auxiliary types} *)
-
-type 'a located = { loc : t option; value : 'a }

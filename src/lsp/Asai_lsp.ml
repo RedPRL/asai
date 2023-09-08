@@ -2,9 +2,9 @@ open Lsp.Types
 
 module RPC = Jsonrpc
 
-module Make (Code : Asai.Diagnostic.Code) (Logger : Asai.Logger.S with module Code := Code) =
+module Make (Code : Asai.Diagnostic.Code) =
 struct
-  module Server = Server.Make(Code)(Logger)
+  module Server = Server.Make(Code)
   open Server
 
   let unwrap opt err =
@@ -73,7 +73,7 @@ struct
 
   (** Perform the LSP initialization handshake.
       https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize *)
-  let initialize () = 
+  let initialize () =
     let (id, req) =
       unwrap (Request.recv ()) @@
       HandshakeError "Initialization must begin with a request."
@@ -141,9 +141,9 @@ struct
     | None ->
       Eio.traceln "Recieved an invalid message. Shutting down...@."
 
-  let run ~init ~load_file =
+  let run ~init ~load_file ~inner_run =
     Eio_main.run @@ fun env ->
-    Server.run env ~init ~load_file @@ fun () ->
+    Server.run env ~init ~load_file ~inner_run @@ fun () ->
     begin
       initialize ();
       event_loop ()

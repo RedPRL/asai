@@ -1,5 +1,6 @@
 open Bwd
 
+(** The type of severity. *)
 type severity =
   | Hint
   | Info
@@ -7,14 +8,7 @@ type severity =
   | Error
   | Bug
 
-let string_of_severity =
-  function
-  | Hint -> "Hint"
-  | Info -> "Info"
-  | Warning -> "Warning"
-  | Error -> "Error"
-  | Bug -> "Bug"
-
+(** The signature of message code. An implementer should specify the message code used in their library or application. *)
 module type Code =
 sig
   (** The type of message codes. *)
@@ -45,6 +39,3 @@ type 'code t = {
   backtrace : message Span.located bwd;
   (** The backtrace leading to this diagnostic. *)
 }
-
-(** Mapping the code *)
-let map f d = {d with code = f d.code}

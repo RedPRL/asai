@@ -32,9 +32,9 @@ module Make (R : Reader) = struct
     String.init (end_.offset - begin_.offset) @@ fun i ->
     R.unsafe_get begin_.file_path (begin_.offset + i)
 
-  let contextualize_block : Span.position styled list -> block =
+  let explicate_block : Span.position styled list -> block =
     function
-    | [] -> invalid_arg "contextualize_block"
+    | [] -> invalid_arg "explicate_block"
     | (b :: _) as bs ->
       let start_pos = Span.to_start_of_line b.value in
       let[@tailcall] rec go ~lines ~segments (cur : _ styled) : _ styled list -> _ =
@@ -57,24 +57,24 @@ module Make (R : Reader) = struct
       ; lines = Bwd.to_list @@ go ~lines:Emp ~segments:Emp {style = None; value = start_pos} bs
       }
 
-  let contextualize_blocks = List.map contextualize_block
+  let explicate_blocks = List.map explicate_block
 
-  let contextualize_section (file_path, bs) : section =
-    { file_path; blocks = contextualize_blocks bs }
+  let explicate_part (file_path, bs) : part =
+    { file_path; blocks = explicate_blocks bs }
 
-  let context_of_located ~splitting_threshold ~additional_marks loc =
-    List.map contextualize_section @@
+  let parts_of_located ~splitting_threshold ~additional_marks loc =
+    List.map explicate_part @@
     Flattener.flatten ~splitting_threshold ~additional_marks loc
 
-  let contextualize_located ~splitting_threshold ~additional_marks Span.{value; loc} =
-    {value; context = context_of_located ~splitting_threshold ~additional_marks loc}
+  let explicate_located ~splitting_threshold ~additional_marks Span.{value; loc} =
+    {value; parts = parts_of_located ~splitting_threshold ~additional_marks loc}
 
-  let contextualize ~splitting_threshold (d : 'code Diagnostic.t) : _ =
+  let explicate ?(splitting_threshold=0) (d : 'code Diagnostic.t) : _ =
     R.run @@ fun () ->
     {
       code = d.code;
       severity = d.severity;
-      message = contextualize_located ~splitting_threshold ~additional_marks:d.additional_marks d.message;
-      backtrace = Bwd.map (contextualize_located ~splitting_threshold ~additional_marks:[]) d.backtrace;
+      message = explicate_located ~splitting_threshold ~additional_marks:d.additional_marks d.message;
+      backtrace = Bwd.map (explicate_located ~splitting_threshold ~additional_marks:[]) d.backtrace;
     }
 end

@@ -9,11 +9,15 @@ module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (Code : Asai.Diagnostic.Code) (Logger : Logger.S with module Code := Code) =
+module Make (Code : Asai.Diagnostic.Code) =
 struct
   type diagnostic = Code.t Asai.Diagnostic.t
 
   type server = {
+    run : ?init_backtrace:Asai.Diagnostic.message Asai.Span.located bwd
+      -> emit:(Code.t Asai.Diagnostic.t -> unit)
+      -> fatal:(Code.t Asai.Diagnostic.t -> unit)
+      -> (unit -> unit) -> unit;
     lsp_io : LspEio.io;
     should_shutdown : bool;
     init:string option -> unit;
@@ -98,7 +102,7 @@ struct
     let push_diagnostic d =
       diagnostics := d :: !diagnostics
     in
-    Logger.run ~emit:push_diagnostic ~fatal:push_diagnostic (fun () -> server.load_file path);
+    server.run ~emit:push_diagnostic ~fatal:push_diagnostic (fun () -> server.load_file path);
     publish_diagnostics path !diagnostics
 
   let should_shutdown () =
@@ -196,9 +200,10 @@ struct
       | _ -> None
   end
 
-  let run env ~init ~load_file k =
+  let run env ~init ~load_file ~inner_run k =
     let lsp_io = LspEio.init env in
     let init = {
+      run = inner_run;
       lsp_io;
       init;
       load_file;

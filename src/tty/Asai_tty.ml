@@ -33,14 +33,14 @@ struct
     List.map (fun n -> I.string fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
-  let display_message code severity E.{context = sections; value = msg} =
+  let display_message code severity E.{value = msg; parts} =
     let segment ({style; value = seg} : E.segment) =
       match style with
       | None ->
         I.string A.empty seg
       | Some `Primary ->
         I.string (highlight_style severity) seg
-      | Some `Related ->
+      | Some `Auxiliary ->
         I.string marked_style seg
     in
     let line (segs : E.line) =
@@ -54,7 +54,7 @@ struct
       else
         I.void 0 0
     in
-    let section ({file_path ; blocks} : E.section) =
+    let part ({file_path ; blocks} : E.part) =
       let line_numbers = blocks |> List.map line_numbers_of_block in
       let fringes = line_numbers |> List.map (fun img -> vline fringe_style (I.height img) "│") in
       let line_numbers = line_numbers |> List.map (I.pad ~b:2) |> column ~align:`Right |> I.crop ~b:2 in
@@ -70,10 +70,10 @@ struct
       let body = I.pad ~b:1 (I.string A.empty file_path) <-> blocks in
       I.pad ~r:1 side_panel <|> body
     in
-    if sections = [] then
+    if parts = [] then
       I.strf "[%s] %t" (Code.to_string code) msg
     else
-      (sections |> List.map (fun s -> s |> section |> I.pad ~b:1) |> I.vcat) |> I.crop ~b:2
+      (parts |> List.map (fun s -> s |> part |> I.pad ~b:1) |> I.vcat) |> I.crop ~b:2
 
   let display_marked debug (m : 'code E.diagnostic) =
     I.pad ~t:1 ~b:1 (display_message m.code m.severity m.message) <->
@@ -86,11 +86,11 @@ struct
   module F = Explicator.Make(FileReader)
 
   let display ?(display_traces = false) diag =
-    let m = F.contextualize ~splitting_threshold:5 diag in
+    let m = F.explicate ~splitting_threshold:5 diag in
     Notty_unix.output_image (display_marked display_traces m)
 
   let interactive_trace diag =
-    let m = F.contextualize ~splitting_threshold:5 diag in
+    let m = F.explicate ~splitting_threshold:5 diag in
     let traces =
       Bwd.append
         (m.backtrace |> Bwd.map (display_message m.code m.severity))

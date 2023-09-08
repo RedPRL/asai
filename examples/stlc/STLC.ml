@@ -5,7 +5,7 @@ open Syntax
 
 module Terminal = Asai_tty.Make(ErrorCode)
 module Logger = Asai.Logger.Make(ErrorCode)
-module Server = Asai_lsp.Make(ErrorCode)(Logger)
+module Server = Asai_lsp.Make(ErrorCode)
 
 module Elab =
 struct
@@ -131,7 +131,7 @@ struct
     load_file filepath
 
   let server () =
-    Server.run ~init:(fun _ -> ()) ~load_file:load_file
+    Server.run ~init:(fun _ -> ()) ~load_file:load_file ~inner_run:Logger.run
 
 end
 
