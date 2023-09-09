@@ -131,7 +131,9 @@ struct
     load_file filepath
 
   let server () =
-    Server.run ~init:(fun _ -> ()) ~load_file:load_file ~inner_run:Logger.run
+    Server.run
+      ~init:(fun _ -> ())
+      ~load_file:(fun push file -> Logger.run ~emit:push ~fatal:push @@ fun () -> load_file file)
 
 end
 

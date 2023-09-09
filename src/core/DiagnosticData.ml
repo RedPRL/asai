@@ -23,8 +23,11 @@ end
 
 (** The type of single messages.
 
-    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings but a function awaiting a formatter. This is best paired with {!val:Format.dprintf}, which allows us to delay formatting choices. *)
+    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a message is defined to be a function that takes a formatter and uses it to render the content. *)
 type message = Format.formatter -> unit
+
+(** The type of backtraces, stored as backward lists. *)
+type backtrace = message Span.located bwd
 
 (** The type of diagnostics. *)
 type 'code t = {
@@ -35,7 +38,7 @@ type 'code t = {
   message : message Span.located;
   (** The main message. *)
   additional_marks : Span.t list;
-  (** Additional marking associated with the main message. *)
-  backtrace : message Span.located bwd;
+  (** Additional code fragments that are relevant to the main message. *)
+  backtrace : backtrace;
   (** The backtrace leading to this diagnostic. *)
 }

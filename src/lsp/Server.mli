@@ -38,12 +38,7 @@ module Make (Code : Asai.Diagnostic.Code) : sig
 
   val run : Eio_unix.Stdenv.base
     -> init:(string option -> unit)
-    -> load_file:(string -> unit)
-    -> inner_run:
-         (?init_backtrace:Asai.Diagnostic.message Asai.Span.located Bwd.bwd
-          -> emit:(Code.t Asai.Diagnostic.t -> unit)
-          -> fatal:(Code.t Asai.Diagnostic.t -> unit)
-          -> (unit -> unit) -> unit)
+    -> load_file:((Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
     -> (unit -> 'a)
     -> 'a
 end

@@ -14,14 +14,10 @@ struct
   type diagnostic = Code.t Asai.Diagnostic.t
 
   type server = {
-    run : ?init_backtrace:Asai.Diagnostic.message Asai.Span.located bwd
-      -> emit:(Code.t Asai.Diagnostic.t -> unit)
-      -> fatal:(Code.t Asai.Diagnostic.t -> unit)
-      -> (unit -> unit) -> unit;
     lsp_io : LspEio.io;
     should_shutdown : bool;
     init:string option -> unit;
-    load_file:string -> unit;
+    load_file:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit;
   }
 
   module State = Algaeff.State.Make(struct type state = server end)
@@ -102,7 +98,7 @@ struct
     let push_diagnostic d =
       diagnostics := d :: !diagnostics
     in
-    server.run ~emit:push_diagnostic ~fatal:push_diagnostic (fun () -> server.load_file path);
+    server.load_file push_diagnostic path;
     publish_diagnostics path !diagnostics
 
   let should_shutdown () =
@@ -200,10 +196,9 @@ struct
       | _ -> None
   end
 
-  let run env ~init ~load_file ~inner_run k =
+  let run env ~init ~load_file k =
     let lsp_io = LspEio.init env in
     let init = {
-      run = inner_run;
       lsp_io;
       init;
       load_file;

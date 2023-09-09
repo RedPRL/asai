@@ -141,9 +141,9 @@ struct
     | None ->
       Eio.traceln "Recieved an invalid message. Shutting down...@."
 
-  let run ~init ~load_file ~inner_run =
+  let run ~init ~load_file =
     Eio_main.run @@ fun env ->
-    Server.run env ~init ~load_file ~inner_run @@ fun () ->
+    Server.run env ~init ~load_file @@ fun () ->
     begin
       initialize ();
       event_loop ()
