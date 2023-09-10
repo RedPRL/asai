@@ -5,12 +5,6 @@ type position = {
   line_num : int;
 }
 
-module SingleFilePosition =
-struct
-  type t = position
-  let compare p1 p2 = Int.compare p1.offset p2.offset
-end
-
 type t = {
   file_path : string;
   begin_offset : int;

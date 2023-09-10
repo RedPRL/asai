@@ -6,7 +6,7 @@ type t =
   | `ParsingError (* Parsing errors *)
   ]
 
-let default_severity _ = Asai.Severity.Error
+let default_severity _ = Asai.Diagnostic.Error
 
 let to_string : t -> string =
   function

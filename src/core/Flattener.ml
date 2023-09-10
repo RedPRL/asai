@@ -1,20 +1,20 @@
 open Bwd
 open Bwd.Infix
 
-open Context
+open Explicated
 
-type block = Span.position Context.styled list
+type block = Span.position styled list
 type section = string * block list
 
-type 'a marked =
-  { value : 'a
-  ; marks : section list
-  }
+type 'a marked = { marks : section list; value : 'a }
 
 module File =
 struct
   module Style = Accumulator.Make(Highlighting)
-  module PositionMap = Map.Make(Span.SingleFilePosition)
+  module PositionMap = Map.Make(struct
+      type t = Span.position
+      let compare p1 p2 = Int.compare p1.Span.offset p2.Span.offset
+    end)
 
   type t = Style.t PositionMap.t
 
@@ -82,7 +82,7 @@ let split_section ~splitting_threshold (file, block) =
 
 let all_marks ~additional_marks loc =
   Option.to_list (Option.map (fun loc -> `Primary, loc) loc) @
-  List.map (fun sp -> `Related, sp) additional_marks
+  List.map (fun sp -> `Auxiliary, sp) additional_marks
 
 let flatten ~splitting_threshold ~additional_marks loc =
   List.map (fun (f, b) -> f, split_block ~splitting_threshold b) @@

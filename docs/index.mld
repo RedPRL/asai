@@ -1,0 +1,13 @@
+{0 asai: Compiler Diagnostics}
+
+{1 Links}
+
+{ul
+  {- {{!page:design} Our design philosophy}}
+  {- {{!module:Asai} Core API: [Asai]}}
+  {- {{!module:Asai_tty} Experimental backend for UNIX terminals: [Asai_tty]}}
+  {- {{!module:Asai_lsp} Experimental backend for LSP (Language Server Protocol): [Asai_lsp]}}}
+
+{1 What is "asai"?}
+
+"asai" is the transliteration of "浅井", the family name of the character Kei Asai (浅井 ケイ) in the Japanese light novel Sagrada Reset (サクラダリセット, also known in English as Sakurada Reset). His ability is perfect photographic memory that is even immune to the "Reset" ability owned by another main character. This OCaml library should record all messages, just like the character.

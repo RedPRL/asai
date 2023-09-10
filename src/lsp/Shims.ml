@@ -27,9 +27,9 @@ module Diagnostic =
 struct
   let lsp_severity_of_severity =
     function
-    | Severity.Hint -> DiagnosticSeverity.Hint
-    | Severity.Info -> DiagnosticSeverity.Information
-    | Severity.Warning -> DiagnosticSeverity.Warning
-    | Severity.Error -> DiagnosticSeverity.Error
-    | Severity.Bug -> DiagnosticSeverity.Error
+    | Asai.Diagnostic.Hint -> DiagnosticSeverity.Hint
+    | Asai.Diagnostic.Info -> DiagnosticSeverity.Information
+    | Asai.Diagnostic.Warning -> DiagnosticSeverity.Warning
+    | Asai.Diagnostic.Error -> DiagnosticSeverity.Error
+    | Asai.Diagnostic.Bug -> DiagnosticSeverity.Error
 end

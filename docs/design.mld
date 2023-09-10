@@ -1,0 +1,19 @@
+{0 Design Principles}
+
+{1 Four Factors of a Diagnostic}
+
+In addition to the main message, the API should allow implementers to easily specify the following four factors, and they are somewhat independent.
+
++ {b Whether the program terminate now.} This is done by the choice between {!val:Asai.Logger.S.emitf} for non-fatal messages and {!val:Asai.Logger.S.fatalf} for fatal ones.
++ {b How the user should classify the message.} See {!type:Asai.Diagnostic.severity}.
++ {b A succinct Google-able message code.} While severity should be changeable independently of the message code, often the same code implies the same severity. That is why we have {!val:Asai.Diagnostic.Code.default_severity} to specify the default severity for each code.
++ {b The backtrace and locations of other related text.} See {!val:Asai.Logger.S.tracef} and {!field:Asai.Diagnostic.additional_marks}.
+
+{1 Bytes and Code Points}
+
+All positions are byte-oriented. Here are some popular alternatives:
++ Unicode characters (which may not match user-perceived characters)
++ Unicode grapheme clusters (user-perceived characters; see the {{: https://erratique.ch/software/uuseg}uuseg} library)
++ Column numbers (visual width of a string in display)
+
+It takes at least linear time to count Unicode characters (except when UTF-32 is in use) or Unicode grapheme clusters from raw bytes. Column numbers are even worse---they are not well-defined: The visual column width of a string highly depends on the eventual renderer (e.g., web browsers, text editors, or terminal emulators) and there is no reliable protocol to communicate the active rendering convention. The rendering result can depend on the fonts (e.g., whether certain emoji sequences are supported, and how CJK characters whose East Asian width is "Ambiguous" are rendered), the locale (the data in [LC_CTYPE]), and other settings (such as the tab size). Many applications use the heuristics implemented in the POSIX function [wcswidth], ignoring all the tricky cases. We use only semantically well-defined units. In sum, we believe {e bytes} are the only efficient and portable position unit.

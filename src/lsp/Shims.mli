@@ -7,5 +7,5 @@ module Loc : sig
 end
 
 module Diagnostic : sig
-  val lsp_severity_of_severity : Severity.t -> Lsp.DiagnosticSeverity.t
+  val lsp_severity_of_severity : Diagnostic.severity -> Lsp.DiagnosticSeverity.t
 end

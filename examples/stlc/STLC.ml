@@ -5,7 +5,7 @@ open Syntax
 
 module Terminal = Asai_tty.Make(ErrorCode)
 module Logger = Asai.Logger.Make(ErrorCode)
-module Server = Asai_lsp.Make(ErrorCode)(Logger)
+module Server = Asai_lsp.Make(ErrorCode)
 
 module Elab =
 struct
@@ -123,15 +123,17 @@ struct
   let load mode filepath =
     let display =
       match mode with
-      | `Debug -> Terminal.display ~display_traces:true
-      | `Normal ->  Terminal.display ~display_traces:false
+      | `Debug -> Terminal.display ~backtrace:true
+      | `Normal ->  Terminal.display ~backtrace:false
       | `Interactive -> Terminal.interactive_trace
     in
     Logger.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
   let server () =
-    Server.run ~init:(fun _ -> ()) ~load_file:load_file
+    Server.start
+      ~init:(fun ~root:_ -> ())
+      ~load_file:(fun ~display:push file -> Logger.run ~emit:push ~fatal:push @@ fun () -> load_file file)
 
 end
 

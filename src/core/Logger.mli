@@ -1,3 +1,5 @@
+(** The signature of a logger. *)
 module type S = LoggerSigs.S
 
-module Make (Code : Code.S) : S with module Code := Code
+(** The functor to generate a logger. *)
+module Make (Code : Diagnostic.Code) : S with module Code := Code
