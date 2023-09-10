@@ -6,9 +6,9 @@
 
 open Asai
 
-(** {1 LSP}
+(** {1 Language Service Protocol} *)
 
-    This module provides a rudimentary implementation of the LSP protocol.
+(** This module provides a rudimentary implementation of the LSP protocol.
 
     Note: this interface is experimental, and would likely change in the future. *)
 module Make (Code : Diagnostic.Code) : sig

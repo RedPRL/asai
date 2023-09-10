@@ -26,8 +26,11 @@ end
     When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a message is defined to be a function that takes a formatter and uses it to render the content. *)
 type message = Format.formatter -> unit
 
-(** The type of backtraces, stored as backward lists. *)
-type backtrace = message Span.located bwd
+(** The type of frames in a backtrace. *)
+type frame = message Span.located
+
+(** The type of backtraces, stored as backward lists of frames. *)
+type backtrace = frame bwd
 
 (** The type of diagnostics. *)
 type 'code t = {

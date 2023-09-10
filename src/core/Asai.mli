@@ -1,23 +1,15 @@
-(** Core of error reporting *)
+(** Core of message reporting *)
 
-(** {1 Positions, Spans, and Locations} *)
+(** A diagnostic is a message for the end user, for example a compiler warning or error. *)
 
+(** Locations and spans. *)
 module Span = Span
 
-(** {1 Diagnostics}
-
-    A diagnostic is a message for the end user, for example a compiler warning or error. *)
-
+(** The definition of diagnostics and some utility functions. *)
 module Diagnostic = Diagnostic
 
-(** {1 Creating Diagnostics}
-
-    Generating and handling diagnostics using algebraic effects. *)
-
+(** Generating and handling diagnostics using algebraic effects. *)
 module Logger = Logger
 
-(** {1 Explication}
-
-    Turning {!type:Span.t} into highlighted code suitable for rendering. *)
-
+(** Turning location information into highlighted text suitable for rendering. *)
 module Explicator = Explicator

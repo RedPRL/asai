@@ -3,10 +3,10 @@
 {1 Links}
 
 {ul
-  {- {{!page:design}Our design philosophy}}
+  {- {{!page:design} Our design philosophy}}
   {- {{!module:Asai} Core API: [Asai]}}
-  {- {{!module:Asai_tty} Experimental TTY API: [Asai_tty]}}
-  {- {{!module:Asai_tty} Experimental LSP API: [Asai_lsp]}}}
+  {- {{!module:Asai_tty} Experimental backend for UNIX terminals: [Asai_tty]}}
+  {- {{!module:Asai_lsp} Experimental backend for LSP (Language Server Protocol): [Asai_lsp]}}}
 
 {1 What is "asai"?}
 

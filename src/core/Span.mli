@@ -1,5 +1,3 @@
-(** The type of locations and single spans. *)
-
 (** {1 Types} *)
 
 (** The type of positions *)

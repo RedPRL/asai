@@ -6,35 +6,39 @@ module type S = LoggerSigs.S
 module Make (Code : Diagnostic.Code) : S with module Code := Code =
 struct
 
-  (* Backtraces *)
+  (* Backtrace Frames *)
 
-  type env = Diagnostic.message Span.located bwd
-  module Traces = Algaeff.Reader.Make (struct type nonrec env = env end)
+  let kframef k ?loc =
+    Format.kdprintf @@ fun message -> k Span.{ loc; value = message }
+
+  let framef ?loc = kframef Fun.id ?loc
+
+  module Traces = Algaeff.Reader.Make (struct type nonrec env = Diagnostic.backtrace end)
+
+  (* Backtraces *)
 
   let get_backtrace = Traces.read
 
-  let ktracef k ?loc fmt =
-    fmt |> Format.kdprintf @@ fun message x ->
-    Traces.scope (fun bt -> bt <: { loc; value = message }) @@ k x
-
-  let tracef ?loc fmt = ktracef Fun.id ?loc fmt
-
   let retrace bt = Traces.run ~env:bt
+
+  let trace fr f = Traces.scope (fun bt -> bt <: fr) f
+
+  let tracef ?loc = kframef trace ?loc
 
   (* Building messages *)
 
-  let kmessagef k ?loc ?(additional_marks=[]) ?severity code =
+  let kmessagef k ?severity ?loc ?(additional_marks=[]) ?(backtrace=get_backtrace()) code =
     Format.kdprintf @@ fun message -> k @@
     Diagnostic.{
-      code;
       severity = Option.value ~default:(Code.default_severity code) severity;
+      code;
       message = {loc; value = message};
       additional_marks;
-      backtrace = get_backtrace();
+      backtrace;
     }
 
-  let messagef ?loc ?additional_marks ?severity code =
-    kmessagef Fun.id ?loc ?additional_marks ?severity code
+  let messagef ?severity ?loc ?additional_marks ?backtrace code =
+    kmessagef Fun.id ?severity ?loc ?additional_marks ?backtrace code
 
   (* Emitting messages *)
 
@@ -64,8 +68,11 @@ struct
 
   (* Convenience functions *)
 
-  let emitf ?loc ?additional_marks ?severity code = kmessagef emit ?loc ?additional_marks ?severity code
-  let fatalf ?loc ?additional_marks ?severity code = kmessagef fatal ?loc ?additional_marks ?severity code
+  let emitf ?severity ?loc ?additional_marks ?backtrace code =
+    kmessagef emit ?severity ?loc ?additional_marks ?backtrace code
+
+  let fatalf ?severity ?loc ?additional_marks ?backtrace code =
+    kmessagef fatal ?severity ?loc ?additional_marks ?backtrace code
 
   let adopt m (run : ?init_backtrace:_ -> emit:_ -> fatal:_ -> _) f =
     run f

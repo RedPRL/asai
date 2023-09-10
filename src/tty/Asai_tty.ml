@@ -85,9 +85,9 @@ struct
 
   module F = Explicator.Make(FileReader)
 
-  let display ?(display_traces = false) diag =
+  let print ?(backtrace = false) diag =
     let m = F.explicate ~splitting_threshold:5 diag in
-    Notty_unix.output_image (display_marked display_traces m)
+    Notty_unix.output_image (display_marked backtrace m)
 
   let interactive_trace diag =
     let m = F.explicate ~splitting_threshold:5 diag in

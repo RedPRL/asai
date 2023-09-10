@@ -1,23 +1,20 @@
 (** Diagnostic display for UNIX terminals. *)
-open Asai
 
-(** {1 Display}
-    This module provides functions to display or interact with diagnostics in UNIX terminals.
+[@@@alert unstable
+    "The TTY backend will likely change in significant ways in the future to account for more features."
+]
 
-    [@@@alert unstable
-      "The TTY backend will likely change in significant ways in the future to account for more features."
-    ]
+(** {1 Display} *)
 
-    @unstable
-*)
-module Make (Code : Diagnostic.Code) : sig
-  (** [display ?display_traces diag] displays the message provided in [diag],
-      along with relevant text from its span, optionally displaying the traces in [diag]
+(** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
+module Make (Code : Asai.Diagnostic.Code) : sig
+
+  (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting.
+
+      @param backtrace Whether the backtrace should be shown. The default is [false].
   *)
-  val display : ?display_traces:bool -> Code.t Diagnostic.t -> unit
+  val display : ?backtrace:bool -> Code.t Asai.Diagnostic.t -> unit
 
-  (** [interactive_trace diag] drops the user in a small interactive terminal app where they can cycle through
-      the message provided in [diag] and its traces
-  *)
-  val interactive_trace : Code.t Diagnostic.t -> unit
+  (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace. *)
+  val interactive_trace : Code.t Asai.Diagnostic.t -> unit
 end

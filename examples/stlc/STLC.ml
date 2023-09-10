@@ -123,8 +123,8 @@ struct
   let load mode filepath =
     let display =
       match mode with
-      | `Debug -> Terminal.display ~display_traces:true
-      | `Normal ->  Terminal.display ~display_traces:false
+      | `Debug -> Terminal.display ~backtrace:true
+      | `Normal ->  Terminal.display ~backtrace:false
       | `Interactive -> Terminal.interactive_trace
     in
     Logger.run ~emit:display ~fatal:display @@ fun () ->
