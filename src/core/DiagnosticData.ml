@@ -23,7 +23,7 @@ end
 
 (** The type of single messages.
 
-    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a message is defined to be a function that takes a formatter and uses it to render the content. *)
+    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a message is defined to be a function that takes a formatter and uses it to render the content. Please note that a message itself should not contain literal control characters such as newlines (but break hints such as ["@,"] are okay). *)
 type message = Format.formatter -> unit
 
 (** The type of frames in a backtrace. *)
