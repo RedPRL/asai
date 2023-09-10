@@ -1,5 +1,5 @@
-# 🩺 asai 浅い: Compiler Diagnostics ⚠️
+# 🩺 asai 浅い: Message Reporting ⚠️
 
-_asai_ is a library for printing compiler diagnostics, and tracking span-associated metadata.
+_asai_ is a library for printing compiler diagnostics and tracking location metadata.
 
-⚠ WARNING ⚠ This package is still under heavy development, and none of the [APIs](https://redprl.org/asai/asai/index.html) are stable!
+Please consult the [package website](https://redprl.org/asai/asai/) for more information.
