@@ -37,8 +37,8 @@ module Make (Code : Asai.Diagnostic.Code) : sig
   end
 
   val run : Eio_unix.Stdenv.base
-    -> init:(string option -> unit)
-    -> load_file:((Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
+    -> init:(root:string option -> unit)
+    -> load_file:(display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
     -> (unit -> 'a)
     -> 'a
 end

@@ -16,8 +16,8 @@ struct
   type server = {
     lsp_io : LspEio.io;
     should_shutdown : bool;
-    init:string option -> unit;
-    load_file:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit;
+    init:root : string option -> unit;
+    load_file : display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit;
   }
 
   module State = Algaeff.State.Make(struct type state = server end)
@@ -85,7 +85,7 @@ struct
 
   let set_root root =
     let server = State.get () in
-    server.init root
+    server.init ~root
 
   let load_file uri =
     let server = State.get () in
@@ -98,7 +98,7 @@ struct
     let push_diagnostic d =
       diagnostics := d :: !diagnostics
     in
-    server.load_file push_diagnostic path;
+    server.load_file ~display:push_diagnostic path;
     publish_diagnostics path !diagnostics
 
   let should_shutdown () =

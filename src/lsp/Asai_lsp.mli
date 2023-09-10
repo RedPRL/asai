@@ -10,15 +10,14 @@ open Asai
 
     This module provides a rudimentary implementation of the LSP protocol.
 
-
-    A large part of the LSP protocol is about handling location-related information, which
-    makes it possible to provide a generic LSP server for any tool using asai.
-
-
-*)
-
+    Note: this interface is experimental, and would likely change in the future. *)
 module Make (Code : Diagnostic.Code) : sig
-  val run : init:(string option -> unit)
-    -> load_file:((Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
+  val start : init:(root:string option -> unit)
+    -> load_file:(display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
     -> unit
+    (** [run ~init ~load_file] starts the LSP server with the two callbacks [init] and [load_file].
+
+        @param init The callback to initiate the loading of a workspace. The [root] parameter is the workspace
+        @param load_file The callback to load the file.
+    *)
 end
