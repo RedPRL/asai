@@ -41,7 +41,7 @@ type 'code t = {
   message : message Span.located;
   (** The main message. *)
   additional_marks : Span.t list;
-  (** Additional code fragments that are relevant to the main message. *)
+  (** Additional text fragments that are relevant to the main message. *)
   backtrace : backtrace;
   (** The backtrace leading to this diagnostic. *)
 }
