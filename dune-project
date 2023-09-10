@@ -7,18 +7,15 @@
 
 (generate_opam_files true)
 
-(source
- (github RedPRL/asai))
-
-(authors "Reed Mullanix <reedmullanix@gmail.com>")
-
-(maintainers "Reed Mullanix <reedmullanix@gmail.com>")
-
+(source (github RedPRL/asai))
 (license Apache-2.0)
+(authors "Reed Mullanix <reedmullanix@gmail.com>" "favonia <favonia@gmail.com>")
+(maintainers "favonia <favonia@gmail.com>")
 
 (package
  (name asai)
- (synopsis "A library for diagnostics and span-associated metadata")
+ (synopsis "A library for constructing and printing diagnostics")
+ (description "This package offers an implementation of compiler diagnostics and supports multiple backends (including terminals and LSP) for displaying diagnostics to the end user.")
  (depends
    ocaml
    dune
