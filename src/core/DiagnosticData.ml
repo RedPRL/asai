@@ -14,10 +14,11 @@ sig
   (** The type of message codes. *)
   type t
 
-  (** Get the default severity of the code. *)
+  (** The default severity of the code. *)
   val default_severity : t -> severity
 
-  (** Get the string representation. *)
+  (** The concise, Google-able string representation of a code. Detailed descriptions of code should be avoided.
+      For example, [E001] works better than [type-checking error]. *)
   val to_string : t -> string
 end
 

@@ -1,7 +1,7 @@
 (** A LSP server for asai *)
 
 [@@@alert unstable
-    "The LSP backend may change in significant ways in the future."
+    "The LSP backend may change significantly in the future."
 ]
 
 open Asai

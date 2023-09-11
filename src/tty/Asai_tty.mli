@@ -1,7 +1,7 @@
 (** Diagnostic display for UNIX terminals. *)
 
 [@@@alert unstable
-    "The TTY backend will likely change in significant ways in the future to account for more features."
+    "The TTY backend will likely change significantly in the future to account for more features."
 ]
 
 (** {1 Display} *)
