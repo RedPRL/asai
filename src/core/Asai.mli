@@ -13,3 +13,6 @@ module Logger = Logger
 
 (** Turning location information into highlighted text suitable for rendering. *)
 module Explicator = Explicator
+
+(** Experimental backend: GitHub Actions workflow commands. *)
+module GitHub = GitHub
