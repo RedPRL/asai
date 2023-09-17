@@ -64,5 +64,6 @@ module Make (R : Reader) (Style : Style) = struct
   module F = Flattener.Make(Style)
 
   let explicate ?(splitting_threshold=0) spans =
+    R.run @@ fun () ->
     List.map explicate_part @@ F.flatten ~splitting_threshold spans
 end

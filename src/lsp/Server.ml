@@ -1,6 +1,3 @@
-open Asai
-open Bwd
-
 open Lsp.Types
 
 module RPC = Jsonrpc
@@ -57,18 +54,18 @@ struct
     let msg = Broadcast.to_jsonrpc notif in
     send (RPC.Packet.Notification msg)
 
-  let render_lsp_backtrace (uri : DocumentUri.t) (message : Asai.Diagnostic.message Span.located) : DiagnosticRelatedInformation.t =
+  let render_lsp_related_info (uri : DocumentUri.t) (message : Asai.Diagnostic.message) : DiagnosticRelatedInformation.t =
     let range = Shims.Loc.lsp_range_of_span message.loc in
     let location = Location.create ~uri ~range in
-    let message = Format.asprintf "@[<h>%t@]" message.value in
+    let message = Asai.Diagnostic.string_of_text message.value in
     DiagnosticRelatedInformation.create ~location ~message
 
   let render_lsp_diagnostic (uri : DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
     let range = Shims.Loc.lsp_range_of_span diag.message.loc in
     let severity = Shims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
-    let message = Format.asprintf "@[<h>%t@]" diag.message.value in
+    let message = Asai.Diagnostic.string_of_text diag.message.value in
     let code = `String (Code.to_string diag.code) in
-    let relatedInformation = List.map (render_lsp_backtrace uri) @@ Bwd.to_list diag.backtrace in
+    let relatedInformation = List.map (render_lsp_related_info uri) diag.additional_messages in
     Lsp_Diagnostic.create
       ~range
       ~code
