@@ -2,8 +2,6 @@ open Bwd
 open Notty
 open Notty.Infix
 
-open Asai
-
 module Style = struct
   type t = HighlightedPrimary | HighlightedAdditional | Primary | Additional | None
   let none = None
@@ -95,13 +93,14 @@ struct
     FileReader.run @@ fun () ->
     begin
       if show_backtrace then
-        I.pad ~b:1 (I.string A.empty ">>> Trace") <->
-        (backtrace |> Bwd.map (fun t -> t |> display_message code severity |> I.pad ~b:1) |> Bwd.to_list |> I.vcat)
+        I.pad ~b:1 (I.string A.empty "Backtrace:") <->
+        (backtrace |> Bwd.map (fun t -> t |> display_message code severity |> I.pad ~b:1) |> Bwd.to_list |> I.vcat) <->
+        I.pad ~b:1 (I.string A.empty "Error:")
       else
         I.void 0 0
     end
     <->
-    I.pad ~t:1 ~b:1 (display_message code severity message ~additional_messages)
+    I.pad ~b:1 (display_message code severity message ~additional_messages)
 
   module F = Explicator.Make(FileReader)
 

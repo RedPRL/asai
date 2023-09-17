@@ -1,21 +1,20 @@
-open Lsp.Types
-
+module L = Lsp.Types
 module RPC = Jsonrpc
 module Broadcast = Lsp.Server_notification
 module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (Code : Asai.Diagnostic.Code) =
+module Make (Code : Diagnostic.Code) =
 struct
-  type diagnostic = Code.t Asai.Diagnostic.t
+  type diagnostic = Code.t Diagnostic.t
 
   type server = {
     lsp_io : LspEio.io;
     should_shutdown : bool;
     source : string option;
     init:root : string option -> unit;
-    load_file : display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit;
+    load_file : display:(Code.t Diagnostic.t -> unit) -> string -> unit;
   }
 
   module State = Algaeff.State.Make(struct type state = server end)
@@ -55,18 +54,18 @@ struct
     let msg = Broadcast.to_jsonrpc notif in
     send (RPC.Packet.Notification msg)
 
-  let render_lsp_related_info (uri : DocumentUri.t) (message : Asai.Diagnostic.message) : DiagnosticRelatedInformation.t =
-    let range = Shims.Loc.lsp_range_of_span message.loc in
-    let location = Location.create ~uri ~range in
-    let message = Asai.Diagnostic.string_of_text message.value in
-    DiagnosticRelatedInformation.create ~location ~message
+  let render_lsp_related_info (uri : L.DocumentUri.t) (message : Diagnostic.message) : L.DiagnosticRelatedInformation.t =
+    let range = LspShims.Loc.lsp_range_of_span message.loc in
+    let location = L.Location.create ~uri ~range in
+    let message = Diagnostic.string_of_text message.value in
+    L.DiagnosticRelatedInformation.create ~location ~message
 
-  let render_lsp_diagnostic (uri : DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
-    let range = Shims.Loc.lsp_range_of_span diag.message.loc in
-    let severity = Shims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
+  let render_lsp_diagnostic (uri : L.DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
+    let range = LspShims.Loc.lsp_range_of_span diag.message.loc in
+    let severity = LspShims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
     let code = `String (Code.to_string diag.code) in
     let source = (State.get ()).source in
-    let message = Asai.Diagnostic.string_of_text diag.message.value in
+    let message = Diagnostic.string_of_text diag.message.value in
     let relatedInformation = List.map (render_lsp_related_info uri) diag.additional_messages in
     Lsp_Diagnostic.create
       ~range
@@ -78,9 +77,9 @@ struct
       ()
 
   let publish_diagnostics path (diagnostics : diagnostic list) =
-    let uri = DocumentUri.of_path path in
+    let uri = L.DocumentUri.of_path path in
     let diagnostics = List.map (render_lsp_diagnostic uri) diagnostics in
-    let params = PublishDiagnosticsParams.create ~uri ~diagnostics () in
+    let params = L.PublishDiagnosticsParams.create ~uri ~diagnostics () in
     broadcast (PublishDiagnostics params)
 
   let set_root root =
@@ -89,7 +88,7 @@ struct
 
   let load_file uri =
     let server = State.get () in
-    let path = DocumentUri.to_path uri in
+    let path = L.DocumentUri.to_path uri in
     Eio.traceln "Loading file: %s@." path;
     (* The LSP protocol doesn't allow for incremental publishing of diagnostics.
        Therefore, we need to accumulate all the diagnostics encountered during
@@ -109,11 +108,11 @@ struct
     State.modify @@ fun st -> { st with should_shutdown = true }
 
   (* [TODO: Reed M, 12/12/2022] No code actions for now. *)
-  let code_action (_params : CodeActionParams.t) : CodeActionResult.t =
+  let code_action (_params : L.CodeActionParams.t) : L.CodeActionResult.t =
     None
 
   (* [TODO: Reed M, 12/12/2022] No hovers for now. *)
-  let hover (_params : HoverParams.t) : Hover.t option =
+  let hover (_params : L.HoverParams.t) : L.Hover.t option =
     None
 
   module Request =

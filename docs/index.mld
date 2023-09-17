@@ -4,10 +4,7 @@
 
 {ul
   {- {{!page:design} Our design philosophy}}
-  {- {{!module:Asai} Core API: [Asai]}}
-  {- {{!module:Asai.GitHub} Experimental backend for GitHub Actions: [Asai.GitHub]}}
-  {- {{!module:Asai_tty} Experimental backend for UNIX terminals: [Asai_tty]}}
-  {- {{!module:Asai_lsp} Experimental backend for LSP (Language Server Protocol): [Asai_lsp]}}}
+  {- {{!module:Asai} API reference}}}
 
 {1 What is "asai"?}
 

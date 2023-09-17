@@ -1,7 +1,7 @@
-open Lsp.Types
+module L := Lsp.Types
 module RPC := Jsonrpc
 
-module Make (Code : Asai.Diagnostic.Code) : sig
+module Make (Code : Diagnostic.Code) : sig
   type lsp_error =
     | DecodeError of string
     | HandshakeError of string
@@ -18,7 +18,7 @@ module Make (Code : Asai.Diagnostic.Code) : sig
   val initiate_shutdown : unit -> unit
 
   val set_root : string option -> unit
-  val load_file : DocumentUri.t -> unit
+  val load_file : L.DocumentUri.t -> unit
 
   module Request : sig
     type packed = Lsp.Client_request.packed
@@ -39,7 +39,7 @@ module Make (Code : Asai.Diagnostic.Code) : sig
   val run : Eio_unix.Stdenv.base
     -> ?source:string
     -> init:(root:string option -> unit)
-    -> load_file:(display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
+    -> load_file:(display:(Code.t Diagnostic.t -> unit) -> string -> unit)
     -> (unit -> 'a)
     -> 'a
 end

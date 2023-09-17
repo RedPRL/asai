@@ -6,4 +6,6 @@ module Logger = Logger
 
 module Explicator = Explicator
 
+module Tty = Tty
+module Lsp = AsaiLsp
 module GitHub = GitHub

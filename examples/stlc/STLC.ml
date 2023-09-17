@@ -3,9 +3,9 @@ open Bwd
 
 open Syntax
 
-module Terminal = Asai_tty.Make(ErrorCode)
+module Terminal = Asai.Tty.Make(ErrorCode)
 module Logger = Asai.Logger.Make(ErrorCode)
-module Server = Asai_lsp.Make(ErrorCode)
+module Server = Asai.Lsp.Make(ErrorCode)
 
 module Elab =
 struct

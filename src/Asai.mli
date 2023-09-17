@@ -16,7 +16,13 @@ module Logger = Logger
 (** Turning location information into highlighted text suitable for rendering. *)
 module Explicator = Explicator
 
-(** {1 Backends} *)
+(** {1 (Experimental) Backends} *)
 
-(** Experimental backend: GitHub Actions workflow commands. *)
+(** Diagnostic display for UNIX terminals. *)
+module Tty = Tty
+
+(** An LSP (Language Service Protocol) server for asai *)
+module Lsp = AsaiLsp
+
+(** GitHub Actions workflow commands. *)
 module GitHub = GitHub

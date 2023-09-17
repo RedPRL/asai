@@ -1,6 +1,6 @@
 (library
  (name Asai)
  (public_name asai)
- (libraries algaeff bwd))
+ (libraries algaeff bwd lsp eio eio_main notty notty.unix))
 
 (include_subdirs unqualified)
