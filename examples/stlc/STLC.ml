@@ -132,9 +132,9 @@ struct
 
   let server () =
     Server.start
+      ~source:(Some "STLC")
       ~init:(fun ~root:_ -> ())
       ~load_file:(fun ~display:push file -> Logger.run ~emit:push ~fatal:push @@ fun () -> load_file file)
-
 end
 
 let () =

@@ -13,6 +13,7 @@ struct
   type server = {
     lsp_io : LspEio.io;
     should_shutdown : bool;
+    source : string option;
     init:root : string option -> unit;
     load_file : display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit;
   }
@@ -63,13 +64,15 @@ struct
   let render_lsp_diagnostic (uri : DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
     let range = Shims.Loc.lsp_range_of_span diag.message.loc in
     let severity = Shims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
-    let message = Asai.Diagnostic.string_of_text diag.message.value in
     let code = `String (Code.to_string diag.code) in
+    let source = (State.get ()).source in
+    let message = Asai.Diagnostic.string_of_text diag.message.value in
     let relatedInformation = List.map (render_lsp_related_info uri) diag.additional_messages in
     Lsp_Diagnostic.create
       ~range
-      ~code
       ~severity
+      ~code
+      ?source
       ~message
       ~relatedInformation
       ()
@@ -193,10 +196,11 @@ struct
       | _ -> None
   end
 
-  let run env ~init ~load_file k =
+  let run env ?source ~init ~load_file k =
     let lsp_io = LspEio.init env in
     let init = {
       lsp_io;
+      source;
       init;
       load_file;
       should_shutdown = false;

@@ -12,11 +12,13 @@ open Asai
 
     Note: this interface is experimental, and would likely change in the future. *)
 module Make (Code : Diagnostic.Code) : sig
-  val start : init:(root:string option -> unit)
+  val start : source:string option
+    -> init:(root:string option -> unit)
     -> load_file:(display:(Code.t Asai.Diagnostic.t -> unit) -> string -> unit)
     -> unit
     (** [run ~init ~load_file] starts the LSP server with the two callbacks [init] and [load_file].
 
+        @param source The source of a LSP diagnostic, that is, a "human-readable string describing the source of this diagnostic."
         @param init The callback to initiate the loading of a workspace. The [root] parameter is the workspace
         @param load_file The callback to load the file.
     *)
