@@ -1,10 +1,9 @@
-open Lsp.Types
-
+module L = Lsp.Types
 module RPC = Jsonrpc
 
-module Make (Code : Asai.Diagnostic.Code) =
+module Make (Code : Diagnostic.Code) =
 struct
-  module Server = Server.Make(Code)
+  module Server = LspServer.Make(Code)
   open Server
 
   let unwrap opt err =
@@ -23,33 +22,33 @@ struct
 
   let server_capabilities =
     let textDocumentSync =
-      let opts = TextDocumentSyncOptions.create
-          ~change:(TextDocumentSyncKind.None)
-          ~save:(`SaveOptions (SaveOptions.create ~includeText:false ()))
+      let opts = L.TextDocumentSyncOptions.create
+          ~change:L.TextDocumentSyncKind.None
+          ~save:(`SaveOptions (L.SaveOptions.create ~includeText:false ()))
           ()
       in
       `TextDocumentSyncOptions opts
     in
     let hoverProvider =
-      let opts = HoverOptions.create ()
+      let opts = L.HoverOptions.create ()
       in `HoverOptions opts
     in
     let codeActionProvider =
-      let opts = CodeActionOptions.create ~codeActionKinds:supported_code_actions () in
+      let opts = L.CodeActionOptions.create ~codeActionKinds:supported_code_actions () in
       `CodeActionOptions opts
     in
     let executeCommandProvider =
-      ExecuteCommandOptions.create ~commands:supported_commands ()
+      L.ExecuteCommandOptions.create ~commands:supported_commands ()
     in
     (* [NOTE: Position Encodings]
        For various historical reasons, the spec states that we are _required_ to support UTF-16.
        This causes more trouble than it's worth, so we always select UTF-8 as our encoding, even
        if the client doesn't support it. *)
     let positionEncoding =
-      PositionEncodingKind.UTF8
+      L.PositionEncodingKind.UTF8
     in
     (* [FIXME: Reed M, 09/06/2022] The current verison of the LSP library doesn't support 'positionEncoding' *)
-    ServerCapabilities.create
+    L.ServerCapabilities.create
       ~textDocumentSync
       ~hoverProvider
       ~codeActionProvider
@@ -57,16 +56,16 @@ struct
       ~positionEncoding
       ()
 
-  let supports_utf8_encoding (init_params : InitializeParams.t) =
+  let supports_utf8_encoding (init_params : L.InitializeParams.t) =
     let position_encodings =
       Option.value ~default:[] @@
       Option.bind init_params.capabilities.general @@
       fun gcap -> gcap.positionEncodings
-    in List.mem PositionEncodingKind.UTF8 position_encodings
+    in List.mem L.PositionEncodingKind.UTF8 position_encodings
 
-  let get_root (init_params : InitializeParams.t) =
+  let get_root (init_params : L.InitializeParams.t) =
     match init_params.rootUri with
-    | Some uri -> Some (DocumentUri.to_path uri)
+    | Some uri -> Some (L.DocumentUri.to_path uri)
     | None -> Option.join init_params.rootPath
 
   module R = Lsp.Client_request
@@ -87,7 +86,7 @@ struct
         if not (supports_utf8_encoding init_params) then
           Eio.traceln "Warning: client does not support UTF-8 encoding, which may lead to inconsistent positions.";
 
-        let resp = InitializeResult.create ~capabilities:server_capabilities () in
+        let resp = L.InitializeResult.create ~capabilities:server_capabilities () in
         Request.respond id init_req resp;
         let notif =
           unwrap (Notification.recv ()) @@

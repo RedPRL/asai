@@ -2,8 +2,6 @@ open Bwd
 open Notty
 open Notty.Infix
 
-open Asai
-
 module Style = struct
   type t = HighlightedPrimary | HighlightedAdditional | Primary | Additional | None
   let none = None
