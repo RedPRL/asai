@@ -1,6 +1,6 @@
 open ExplicatorData
 
-(** The signature of effects-based data readers. *)
+(** The signature of data readers. *)
 module type Reader =
 sig
   (** [length file_path] gets the size of the file. *)
@@ -8,9 +8,6 @@ sig
 
   (** [unsafe_get file_path i] reads the ith byte of the file without checking the file size. *)
   val unsafe_get : string -> int -> char
-
-  (** [run f] runs the thunk [f] and handles the internal algebraic effects. *)
-  val run : (unit -> 'a) -> 'a
 end
 
 (** The signature of highlighting styles *)

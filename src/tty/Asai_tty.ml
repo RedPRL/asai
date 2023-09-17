@@ -92,6 +92,7 @@ struct
     display_parts code severity msg.value parts
 
   let display_diagnostic show_backtrace Diagnostic.{code; severity; message; additional_messages; backtrace} =
+    FileReader.run @@ fun () ->
     begin
       if show_backtrace then
         I.pad ~b:1 (I.string A.empty ">>> Trace") <->
@@ -109,6 +110,7 @@ struct
 
   let interactive_trace Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let traces =
+      FileReader.run @@ fun () ->
       Bwd.append
         (backtrace |> Bwd.map (display_message code severity))
         [display_message code severity message ~additional_messages] |> Bwd.to_list |> Array.of_list
