@@ -1,91 +1,109 @@
-open Bwd
-open Bwd.Infix
+open ExplicatorData
+open ExplicatorSigs
 
-open Explicated
+type 'style block = (Span.position, 'style) styled list
+type 'style part = string * 'style block list
 
-type block = Span.position styled list
-type section = string * block list
-
-type 'a marked = { marks : section list; value : 'a }
-
-module File =
+module File (Style : Style) :
+sig
+  type t
+  val empty : t
+  val singleton : (Span.t, Style.t) styled -> t
+  val add : (Span.t, Style.t) styled -> t -> t
+  val render : t -> Style.t block
+end
+=
 struct
-  module Style = Accumulator.Make(Highlighting)
-  module PositionMap = Map.Make(struct
-      type t = Span.position
-      let compare p1 p2 = Int.compare p1.Span.offset p2.Span.offset
-    end)
+  type t = (Span.position, Style.t) styled list
 
-  type t = Style.t PositionMap.t
+  let empty : t = []
 
-  let empty : t = PositionMap.empty
+  let (<) x y = x.Span.offset < y.Span.offset
+  let (<=) x y = x.Span.offset <= y.Span.offset
+  let (=) x y = x.Span.offset = y.Span.offset
 
-  let add_pos pos value : t -> t =
-    PositionMap.update pos @@ function
-    | None -> Some (Style.singleton value)
-    | Some s -> Some (Style.add value s)
+  (* precondition: x1 < x2 and there are already points at x1 and x2 *)
+  let impose {value = x1, x2; style = xst} : _ list -> _ list =
+    List.map
+      (fun y ->
+         if x1 <= y.value && y.value < x2
+         then {y with style = Style.compose y.style xst}
+         else y)
 
-  (* invariant: all spans added to the same [t] should have the same filename *)
-  let add st sp m : t =
-    let begin_, end_ = Span.to_positions sp in
-    add_pos begin_ (st, 1) @@ add_pos end_ (st, -1) m
-
-  let singleton st sp : t = add st sp empty
-
-  let render t : Span.position styled list =
-    let acc, attrs =
-      PositionMap.fold
-        (fun position attrs (acc, prev_attrs) ->
-           let attrs = Style.merge prev_attrs attrs in
-           let style = Style.render attrs in
-           let acc = acc <: {style; value = position} in
-           (acc, attrs))
-        t (Emp, Style.empty)
+  let add_point x =
+    let[@tail_mod_cons] rec go last =
+      function
+      | [] -> [{value = x; style = last}]
+      | y :: ys when y.value < x ->
+        y :: (go[@tailcall]) y.style ys
+      | y :: ys when x < y.value ->
+        {value = x; style = last} :: y :: ys
+      | l -> l
     in
-    assert (Style.render attrs = None);
-    Utils.keep_first (fun x y -> Option.equal Highlighting.equal x.style y.style) @@ Bwd.to_list acc
+    go Style.none
+
+  let add {value; style} l =
+    let x1, x2 = Span.to_positions value in
+    impose {value = x1, x2; style} @@ add_point x1 @@ add_point x2 l
+
+  let singleton data = add data empty
+
+  let render l =
+    l
+    |> Utils.drop_while (fun x -> Style.is_none x.style)
+    |> Utils.keep_first_in_groups (fun x y -> Style.equal x.style y.style)
 end
 
-module Files = struct
+module Files (Style : ExplicatorSigs.Style) :
+sig
+  type t
+  val empty : t
+  val add : (Span.t, Style.t) styled -> t -> t
+  val render : t -> (string * Style.t block) list
+end
+=
+struct
   module FileMap = Map.Make(String)
-  type t = File.t FileMap.t
+  module F = File(Style)
+  type t = F.t FileMap.t
 
   let empty : t = FileMap.empty
 
-  let add st sp =
-    FileMap.update (Span.file_path sp) @@ function
-    | None -> Some (File.singleton st sp)
-    | Some m -> Some (File.add st sp m)
+  let add data =
+    FileMap.update (Span.file_path data.value) @@ function
+    | None -> Some (F.singleton data)
+    | Some m -> Some (F.add data m)
 
-  let singleton st sp = add st sp empty
+  let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.none l
 
-  let is_primary_point =
-    function
-    | {style = Some s; _} when Highlighting.is_primary s -> true
-    | _ -> false
-
-  let is_primary_file = List.exists is_primary_point
-
-  let render m : (string * block) list =
-    let m = FileMap.map File.render m in
-    let primary_files, other_files = FileMap.partition (fun _ -> is_primary_file) m in
-    FileMap.bindings primary_files @ FileMap.bindings other_files
+  let render m : (string * Style.t block) list =
+    FileMap.bindings m
+    |> List.map (fun (f, x) -> f, F.render x)
+    |> List.filter (fun (_, l) -> l <> []) (* filter out files with only empty spans *)
+    |> List.map (fun (f, l) -> f, (max_style l, l)) (* calculate the importance *)
+    |> List.stable_sort (fun (_, (sx, _)) (_, (sy, _)) -> Style.compare sx sy)
+    |> List.map (fun (file_path, (_, block)) -> file_path, block)
 end
 
-let split_block ~splitting_threshold =
-  Utils.group @@ fun p q ->
-  p.style <> None ||
-  p.value.Span.line_num - q.value.line_num <= splitting_threshold
+module Splitter (Style : Style) :
+sig
+  val split : splitting_threshold:int -> Style.t block -> Style.t block list
+end
+=
+struct
+  let split ~splitting_threshold =
+    Utils.group @@ fun p q ->
+    not (Style.is_none p.style) ||
+    p.value.Span.line_num - q.value.line_num <= splitting_threshold
+end
 
-let split_section ~splitting_threshold (file, block) =
-  file, split_block ~splitting_threshold block
+module Make (Style : Style) = struct
+  module F = Files(Style)
+  module S = Splitter(Style)
 
-let all_marks ~additional_marks loc =
-  Option.to_list (Option.map (fun loc -> `Primary, loc) loc) @
-  List.map (fun sp -> `Auxiliary, sp) additional_marks
-
-let flatten ~splitting_threshold ~additional_marks loc =
-  List.map (fun (f, b) -> f, split_block ~splitting_threshold b) @@
-  Files.render @@
-  List.fold_left (fun f (st, sp) -> Files.add st sp f) Files.empty @@
-  all_marks ~additional_marks loc
+  let flatten ~splitting_threshold spans : Style.t part list =
+    spans
+    |> List.fold_left (fun f data -> F.add data f) F.empty
+    |> F.render
+    |> List.map (fun (file_path, block) -> file_path, S.split ~splitting_threshold block)
+end

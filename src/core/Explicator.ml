@@ -1,11 +1,10 @@
 open Bwd
 open Bwd.Infix
 
-include Explicated
+include ExplicatorData
+include ExplicatorSigs
 
-module type Reader = Reader.S
-
-module Make (R : Reader) = struct
+module Make (R : Reader) (Style : Style) = struct
   type position = Span.position
 
   (** [find_eol pos] finds the position of the next ['\n']. If the end of file is reached before ['\n'], then the position of the end of the file is returned. *)
@@ -32,7 +31,7 @@ module Make (R : Reader) = struct
     String.init (end_.offset - begin_.offset) @@ fun i ->
     R.unsafe_get begin_.file_path (begin_.offset + i)
 
-  let explicate_block : Span.position styled list -> block =
+  let explicate_block : (Span.position, Style.t) styled list -> Style.t block =
     function
     | [] -> invalid_arg "explicate_block"
     | (b :: _) as bs ->
@@ -50,31 +49,20 @@ module Make (R : Reader) = struct
           let lines = lines <: Bwd.to_list segments in
           (* Continue the process if [ps] is not empty. *)
           match ps with
-          | [] -> assert (cur.style = None); lines
+          | [] -> assert (Style.is_none cur.style); lines
           | _ -> go ~lines ~segments:Emp {style = cur.style; value = eol_to_next_line eol} ps
       in
       { start_line_num = start_pos.line_num
-      ; lines = Bwd.to_list @@ go ~lines:Emp ~segments:Emp {style = None; value = start_pos} bs
+      ; lines = Bwd.to_list @@ go ~lines:Emp ~segments:Emp {style = Style.none; value = start_pos} bs
       }
 
   let explicate_blocks = List.map explicate_block
 
-  let explicate_part (file_path, bs) : part =
+  let explicate_part (file_path, bs) : Style.t part =
     { file_path; blocks = explicate_blocks bs }
 
-  let parts_of_located ~splitting_threshold ~additional_marks loc =
-    List.map explicate_part @@
-    Flattener.flatten ~splitting_threshold ~additional_marks loc
+  module F = Flattener.Make(Style)
 
-  let explicate_located ~splitting_threshold ~additional_marks Span.{value; loc} =
-    {value; parts = parts_of_located ~splitting_threshold ~additional_marks loc}
-
-  let explicate ?(splitting_threshold=0) (d : 'code Diagnostic.t) : _ =
-    R.run @@ fun () ->
-    {
-      code = d.code;
-      severity = d.severity;
-      message = explicate_located ~splitting_threshold ~additional_marks:d.additional_marks d.message;
-      backtrace = Bwd.map (explicate_located ~splitting_threshold ~additional_marks:[]) d.backtrace;
-    }
+  let explicate ?(splitting_threshold=0) spans =
+    List.map explicate_part @@ F.flatten ~splitting_threshold spans
 end

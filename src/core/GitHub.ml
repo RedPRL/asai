@@ -16,13 +16,13 @@ module Make (Code : Diagnostic.Code) = struct
       (Span.begin_line_num loc)
       (Span.end_line_num loc)
       (Code.to_string code)
-      (Diagnostic.string_of_message msg)
+      (Diagnostic.string_of_text msg)
 
   let print_without_loc severity code msg =
     Format.printf "::%s title=%s::%s@."
       (command_of_severity severity)
       (Code.to_string code)
-      (Diagnostic.string_of_message msg)
+      (Diagnostic.string_of_text msg)
 
   let print Diagnostic.{severity; code; message = {loc; value = msg};_} =
     match loc with

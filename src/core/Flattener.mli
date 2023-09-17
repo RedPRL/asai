@@ -1,6 +1,8 @@
-type block = Span.position Explicated.styled list
-type section = string * block list
+type 'style block = (Span.position, 'style) ExplicatorData.styled list
+type 'style part = string * 'style block list
 
-type 'a marked = { marks : section list; value : 'a }
-
-val flatten : splitting_threshold:int -> additional_marks:Span.t list -> Span.t option -> section list
+module Make (Style : ExplicatorSigs.Style) : sig
+  val flatten : splitting_threshold:int
+    -> (Span.t, Style.t) ExplicatorData.styled list
+    -> Style.t part list
+end

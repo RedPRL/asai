@@ -14,7 +14,18 @@ struct
     let width = maxby I.width images in
     List.map (I.hsnap ~align width) images |> I.vcat
 
-  let highlight_style (severity : Diagnostic.severity) =
+  let highlight_style (severity : Diagnostic.severity) priority =
+    let open A in
+    if priority <
+    st underline ++
+    match severity with
+    | Hint -> fg blue
+    | Info -> fg green
+    | Warning -> fg yellow
+    | Error -> fg red
+    | Bug -> bg red ++ fg black
+
+  let secondary_style (severity : Diagnostic.severity) =
     let open A in
     st underline ++
     match severity with
@@ -33,7 +44,7 @@ struct
     List.map (fun n -> I.string fringe_style @@ Int.to_string n) @@
     List.init (List.length lines) (fun i -> start_line_num + i)
 
-  let display_message code severity E.{value = msg; parts} =
+  let display_message code severity msg explication =
     let segment ({style; value = seg} : E.segment) =
       match style with
       | None ->

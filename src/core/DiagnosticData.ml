@@ -22,16 +22,16 @@ sig
   val to_string : t -> string
 end
 
-(** The type of single messages.
+(** The type of text.
 
     When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a message is defined to be a function that takes a formatter and uses it to render the content. Please note that a message itself should not contain literal control characters such as newlines (but break hints such as ["@,"] are okay). *)
-type message = Format.formatter -> unit
+type text = Format.formatter -> unit
 
-(** The type of frames in a backtrace. *)
-type frame = message Span.located
+(** A message is a located text. *)
+type message = text Span.located
 
-(** The type of backtraces, stored as backward lists of frames. *)
-type backtrace = frame bwd
+(** A backtrace is a (backward) list of messages. *)
+type backtrace = message bwd
 
 (** The type of diagnostics. *)
 type 'code t = {
@@ -39,10 +39,11 @@ type 'code t = {
   (** Severity of the diagnostic. *)
   code : 'code;
   (** The message code. *)
-  message : message Span.located;
+  message : message;
   (** The main message. *)
-  additional_marks : Span.t list;
-  (** Additional text fragments that are relevant to the main message. *)
   backtrace : backtrace;
   (** The backtrace leading to this diagnostic. *)
+  additional_messages : message list;
+  (** Additional messages relevant to the main message that are not part of the backtrace. *)
 }
+  
