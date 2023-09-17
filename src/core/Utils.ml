@@ -1,7 +1,12 @@
 open Bwd
 open Bwd.Infix
 
-let keep_first p =
+let rec drop_while p =
+  function
+  | x :: xs when p x -> (drop_while[@tailcall]) p xs
+  | l -> l
+
+let keep_first_in_groups p =
   function
   | [] -> []
   | x :: xs ->

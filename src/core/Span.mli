@@ -51,3 +51,9 @@ val begin_line_num : t -> int
 
 (** [end_line_num span] returns the 1-indexed line number of the ending position. *)
 val end_line_num : t -> int
+
+(** [begin_offset span] returns the 0-indexed offset of the (inclusive) beginning position. *)
+val begin_offset : t -> int
+
+(** [end_offset span] returns the 0-indexed offset of the (exclusive) ending position. *)
+val end_offset : t -> int

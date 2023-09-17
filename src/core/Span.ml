@@ -15,6 +15,8 @@ type t = {
   end_line_num : int;
 }
 
+type 'a located = { loc : t option; value : 'a }
+
 let make (begin_ : position) (end_ : position) : t =
   if begin_.file_path <> end_.file_path then
     invalid_arg @@
@@ -66,5 +68,5 @@ let to_positions (sp : t) : position * position =
 let file_path sp = sp.file_path
 let begin_line_num sp = sp.begin_line_num
 let end_line_num sp = sp.end_line_num
-
-type 'a located = { loc : t option; value : 'a }
+let begin_offset sp = sp.begin_offset
+let end_offset sp = sp.end_offset
