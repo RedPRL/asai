@@ -1,10 +1,11 @@
+(executable
+ (name STLC)
+ (public_name asai_stlc)
+ (libraries algaeff menhirLib asai asai.tty asai.lsp)
+ (optional))
+
 (menhir
  (flags --strict --explain --table --unused-tokens)
  (modules Grammar))
 
 (ocamllex Lex)
-
-(executable
- (name STLC)
- (public_name asai_stlc)
- (libraries algaeff menhirLib asai asai.tty asai.lsp))
