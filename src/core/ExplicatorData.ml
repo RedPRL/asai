@@ -1,6 +1,6 @@
 (** {1 Types} *)
 
-(** A styled value is a value with an optional highlighting.
+(** A styled value is a value with a style.
 
       @canonical Asai.Explicator.styled *)
 type ('a, 'style) styled = { style : 'style; value : 'a }

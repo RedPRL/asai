@@ -15,19 +15,16 @@
 (package
  (name asai)
  (synopsis "A library for constructing and printing diagnostics")
- (description "This package offers an implementation of compiler diagnostics and supports multiple backends (including terminals and LSP) for displaying diagnostics to the end user.")
+ (description "This package offers an implementation of compiler diagnostics and supports multiple backends for displaying diagnostics to the end user. Currently, the package comes with three backends: GitHub Actions workflow commands, UNIX terminals, and LSP (Language Server Protocol).")
  (depends
    ocaml
-   dune
-   ;; [TODO: Reed M, 08/06/2022] I should conditionally compile this!
-   (notty (>= 0.2.3))
-   (lsp (>= 1.12))
-   (eio (>= 0.12))
-   (eio_main (>= 0.12))
    (algaeff (>= 0.2))
    (bwd (>= 2.1))
-   ;; [TODO: Reed M, 07/06/2022] I should conditionally compile this!
-   (menhir (>= 20220210))
+   (eio (>= 0.12))
+   (eio_main (>= 0.12))
+   (lsp (>= 1.12))
+   (notty (>= 0.2.3))
    ;; Tests
    (alcotest (and :with-test (>= 1.5)))
+   (menhir (>= 20220210))
    ))
