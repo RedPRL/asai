@@ -101,6 +101,7 @@ module Make (Style : Style) = struct
   module F = Files(Style)
   module S = Splitter(Style)
 
+  (* Currently, this can take \tilde{O}(n^2) time where n is the number of styled spans. *)
   let flatten ~splitting_threshold spans : Style.t part list =
     spans
     |> List.fold_left (fun f data -> F.add data f) F.empty
