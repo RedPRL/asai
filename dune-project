@@ -26,5 +26,15 @@
    (notty (>= 0.2.3))
    ;; Tests
    (alcotest (and :with-test (>= 1.5)))
+   ))
+(package
+ (name asai-examples)
+ (synopsis "Examples of the package asai")
+ (description "This package offers some examples of the asai package. They are organized into a separate package to reduce the dependencies of the main package.")
+ (depends
+   ocaml
+   (algaeff (>= 0.2))
+   (bwd (>= 2.1))
    (menhir (>= 20220210))
+   (asai (= :version))
    ))
