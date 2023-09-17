@@ -7,7 +7,7 @@ In addition to the main message, the API should allow implementers to easily spe
 + {b Whether the program terminate now.} This is done by the choice between {!val:Asai.Logger.S.emitf} for non-fatal messages and {!val:Asai.Logger.S.fatalf} for fatal ones.
 + {b How the user should classify the message.} See {!type:Asai.Diagnostic.severity}.
 + {b A succinct Google-able message code.} While severity should be changeable independently of the message code, often the same code implies the same severity. That is why we have {!val:Asai.Diagnostic.Code.default_severity} to specify the default severity for each code.
-+ {b The backtrace and locations of other related text.} See {!val:Asai.Logger.S.tracef} and {!field:Asai.Diagnostic.additional_marks}.
++ {b The backtrace and locations of other related text.} See {!val:Asai.Logger.S.tracef} and {!field:Asai.Diagnostic.additional_messages}.
 
 {1 Bytes and Code Points}
 
