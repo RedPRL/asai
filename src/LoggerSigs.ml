@@ -13,8 +13,8 @@ sig
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
       @param loc The location of the text (usually the code) to highlight.
-      @param additional_messages Additional messages.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
   *)
   val diagnosticf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, Code.t Diagnostic.t) format4 -> 'a
 
@@ -22,8 +22,8 @@ sig
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
       @param loc The location of the text (usually the code) to highlight.
-      @param additional_messages Additional messages.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
   *)
   val kdiagnosticf : (Code.t Diagnostic.t -> 'b) -> ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
@@ -41,8 +41,8 @@ sig
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
       @param loc The location of the text (usually the code) to highlight.
-      @param additional_messages Additional messages.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
   *)
   val emitf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
@@ -58,8 +58,8 @@ sig
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
       @param loc The location of the text (usually the code) to highlight.
-      @param additional_messages Additional messages.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
   *)
   val fatalf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 

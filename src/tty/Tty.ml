@@ -82,7 +82,7 @@ struct
       in
       parts |> List.map (fun s -> s |> part |> I.pad ~b:1) |> I.vcat |> I.crop ~b:2
 
-  let display_message ?(additional_messages : Diagnostic.message list = []) code severity (msg : Diagnostic.message)  =
+  let display_message code severity (msg : Diagnostic.message) additional_messages =
     let style s x = Explicator.{value = x; style = s} in
     let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) msg.loc in
     let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) additional_messages in
@@ -94,13 +94,13 @@ struct
     begin
       if show_backtrace then
         I.pad ~b:1 (I.string A.empty "Backtrace:") <->
-        (backtrace |> Bwd.map (fun t -> t |> display_message code severity |> I.pad ~b:1) |> Bwd.to_list |> I.vcat) <->
+        (backtrace |> Bwd.map (fun f -> display_message code severity f [] |> I.pad ~b:1) |> Bwd.to_list |> I.vcat) <->
         I.pad ~b:1 (I.string A.empty "Error:")
       else
         I.void 0 0
     end
     <->
-    I.pad ~b:1 (display_message code severity message ~additional_messages)
+    I.pad ~b:1 (display_message code severity message additional_messages)
 
   module F = Explicator.Make(FileReader)
 
@@ -110,9 +110,9 @@ struct
   let interactive_trace Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let traces =
       FileReader.run @@ fun () ->
-      Bwd.append
-        (backtrace |> Bwd.map (display_message code severity))
-        [display_message code severity message ~additional_messages] |> Bwd.to_list |> Array.of_list
+      Bwd.snoc
+        (backtrace |> Bwd.map (fun f -> display_message code severity f []))
+        (display_message code severity message additional_messages) |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in
     let open Notty_unix in
