@@ -1,4 +1,5 @@
 (executable
+ (package asai-examples)
  (name STLC)
  (public_name asai_stlc)
  (libraries algaeff menhirLib asai asai.tty asai.lsp)
