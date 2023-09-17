@@ -34,6 +34,7 @@ module type Style = sig
   val compose : t -> t -> t
 end
 
+(** The signature of explicators. *)
 module type S = sig
   module Style : Style
 
