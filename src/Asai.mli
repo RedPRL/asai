@@ -16,7 +16,7 @@ module Logger = Logger
 (** Turning location information into highlighted text suitable for rendering. *)
 module Explicator = Explicator
 
-(** {1 (Experimental) Backends} *)
+(** {1 Experimental Backends} *)
 
 (** Diagnostic display for UNIX terminals. *)
 module Tty = Tty
