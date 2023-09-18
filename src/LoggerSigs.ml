@@ -11,6 +11,8 @@ sig
         Logger.diagnosticf `TypeError "Term %a does not type check" Syntax.pp tm
       ]}
 
+      Note that the format strings should not contain any control characters. See {!type:Diagnostic.text}.
+
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
       @param loc The location of the text (usually the code) to highlight.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
@@ -19,6 +21,8 @@ sig
   val diagnosticf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, Code.t Diagnostic.t) format4 -> 'a
 
   (** [kdiagnosticf kont code format ...] is [kont (diagnosticf code format ...)].
+
+      Note that the format strings should not contain any control characters. See {!type:Diagnostic.text}.
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
       @param loc The location of the text (usually the code) to highlight.
@@ -51,6 +55,8 @@ sig
 
   (** [fatalf code format ...] constructs a diagnostic and aborts the current computation with the diagnostic.
 
+      Note that the format strings should not contain any control characters. See {!type:Diagnostic.text}.
+
       Example:
       {[
         Logger.fatalf `FileError "Failed to read %s" filepath
@@ -82,6 +88,8 @@ sig
   val trace : Diagnostic.message -> (unit -> 'a) -> 'a
 
   (** [tracef format ... f] constructs and records a frame, and runs the thunk [f] with the new backtrace.
+
+      Note that the format strings should not contain any control characters. See {!type:Diagnostic.text}.
 
       @param loc The location of the text (usually the code) to highlight.
   *)

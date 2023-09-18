@@ -24,10 +24,10 @@ end
 
 (** The type of text.
 
-    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a message is defined to be a function that takes a formatter and uses it to render the content. Please note that a message itself should not contain literal control characters (such as newlines) but only break hints (such as [@,]). *)
+    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a text is defined to be a function that takes a formatter and uses it to render the content. The text itself should not contain literal control characters (such as newlines) but only break hints (such as [@,]). Control characters include `0x00-0x1f` (C0 controls), `0x7f` (backspace), and `0x80-0x9f` (C1 controls); in particular, `0x0a` (newline) is a C0 control character. These characters are banned because they would mess up the cursor position. *)
 type text = Format.formatter -> unit
 
-(** A message is a located text. *)
+(** A message is a located {!type:text}. *)
 type message = text Span.located
 
 (** A backtrace is a (backward) list of messages. *)
@@ -46,4 +46,3 @@ type 'code t = {
   additional_messages : message list;
   (** Additional messages relevant to the main message that are not part of the backtrace. *)
 }
-  
