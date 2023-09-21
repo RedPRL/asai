@@ -6,9 +6,9 @@
 
 (** {1 Language Service Protocol} *)
 
-(** This module provides a rudimentary implementation of the LSP protocol.
+(** This module provides a rudimentary and incomplete implementation of the LSP protocol.
 
-    Note: this interface is experimental, and would likely change in the future.
+    Note: many features are missing and it does not handle [positionEncoding].
 
     @canonical Asai.Lsp.Make *)
 module Make (Code : Diagnostic.Code) : sig
