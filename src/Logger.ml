@@ -72,4 +72,12 @@ struct
       ~init_backtrace:(get_backtrace())
       ~emit:(fun d -> emit (m d))
       ~fatal:(fun d -> fatal (m d))
+
+  let register_printer f =
+    Printexc.register_printer @@ function
+    | Effect.Unhandled (Emit diag) -> f (`Emit diag)
+    | Fatal diag -> f (`Fatal diag)
+    | _ -> None
+
+  let () = register_printer @@ fun _ -> Some "Unhandled asai effect/exception; use Asai.Logger.run"
 end
