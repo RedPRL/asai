@@ -197,8 +197,8 @@ struct
 
   module F = Explicator.Make(FileReader)
 
-  let display ?(backtrace = false) diag =
-    Notty_unix.output_image (display_diagnostic backtrace diag)
+  let display ?(show_backtrace = false) diag =
+    Notty_unix.output_image (display_diagnostic show_backtrace diag)
 
   let interactive_trace Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let traces =
