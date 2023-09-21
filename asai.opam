@@ -4,9 +4,7 @@ synopsis: "A library for constructing and printing diagnostics"
 description:
   "This package offers an implementation of compiler diagnostics and supports multiple backends for displaying diagnostics to the end user. Currently, the package comes with three backends: GitHub Actions workflow commands, UNIX terminals, and LSP (Language Server Protocol)."
 maintainer: ["favonia <favonia@gmail.com>"]
-authors: [
-  "Reed Mullanix <reedmullanix@gmail.com>" "favonia <favonia@gmail.com>"
-]
+authors: ["The RedPRL Development Team"]
 license: "Apache-2.0"
 homepage: "https://github.com/RedPRL/asai"
 bug-reports: "https://github.com/RedPRL/asai/issues"
