@@ -9,7 +9,7 @@
 
 (source (github RedPRL/asai))
 (license Apache-2.0)
-(authors "Reed Mullanix <reedmullanix@gmail.com>" "favonia <favonia@gmail.com>")
+(authors "The RedPRL Development Team")
 (maintainers "favonia <favonia@gmail.com>")
 
 (package
