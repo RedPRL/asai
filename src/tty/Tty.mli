@@ -47,7 +47,7 @@ module Make (Code : Diagnostic.Code) : sig
       v}
       @param show_backtrace Whether the backtrace should be shown. The default is [false].
   *)
-  val display : ?backtrace:bool -> Code.t Diagnostic.t -> unit
+  val display : ?show_backtrace:bool -> Code.t Diagnostic.t -> unit
 
   (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace. *)
   val interactive_trace : Code.t Diagnostic.t -> unit
