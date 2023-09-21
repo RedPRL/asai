@@ -9,11 +9,34 @@ In addition to the main message, the API should allow implementers to easily spe
 + {b A succinct Google-able message code.} While severity should be changeable independently of the message code, often the same code implies the same severity. That is why we have {!val:Asai.Diagnostic.Code.default_severity} to specify the default severity for each code.
 + {b The backtrace and locations of other related text.} See {!val:Asai.Logger.S.tracef} and {!field:Asai.Diagnostic.additional_messages}.
 
-{1 Bytes and Code Points}
+{1 Stable Unicode Art Must Avoid Column Numbers}
 
-All positions are byte-oriented. Here are some popular alternatives:
+There is a long history of using ASCII printable characters and ANSI escape sequences, and recently also many non-ASCII Unicode characters, to draw pictures on terminals. For displaying compiler diagnostics, the technique has been used to assemble line numbers, highlighting, and other pieces of information in a visually pleasing way. However, they also impose new challenges---now it is impossible to predict the visual width of a sequence of characters without knowing the exact terminal (emulator), the exact font, the exact locale, and other settings. Arguably, Unicode emojis demonstrate one of the worst cases: a pirate flag may be shown as a single flag on one platform or a black flag and a skull on another platform, making the visual width entirely unpredictable. (See {{: https://unicode.org/reports/tr51/#Display}UTS #51 Section 2.2}.) Other less disastrous but still challenging cases include CJK characters whose East Asian width is "Ambiguous".
+
+It is thus wise to avoid using emojis or other tricky characters in an (extended) ASCII art. To quantify how stable an ASCII art is on different platforms, we may specify different levels of stability, in terms of the range of different platforms on which the art remains visually pleasing. Note that the end users may choose to include tricky characters in their proofs or programs, and the ASCII art components must remain visually pleasing no matter what is used by the end user.
+
+- {b Level 0 (the least stable):} Assume every character occupies the same width. Thanks to the popularity of Unicode, programs of this level are mostly considered outdated.
+
+- {b Level 1:} Use [wcwidth], [wcswidth], or similar heuristics to predict the visual width of a string. These heuristics exist to help programmers better handle traditionally wider characters, in particular CJK characters, without dramatically changing the code. They however do not solve the core problem, and often could not handle tricky cases such as emoji sequences. Many compilers are at this level.
+
+- {b Level 2a:} Stability under very limited assumptions on which characters should have the same widths. For example, if an ASCII art only assumes Unicode box-drawing characters are of the same width (which is the case in all conceivable situations), then it is at Level 3a. However, this level is somewhat subjective and thus we present a stricter version as Level 2b below.
+
+- {b Level 2b:} Stability under the assumption that (extended) ASCII printable characters (from Code page 437) have the same width. This is making even less assumptions than Level 2a about what characters have the same width.
+
+- {b Level 3 (the most stable):} Stability under only one assumption that the same graphic cluster will have the same width. This means that the ASCII art will remain visually pleasing in almost all situations. It can even be rendered with a propositional font.
+
+Unlike most implementations, which are at Level 1, our {{!module:Asai.Tty}terminal backend} strives to stay at Level 2a and ideally at Level 2b. In particular, to be at Level 2a, we must not make any assumption about the visual width of the end user's code and must abandon the idea of column numbers (the visual width measured in the "single" character width). As a result, our terminal backend {i never} shows column numbers and we consider that as a significant improvement.
+
+Note: a fixed-with Unicode font is often technically duospaced, not monospaced, because many CJK characters would occupy a double character width. Thus, we do not say "monospaced".
+
+{1 Raw Bytes as Positions}
+
+All positions are {b byte-oriented.} Here are some popular alternatives which we think are worse:
+
 + Unicode characters (which may not match user-perceived characters)
 + Unicode grapheme clusters (user-perceived characters; see the {{: https://erratique.ch/software/uuseg}uuseg} library)
 + Column numbers (visual width of a string in display)
 
-It takes at least linear time to count Unicode characters (except when UTF-32 is in use) or Unicode grapheme clusters from raw bytes. Column numbers are even worse---they are not well-defined: The visual column width of a string highly depends on the eventual renderer (e.g., web browsers, text editors, or terminal emulators) and there is no reliable protocol to communicate the active rendering convention. The rendering result can depend on the fonts (e.g., whether certain emoji sequences are supported, and how CJK characters whose East Asian width is "Ambiguous" are rendered), the locale (the data in [LC_CTYPE]), and other settings (such as the tab size). Many applications use the heuristics implemented in the POSIX function [wcswidth], ignoring all the tricky cases. We use only semantically well-defined units. In sum, we believe {e bytes} are the only efficient and portable position unit.
+It takes at least linear time to count Unicode characters (except when UTF-32 is in use) or Unicode grapheme clusters from raw bytes. Column numbers are even worse because they are not well-defined, as elaborated in the previous section. The only well-defined unit that can also lead to an efficient implementation is {i raw byte}.
+
+Our LSP prototype does not handle [positionEncoding] yet, and thus an LSP client may be confused about the ranges returned by this library. A proper LSP implementation should negotiate with the client to determine how to represent column numbers. Unfortunately, {i raw bytes} are not a {{: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#positionEncodingKind}predefined encoding scheme} in the official LSP protocol yet. (That does not stop the server and the client to reach an agreement to use raw bytes.)
