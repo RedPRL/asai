@@ -29,3 +29,5 @@ let group p =
       | y :: ys -> (acc @> [x]) :: (go[@tailcall]) Emp y ys
     in
     go Emp x xs
+
+let maximum = List.fold_left Int.max Int.min_int

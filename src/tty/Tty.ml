@@ -16,14 +16,55 @@ module E = Explicator.Make(FileReader)(Style)
 
 module Make (Code : Diagnostic.Code) =
 struct
+(*
+    🭁 examples/stlc/source.lambda
+    ⇃
+  3 ⇃ no, it is not my fault!!!
+  4 ⇃ I was just calling some function!!!
+    ⇃
+ [E002] When looking into the meaning of 42
+
+    🭁 examples/stlc/example.lambda
+    │
+  1 │ (check (λ ä (λ 123
+  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+    ┊
+ 20 │ ahhhhhhhhhhhhhhhhhh
+ 21 │ noooooooooooooooooo
+    ┷
+ [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
+        which looks amazing!!!
+
+    🭁 examples/stlc/example2.lambda
+    │
+  3 │ let x = 1
+  4 │ let y = 1
+    ┷
+    🭁 examples/stlc/example3.lambda
+    │
+  8 │ assert (asai is cool)
+    ┷
+*)
+
+  (* helper functions *)
+
   let vline attr height str =
     I.vcat @@ List.init height (fun _ -> I.string attr str)
+
   let column ~align images =
     let maxby f xs = List.(fold_left max 0 (map f xs)) in
     let width = maxby I.width images in
     List.map (I.hsnap ~align width) images |> I.vcat
 
-  let attr (severity : Diagnostic.severity) (style : Style.t) =
+  let hcat_with_pad ~pad l =
+    I.hcat @@ List.map (I.pad ~l:pad) l
+
+  let vcat_with_pad ~pad l =
+    I.vcat @@ List.map (I.pad ~b:pad) l
+
+  (* styles *)
+
+  let highlight_style (severity : Diagnostic.severity) (style : Style.t) =
     let open A in
     match style with
     | None -> empty
@@ -37,70 +78,122 @@ struct
       | Error -> fg red
       | Bug -> bg red ++ fg black
 
-  let marked_style = A.st A.underline
-
   let fringe_style = A.fg @@ A.gray 8
 
-  let line_numbers_of_block Explicator.{start_line_num; lines} =
-    column ~align:`Right @@
-    List.map (fun n -> I.string fringe_style @@ Int.to_string n) @@
-    List.init (List.length lines) (fun i -> start_line_num + i)
+  (* calculating the width of line numbers *)
 
-  let display_parts code severity text parts =
-    if parts = [] then
-      I.strf "[%s] %t" (Code.to_string code) text
-    else
-      let segment Explicator.{style; value = seg} =
-        I.string (attr severity style) seg
-      in
-      let line (segs : _ Explicator.line) =
-        segs |> List.map segment |> I.hcat
-      in
-      let block (b : _ Explicator.block) =
-        (* We want to display the error message under whatever block contains the highlighted text *)
-        (b.lines |> List.map line |> I.vcat) <->
-        if List.exists (List.exists (function Explicator.{style = (Style.Primary | HighlightedPrimary); _} -> true | _ -> false)) b.lines then
-          I.pad ~t:1 @@ I.strf "[%s] %t" (Code.to_string code) text
-        else
-          I.void 0 0
-      in
-      let part Explicator.{file_path; blocks} =
-        let line_numbers = blocks |> List.map line_numbers_of_block in
-        let fringes = line_numbers |> List.map (fun img -> vline fringe_style (I.height img) "│") in
-        let line_numbers = line_numbers |> List.map (I.pad ~b:2) |> column ~align:`Right |> I.crop ~b:2 in
-        let fringe =
-          I.string fringe_style ("🭁") <->
-          I.string fringe_style "│" <->
-          (fringes |> List.map (fun img -> img <-> vline fringe_style 2 "┊") |> I.vcat |> I.crop ~b:2) <->
-          I.string fringe_style "│" <->
-          I.string fringe_style "█"
-        in
-        let side_panel = I.pad ~t:2 ~l:1 ~r:1 line_numbers <|> fringe in
-        let blocks = blocks |> List.map (fun b -> block b |> I.pad ~b:1) |> I.vcat in
-        let body = I.pad ~b:1 (I.string A.empty file_path) <-> blocks in
-        I.pad ~r:1 side_panel <|> body
-      in
-      parts |> List.map (fun s -> s |> part |> I.pad ~b:1) |> I.vcat |> I.crop ~b:2
+  let line_number_width explication : int =
+    let max_line_number_block Explicator.{start_line_num; lines} =
+      start_line_num + List.length lines - 1
+    in
+    let max_line_number_part Explicator.{blocks; _} =
+      Utils.maximum @@ List.map max_line_number_block blocks
+    in
+    let max_line_number (parts : _ Explicator.explication) =
+      Utils.maximum @@ List.map max_line_number_part parts
+    in
+    String.length @@ Int.to_string @@ max_line_number explication
 
-  let display_message code severity (msg : Diagnostic.message) additional_messages =
-    let style s x = Explicator.{value = x; style = s} in
-    let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) msg.loc in
-    let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) additional_messages in
-    let parts = E.explicate ~splitting_threshold:5 (main_span @ additional_spans) in
-    display_parts code severity msg.value parts
+  (* different parts of the display *)
 
-  let display_diagnostic show_backtrace Diagnostic.{code; severity; message; additional_messages; backtrace} =
-    FileReader.run @@ fun () ->
+  (* [ 🭁 examples/stlc/source.lambda] *)
+  let render_file_header ~line_number_width ~is_backtrace:_ file_path =
+    hcat_with_pad ~pad:1
+      [ I.void line_number_width 0
+      ; I.string fringe_style "🭁"
+      ; I.string A.empty file_path
+      ]
+
+  (* [ ⇃ ] or [ │ ] *)
+  let render_file_header_padding ~line_number_width ~is_backtrace =
+    hcat_with_pad ~pad:1
+      [ I.void line_number_width 0
+      ; I.string fringe_style (if is_backtrace then "⇃" else "│")
+      ]
+
+  let show_code_segment severity Explicator.{style; value = seg} =
+    I.string (highlight_style severity style) seg
+
+  let show_code_line severity (segs : _ Explicator.line) =
+    I.hcat @@ List.map (show_code_segment severity) segs
+
+  (* [3 ⇃ no, it is not my fault!!!] *)
+  let render_block ~line_number_width~is_backtrace ~severity Explicator.{start_line_num; lines} =
+    List.mapi (fun i line ->
+        let line_num = start_line_num + i in
+        hcat_with_pad ~pad:1
+          [ I.hsnap ~align:`Right line_number_width (I.string fringe_style (Int.to_string line_num))
+          ; I.string fringe_style (if is_backtrace then "⇃" else "│")
+          ; show_code_line severity line
+          ]
+      ) lines
+
+  (* [ ┊ ] *)
+  let render_code_block_sep ~line_number_width ~is_backtrace:_ =
+    hcat_with_pad ~pad:1
+      [ I.void line_number_width 0
+      ; I.string fringe_style "┊"
+      ]
+
+  (* [ ⇃ ] or [ ┷ ] *)
+  let render_code_part_end ~line_number_width ~is_backtrace =
+    hcat_with_pad ~pad:1
+      [ I.void line_number_width 0
+      ; I.string fringe_style (if is_backtrace then "⇃" else "┷")
+      ]
+
+  let render_part ~line_number_width ~is_backtrace ~severity Explicator.{file_path; blocks} =
+    [ render_file_header ~line_number_width ~is_backtrace file_path
+    ; render_file_header_padding ~line_number_width ~is_backtrace
+    ] @
     begin
-      if show_backtrace then
-        I.pad ~b:1 (I.string A.empty "Backtrace:") <->
-        (backtrace |> Bwd.map (fun f -> display_message code severity f [] |> I.pad ~b:1) |> Bwd.to_list |> I.vcat) <->
-        I.pad ~b:1 (I.string A.empty "Error:")
-      else
-        I.void 0 0
-    end
+      List.concat @@
+      List.mapi
+        (fun i b ->
+           List.concat
+             [ if i = 0 then [] else [ render_code_block_sep ~line_number_width ~is_backtrace ]
+             ; render_block ~line_number_width ~is_backtrace ~severity b
+             ]
+        ) blocks
+    end @
+    [ render_code_part_end ~line_number_width ~is_backtrace ]
+
+  let render_explication ~line_number_width ~is_backtrace ~severity parts =
+    I.vcat @@ List.concat_map (render_part ~line_number_width ~is_backtrace ~severity) parts
+
+  (* message *)
+  let render_text ~line_number_width:_ ~is_backtrace:_ ~code text =
+    hcat_with_pad ~pad:1
+      [ I.strf "[%s]" (Code.to_string code)
+      ; I.strf "%t" text
+      ]
+
+  let render_message ~line_number_width ~is_backtrace ~severity ~code explication text =
+    render_explication ~line_number_width ~is_backtrace ~severity explication
     <->
-    I.pad ~b:1 (display_message code severity message additional_messages)
+    render_text ~line_number_width ~is_backtrace ~code text
+
+  let display_message ~is_backtrace ~severity ~code (msg : Diagnostic.message) ~additional_messages =
+    let explication =
+      let style s x = Explicator.{value = x; style = s} in
+      let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) msg.loc in
+      let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) additional_messages in
+      E.explicate ~splitting_threshold:5 (main_span @ additional_spans)
+    in
+    let line_number_width = line_number_width explication in
+    render_message ~line_number_width ~is_backtrace ~severity ~code explication msg.value
+
+  let display_diagnostic show_backtrace Diagnostic.{severity; code; message; backtrace; additional_messages} =
+    FileReader.run @@ fun () ->
+    let msgs =
+      Bwd.snoc
+        (if show_backtrace then
+           Bwd.map (display_message ~is_backtrace:true ~severity ~code ~additional_messages:[]) backtrace
+         else
+           Emp)
+        (display_message ~is_backtrace:false ~severity ~code message ~additional_messages)
+    in
+    vcat_with_pad ~pad:1 (Bwd.to_list msgs)
 
   module F = Explicator.Make(FileReader)
 
@@ -111,8 +204,9 @@ struct
     let traces =
       FileReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun f -> display_message code severity f []))
-        (display_message code severity message additional_messages) |> Bwd.to_list |> Array.of_list
+        (backtrace |> Bwd.map (fun msg -> display_message ~is_backtrace:true ~severity ~code msg ~additional_messages:[]))
+        (display_message ~is_backtrace:false ~severity ~code message ~additional_messages)
+      |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in
     let open Notty_unix in
