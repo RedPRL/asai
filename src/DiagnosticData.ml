@@ -24,7 +24,9 @@ end
 
 (** The type of text.
 
-    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a text is defined to be a function that takes a formatter and uses it to render the content. The text itself should not contain literal control characters (such as newlines) but only break hints (such as [@,]). Control characters include `U+0000-001F` (C0 controls), `U+007F` (backspace), and `U+0080-009F` (C1 controls); in particular, `U+000A` (newline) is a C0 control character. These characters are banned because they would mess up the cursor position. *)
+    When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a text is defined to be a function that takes a formatter and uses it to render the content. Please make sure the following two conditions are satisfied:
+    + {b All string and character literals should be encoded using UTF-8.}
+    + {b All string and character literals should not contain control characters (such as newlines).} It is okay to have break hints (such as [@,]) but not literal control characters. This means you should not use pre-formatted strings; consider using {!val:Format.pp_print_text} for pre-formatted strings. Control characters include `U+0000-001F` (C0 controls), `U+007F` (backspace), and `U+0080-009F` (C1 controls); in particular, `U+000A` (newline) is a C0 control character. These characters are banned because they would mess up the cursor position. *)
 type text = Format.formatter -> unit
 
 (** A message is a located {!type:text}. *)
