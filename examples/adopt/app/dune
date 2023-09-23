@@ -1,0 +1,6 @@
+(executable
+ (name App)
+ (package asai-examples)
+ (public_name asai-examples.app)
+ (libraries algaeff asai asai-examples.syslib)
+ (optional))

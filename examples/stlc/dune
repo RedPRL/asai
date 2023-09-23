@@ -1,7 +1,7 @@
 (executable
+ (name Checker)
  (package asai-examples)
- (name STLC)
- (public_name asai_stlc)
+ (public_name asai-examples.stlc)
  (libraries algaeff menhirLib asai)
  (optional))
 
