@@ -2,9 +2,20 @@ include DiagnosticData
 
 let ktextf = Format.kdprintf
 
+let text_of_string s fmt =
+  List.iteri
+    (fun i s ->
+       if i > 0 then Format.pp_force_newline fmt ();
+       Format.pp_print_string fmt s
+    ) @@
+  String.split_on_char '\n' s
+
 let textf = Format.dprintf
 
 let kmessagef k ?loc = ktextf @@ fun message -> k Span.{ loc; value = message }
+
+let message_of_string ?loc s =
+  Span.{ loc; value = text_of_string s }
 
 let messagef ?loc = kmessagef Fun.id ?loc
 

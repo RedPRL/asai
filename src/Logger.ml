@@ -16,19 +16,27 @@ struct
 
   let trace fr f = Traces.scope (fun bt -> bt <: fr) f
 
+  let trace_string ?loc str f = trace (Diagnostic.message_of_string ?loc str) f
+
   let tracef ?loc = Diagnostic.kmessagef trace ?loc
 
   (* Building messages *)
 
-  let kdiagnosticf k ?severity ?loc ?(backtrace=get_backtrace()) ?(additional_messages=[]) code =
-    Diagnostic.ktextf @@ fun message -> k @@
+  let diagnostic_of_message ?severity ?(backtrace=get_backtrace()) ?(additional_messages=[]) code message =
     Diagnostic.{
       severity = Option.value ~default:(Code.default_severity code) severity;
       code;
-      message = {loc; value = message};
+      message;
       backtrace;
       additional_messages;
     }
+
+  let kdiagnosticf k ?severity ?loc ?backtrace ?additional_messages code =
+    Diagnostic.kmessagef ?loc (fun msg -> k (diagnostic_of_message ?severity ?backtrace ?additional_messages code msg))
+
+  let diagnostic_of_string ?severity ?loc ?backtrace ?additional_messages code str =
+    diagnostic_of_message ?severity ?backtrace ?additional_messages code @@
+    Diagnostic.message_of_string ?loc str
 
   let diagnosticf ?severity ?loc ?backtrace ?additional_messages code =
     kdiagnosticf Fun.id ?severity ?loc ?backtrace ?additional_messages code
@@ -61,8 +69,14 @@ struct
 
   (* Convenience functions *)
 
+  let emit_string ?severity ?loc ?backtrace ?additional_messages code str =
+    emit @@ diagnostic_of_string ?severity ?loc ?backtrace ?additional_messages code str
+
   let emitf ?severity ?loc ?backtrace ?additional_messages code =
     kdiagnosticf emit ?severity ?loc ?backtrace ?additional_messages code
+
+  let fatal_string ?severity ?loc ?backtrace ?additional_messages code str =
+    fatal @@ diagnostic_of_string ?severity ?loc ?backtrace ?additional_messages code str
 
   let fatalf ?severity ?loc ?backtrace ?additional_messages code =
     kdiagnosticf fatal ?severity ?loc ?backtrace ?additional_messages code
