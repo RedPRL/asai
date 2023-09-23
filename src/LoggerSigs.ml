@@ -4,19 +4,6 @@ sig
 
   (** {2 Constructing Diagnostics} *)
 
-  (** [diagnostic_of_message code msg] constructs a diagnostic with the message [msg] along with the backtrace frames recorded via {!val:tracef}.
-
-      Example:
-      {[
-        Logger.diagnostic_of_message `CatchError (fun fmt -> Format.fprintf fmt "%s%i" "catch" 22)
-      ]}
-
-      @param severity The severity (to overwrite the default severity inferred from the message [code]).
-      @param backtrace The backtrace (to overwrite the acumulative frames up to this point).
-      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
-  *)
-  val diagnostic_of_message : ?severity:Diagnostic.severity -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> Diagnostic.message -> Code.t Diagnostic.t
-
   (** [diagnostic_of_string code str] constructs a diagnostic with the message [str] along with the backtrace frames recorded via {!val:tracef}.
 
       Example:
