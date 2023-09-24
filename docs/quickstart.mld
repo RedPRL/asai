@@ -2,7 +2,7 @@
 
 This tutorial is for an implementer to adopt this library as quickly as possible. We will assume you are already familiar with OCaml and are using a typical OCaml package structure.
 
-{1 Define Error Codes and Create a Logger}
+{1 Define Error Codes}
 
 The first step is to create a file [Logger.ml] with the following template:
 
@@ -66,7 +66,7 @@ let () =
   (* your application code *)
 ]}
 
-{1 Adding Backtraces}
+{1 Add Backtraces}
 
 Great messages come with meaningful backtraces. To add backtraces, you will have to "annotate" your code to generate meaningful backtraces. Suppose this is one of the functions whose invocation should be noted in user-facing backtraces:
 {[
@@ -95,6 +95,6 @@ let () =
   (* your application code *)
 ]}
 
-{1 Adding Location Information}
+{1 Add Location Information}
 
 Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is expecting an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex}of_lex} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
