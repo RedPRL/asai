@@ -1,6 +1,6 @@
 {0 Quick Start}
 
-This tutorial is for an implementer to adopt this library as quickly as possible. We will assume you are already familiar with OCaml and are using a typical OCaml package structure.
+This tutorial is for an implementer (you!) to adopt this library as quickly as possible. We will assume you are already familiar with OCaml and are using a typical OCaml package structure.
 
 {1 Define Error Codes}
 
@@ -47,7 +47,7 @@ where [Greeting] is the message code of this message. The fancier version is {{!
 {[
 Logger.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term
 ]}
-Note that you should not include any control characters (for example newlines [\n]) anywhere when using {{!val:Asai.Logger.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. If you must, use forced newlines ([@\n]). See {!module:Stdlib.Format} for more information on boxes and break hints.
+Note that you should not include any control character (for example the newline character [\n]) anywhere when using {{!val:Asai.Logger.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. If you must, use forced newlines ([@\n]). See {!module:Stdlib.Format} for more information on boxes and break hints.
 
 If you wish to terminate the execution after issuing a message instead of continuing the execution, use {{!val:Asai.Logger.S.fatal}fatal} instead of {{!val:Asai.Logger.S.emit}emit}. There's also a fancier {{!val:Asai.Logger.S.fatalf}fatalf} that works in the same way as {{!val:Asai.Logger.S.emitf}emitf}.
 

@@ -3,9 +3,9 @@
 {1 Links}
 
 {ul
-  {- {{!page:quickstart} Quickstart tutorial}}
-  {- {{!page:design} Our design philosophy}}
-  {- {{!module:Asai} API reference}}}
+  {- {{!page:quickstart} 🔰 Quickstart tutorial}}
+  {- {{!page:design} 💡 Our design philosophy}}
+  {- {{!module:Asai} 📔 API reference}}}
 
 {1 What is "asai"?}
 
