@@ -3,6 +3,7 @@
 {1 Links}
 
 {ul
+  {- {{!page:quickstart} Quickstart tutorial}}
   {- {{!page:design} Our design philosophy}}
   {- {{!module:Asai} API reference}}}
 
