@@ -1,4 +1,4 @@
-{0 Quick Start}
+{0 Quickstart Tutorial}
 
 This tutorial is for an implementer (you!) to adopt this library as quickly as possible. We will assume you are already familiar with OCaml and are using a typical OCaml package structure.
 
@@ -30,26 +30,28 @@ end
 include Asai.Logger.Make(Code)
 ]}
 
-The most important step is to decide the {i message codes}. It should be a meaningful classification of all the messages that could be sent to the end users. For example, [UndefinedSymbol] could be a reasonable code for a message about failing to find the definition of a symbol. Then, you will have to define two functions [default_severity] and [to_string]:
+The most important step is to decide the {i message codes}. It should be a meaningful classification of all the messages that could be sent to the end users. For example, [UndefinedSymbol] could be a reasonable code for a message about failing to find the definition of a symbol. Once you define the type of all message codes, you will have to define two functions [default_severity] and [to_string]:
 
-+ [default_severity]: {i Severity} means how serious an end user should take your message (is it an error or a warning?), and this can be overwritten when a message is issued. However, it seems messages with the same message code usually come with the same severity, so we require you to define a default severity value for each message code. You can then save some typing later on.
-+ [to_string]: This function is to show the message code to the user. Ideally, this will be a short, Google-able string representation. Please do not use long descriptions such as "scope-error: undefined symbols". The library will give you plenty of opportunities to add detail to a message, but not here. The message code should be clearly unambiguous and easily recognizable.
++ [default_severity]: {i Severity} means how serious an end user should take your message (is it an error or a warning?), and this can be overwritten when a message is sent. It seems messages with the same message code usually come with the same severity, so we want you to define a default severity value for each message code. You can then save some typing later when sending a message.
++ [to_string]: This function is to show the message code to the user. Ideally, it should give a short, Google-able string representation. Please do not use long descriptions such as "scope-error: undefined symbols." The library will give you plenty of opportunities to add as many details as you want to a message, but not here. The message code should be unambiguous, easily recognizable, and "machine-readable without ChatGPT."
 
 Once you have filled out the template, run [dune build] or other tools to check that everything compiles. If so, you are ready for the next step.
 
 {1 Start Using Logger}
 
-Now, go to the places where you want to issue a message, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Logger.S.emit}emit} a string:
+Now, go to the places where you want to send a message to end users, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Logger.S.emit}emit} a string:
 {[
-Logger.emit Greeting "hello!"
+Logger.emit Greeting "hello!";
+(* continue doing other things *)
 ]}
-where [Greeting] is the message code of this message. The fancier version is {{!val:Asai.Logger.S.emitf}emitf}, which formats a message like [printf]:
+where [Greeting] is the message code of this message. The fancier version is {{!val:Asai.Logger.S.emitf}emitf}, which formats a message like [printf] and sends it:
 {[
-Logger.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term
+Logger.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term;
+(* continue doing other things *)
 ]}
-Note that you should not include any control character (for example the newline character [\n]) anywhere when using {{!val:Asai.Logger.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. If you must, use forced newlines ([@\n]). See {!module:Stdlib.Format} for more information on boxes and break hints.
+There is an important limitation of {{!val:Asai.Logger.S.emitf}emitf} though: you should not include {i any} control character (for example the newline character [\n]) {i anywhere} when using {{!val:Asai.Logger.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. See {!module:Stdlib.Format} for more information on boxes and break hints.
 
-If you wish to terminate the execution after issuing a message instead of continuing the execution, use {{!val:Asai.Logger.S.fatal}fatal} instead of {{!val:Asai.Logger.S.emit}emit}. There's also a fancier {{!val:Asai.Logger.S.fatalf}fatalf} that works in the same way as {{!val:Asai.Logger.S.emitf}emitf}.
+If you wish to terminate your program after sending a message instead of continuing the execution, use {{!val:Asai.Logger.S.fatal}fatal} instead of {{!val:Asai.Logger.S.emit}emit}. There's also a fancier {{!val:Asai.Logger.S.fatalf}fatalf} that works in the same way as {{!val:Asai.Logger.S.emitf}emitf}.
 
 {1 Choose a Backend}
 
@@ -68,7 +70,7 @@ let () =
 
 {1 Add Backtraces}
 
-Great messages come with meaningful backtraces. To add backtraces, you will have to "annotate" your code to generate meaningful backtraces. Suppose this is one of the functions whose invocation should be noted in user-facing backtraces:
+Great messages come with meaningful backtraces. To add backtraces, you will have to "annotate" your code to generate meaningful stack frames. Suppose this is one of the functions whose invocation should be noted in user-facing backtraces:
 {[
 let f x y =
   (* very important code *)
@@ -95,13 +97,21 @@ let () =
   (* your application code *)
 ]}
 
+We do not recommend adding {{!val:Asai.Logger.S.trace}trace} to every single function. Remember that they have to make sense to end users!
+
 {1 Add Location Information}
 
 Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is taking an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex}of_lex} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
 
-Note that [Logger] will remember the last location, and thus you do not have to explicitly pass locations all the times. For example, in the following code
+Note that [Logger] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[
 Logger.trace ~loc "When checking this code ..." @@ fun () ->
+(* ... *)
 Logger.emit "Wow!"
+(* ... *)
 ]}
-the inner message will inherit the location [loc] of the trace. Check out {{!val:Asai.Logger.S.get_loc}get_loc}, {{!val:Asai.Logger.S.with_loc}with_loc} and {{!val:Asai.Logger.S.merge_loc}merge_loc} to learn how to manipulate the current location.
+the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Logger.S.trace}trace} function call. Check out {{!val:Asai.Logger.S.get_loc}get_loc}, {{!val:Asai.Logger.S.with_loc}with_loc} and {{!val:Asai.Logger.S.merge_loc}merge_loc} to learn how to manipulate the current "remembered" location.
+
+{1 There are More!}
+
+We are still expanding this tutorial, but in the meanwhile, you can also check out our {{!module:Asai} 📔 API reference}.
