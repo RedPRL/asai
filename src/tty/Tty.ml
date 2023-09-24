@@ -48,14 +48,6 @@ struct
 
   (* helper functions *)
 
-  let vline attr height str =
-    I.vcat @@ List.init height (fun _ -> I.string attr str)
-
-  let column ~align images =
-    let maxby f xs = List.(fold_left max 0 (map f xs)) in
-    let width = maxby I.width images in
-    List.map (I.hsnap ~align width) images |> I.vcat
-
   let hcat_with_pad ~pad l =
     I.hcat @@ List.map (I.pad ~l:pad) l
 
