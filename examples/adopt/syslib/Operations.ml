@@ -2,7 +2,7 @@ let operation1 arg =
   Logger.emitf ChiError "I got a string %s" arg
 
 let operation2 arg =
-  Logger.trace_string "Meow!\nMeow!" @@ fun () ->
+  Logger.trace "Meow!\nMeow!" @@ fun () ->
   operation1 arg
 
 let operation3 arg =

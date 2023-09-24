@@ -4,7 +4,7 @@ let lift_syslib f =
 module Term = Asai.Tty.Make (Logger.Code)
 
 let () =
-  Logger.run ~emit:Term.interactive_trace ~fatal:Term.display @@ fun () ->
+  Logger.run ~emit:Term.interactive_trace ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->
   (lift_syslib @@ fun () -> Syslib.Operations.operation1 "op1");
   (lift_syslib @@ fun () -> Syslib.Operations.operation2 "op2");
   lift_syslib @@ fun () -> Syslib.Operations.operation3 "op3"

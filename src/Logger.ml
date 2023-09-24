@@ -12,31 +12,23 @@ struct
 
   let get_backtrace = Traces.read
 
-  let retrace bt = Traces.run ~env:bt
+  let with_backtrace bt = Traces.run ~env:bt
 
-  let trace fr f = Traces.scope (fun bt -> bt <: fr) f
+  let trace_message msg = Traces.scope @@ fun bt -> bt <: msg
 
-  let trace_string ?loc str f = trace (Diagnostic.message_of_string ?loc str) f
+  let trace ?loc str = trace_message @@ Diagnostic.message ?loc str
 
-  let tracef ?loc = Diagnostic.kmessagef trace ?loc
+  let tracef ?loc = Diagnostic.kmessagef trace_message ?loc
 
   (* Building messages *)
 
-  let diagnostic_of_message ?severity ?(backtrace=get_backtrace()) ?(additional_messages=[]) code message =
-    Diagnostic.{
-      severity = Option.value ~default:(Code.default_severity code) severity;
-      code;
-      message;
-      backtrace;
-      additional_messages;
-    }
+  let get_severity code = function None -> Code.default_severity code | Some severity -> severity
 
-  let kdiagnosticf k ?severity ?loc ?backtrace ?additional_messages code =
-    Diagnostic.kmessagef ?loc (fun msg -> k (diagnostic_of_message ?severity ?backtrace ?additional_messages code msg))
+  let diagnostic ?severity ?loc ?(backtrace=get_backtrace()) ?additional_messages code str =
+    Diagnostic.make ?loc ~backtrace ?additional_messages (get_severity code severity) code str
 
-  let diagnostic_of_string ?severity ?loc ?backtrace ?additional_messages code str =
-    diagnostic_of_message ?severity ?backtrace ?additional_messages code @@
-    Diagnostic.message_of_string ?loc str
+  let kdiagnosticf ?severity ?loc ?(backtrace=get_backtrace()) ?additional_messages k code =
+    Diagnostic.kmakef ?loc ~backtrace ?additional_messages k (get_severity code severity) code
 
   let diagnosticf ?severity ?loc ?backtrace ?additional_messages code =
     kdiagnosticf Fun.id ?severity ?loc ?backtrace ?additional_messages code
@@ -46,8 +38,8 @@ struct
   type _ Effect.t += Emit : Code.t Diagnostic.t -> unit Effect.t
   exception Fatal of Code.t Diagnostic.t
 
-  let emit d = Effect.perform @@ Emit d
-  let fatal d = raise @@ Fatal d
+  let emit_diagnostic d = Effect.perform @@ Emit d
+  let fatal_diagnostic d = raise @@ Fatal d
 
   let handler ~(emit : _ -> unit) ~fatal : _ Effect.Deep.handler =
     { retc = Fun.id;
@@ -64,28 +56,28 @@ struct
     Traces.run ~env:init_backtrace @@ fun () ->
     Effect.Deep.match_with f () @@ handler ~emit ~fatal
 
-  let try_with ?(emit=emit) ?(fatal=fatal) f =
+  let try_with ?(emit=emit_diagnostic) ?(fatal=fatal_diagnostic) f =
     Effect.Deep.match_with f () @@ handler ~emit ~fatal
 
   (* Convenience functions *)
 
-  let emit_string ?severity ?loc ?backtrace ?additional_messages code str =
-    emit @@ diagnostic_of_string ?severity ?loc ?backtrace ?additional_messages code str
+  let emit ?severity ?loc ?backtrace ?additional_messages code str =
+    emit_diagnostic @@ diagnostic ?severity ?loc ?backtrace ?additional_messages code str
 
   let emitf ?severity ?loc ?backtrace ?additional_messages code =
-    kdiagnosticf emit ?severity ?loc ?backtrace ?additional_messages code
+    kdiagnosticf emit_diagnostic ?severity ?loc ?backtrace ?additional_messages code
 
-  let fatal_string ?severity ?loc ?backtrace ?additional_messages code str =
-    fatal @@ diagnostic_of_string ?severity ?loc ?backtrace ?additional_messages code str
+  let fatal ?severity ?loc ?backtrace ?additional_messages code str =
+    fatal_diagnostic @@ diagnostic ?severity ?loc ?backtrace ?additional_messages code str
 
   let fatalf ?severity ?loc ?backtrace ?additional_messages code =
-    kdiagnosticf fatal ?severity ?loc ?backtrace ?additional_messages code
+    kdiagnosticf fatal_diagnostic ?severity ?loc ?backtrace ?additional_messages code
 
   let adopt m (run : ?init_backtrace:_ -> emit:_ -> fatal:_ -> _) f =
     run f
       ~init_backtrace:(get_backtrace())
-      ~emit:(fun d -> emit (m d))
-      ~fatal:(fun d -> fatal (m d))
+      ~emit:(fun d -> emit_diagnostic (m d))
+      ~fatal:(fun d -> fatal_diagnostic (m d))
 
   let register_printer f =
     Printexc.register_printer @@ function

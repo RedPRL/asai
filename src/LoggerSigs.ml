@@ -2,13 +2,13 @@ module type S =
 sig
   module Code : Diagnostic.Code
 
-  (** {2 Constructing Diagnostics} *)
+  (** {2 Sending Diagnostics} *)
 
-  (** [diagnostic_of_string code str] constructs a diagnostic with the message [str] along with the backtrace frames recorded via {!val:tracef}.
+  (** [emit code str] emits a string and continue the computation.
 
       Example:
       {[
-        Logger.diagnostic_of_string `TypeError "This\nis\ntoo\nmuch."
+        Logger.emit `TypeError "This type is extremely unnatural:\nNat"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
@@ -16,7 +16,101 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
   *)
-  val diagnostic_of_string : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> Code.t Diagnostic.t
+  val emit : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> unit
+
+  (** [emitf code format ...] formats and emits a message, and then continue the computation. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+
+      Example:
+      {[
+        Logger.emitf `TypeError "Type %a is too ugly" Syntax.pp tp
+      ]}
+
+      @param severity The severity (to overwrite the default severity inferred from the message [code]).
+      @param loc The location of the text (usually the code) to highlight.
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
+  *)
+  val emitf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
+
+  (** Emit a diagnostic and continue the computation. *)
+  val emit_diagnostic : Code.t Diagnostic.t -> unit
+
+  (** [fatal code str] aborts the current computation with the string [str].
+
+      Example:
+      {[
+        Logger.fatal `FileError "Forgot to feed the cat"
+      ]}
+
+      @param severity The severity (to overwrite the default severity inferred from the message [code]).
+      @param loc The location of the text (usually the code) to highlight.
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
+  *)
+  val fatal : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> 'a
+
+  (** [fatalf code format ...] constructs a diagnostic and aborts the current computation with the diagnostic. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+
+      Example:
+      {[
+        Logger.fatalf `FileError "Failed to write the password to %s" file_path
+      ]}
+
+      @param severity The severity (to overwrite the default severity inferred from the message [code]).
+      @param loc The location of the text (usually the code) to highlight.
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
+  *)
+  val fatalf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+
+  (** Abort the computation with a diagnostic. *)
+  val fatal_diagnostic: Code.t Diagnostic.t -> 'a
+
+  (** {2 Backtraces} *)
+
+  (** [get_backtrace()] returns the current backtrace. *)
+  val get_backtrace : unit -> Diagnostic.backtrace
+
+  (** [with_backtrace bt f] runs the thunk [f] with the backtrace [bt].
+
+      Example:
+      {[
+        (* running code with a fresh backtrace *)
+        with_backtrace Emp @@ fun () -> ...
+      ]}
+  *)
+  val with_backtrace : Diagnostic.backtrace -> (unit -> 'a) -> 'a
+
+  (** [trace str f] records the string [str] and runs the thunk [f] with the new backtrace.
+
+      @param loc The location of the text (usually the code) to highlight.
+  *)
+  val trace : ?loc:Span.t -> string -> (unit -> 'a) -> 'a
+
+  (** [tracef format ... f] formats and records a message as a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+
+      @param loc The location of the text (usually the code) to highlight.
+  *)
+  val tracef : ?loc:Span.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
+
+  (** [trace_message msg f] records the message [msg] and runs the thunk [f] with the new backtrace. *)
+  val trace_message : Diagnostic.message -> (unit -> 'a) -> 'a
+
+  (** {2 Constructing Diagnostics with Current Backtraces} *)
+
+  (** [diagnostic code str] constructs a diagnostic with the message [str] along with the backtrace frames recorded via {!val:tracef}.
+
+      Example:
+      {[
+        Logger.diagnostic `TypeError "This\nis\ntoo\nmuch."
+      ]}
+
+      @param severity The severity (to overwrite the default severity inferred from the message [code]).
+      @param loc The location of the text (usually the code) to highlight.
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
+  *)
+  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> Code.t Diagnostic.t
 
   (** [diagnosticf code format ...] constructs a diagnostic along with the backtrace frames recorded via {!val:trace}. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
@@ -39,101 +133,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
   *)
-  val kdiagnosticf : (Code.t Diagnostic.t -> 'b) -> ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
-
-  (** {2 Sending Diagnostics} *)
-
-  (** Emit a diagnostic and continue the computation. *)
-  val emit : Code.t Diagnostic.t -> unit
-
-  (** [emit_string code str] emits a string and continue the computation.
-
-      Example:
-      {[
-        Logger.emit_string `TypeError "This type is extremely unnatural:\nNat"
-      ]}
-
-      @param severity The severity (to overwrite the default severity inferred from the message [code]).
-      @param loc The location of the text (usually the code) to highlight.
-      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
-  *)
-  val emit_string : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> unit
-
-  (** [emitf code format ...] constructs and emits a diagnostic. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
-
-      Example:
-      {[
-        Logger.emitf `TypeError "Type %a is too ugly" Syntax.pp tp
-      ]}
-
-      @param severity The severity (to overwrite the default severity inferred from the message [code]).
-      @param loc The location of the text (usually the code) to highlight.
-      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
-  *)
-  val emitf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
-
-  (** Abort the computation with a diagnostic. *)
-  val fatal: Code.t Diagnostic.t -> 'a
-
-  (** [fatal_string code str] aborts the current computation with the string [str].
-
-      Example:
-      {[
-        Logger.fatal_string `FileError "Forgot to feed the cat"
-      ]}
-
-      @param severity The severity (to overwrite the default severity inferred from the message [code]).
-      @param loc The location of the text (usually the code) to highlight.
-      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
-  *)
-  val fatal_string : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> 'a
-
-  (** [fatalf code format ...] constructs a diagnostic and aborts the current computation with the diagnostic. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
-
-      Example:
-      {[
-        Logger.fatalf `FileError "Failed to write the password to %s" file_path
-      ]}
-
-      @param severity The severity (to overwrite the default severity inferred from the message [code]).
-      @param loc The location of the text (usually the code) to highlight.
-      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-      @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
-  *)
-  val fatalf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
-
-  (** {2 Backtraces} *)
-
-  (** [get_backtrace()] returns the current backtrace. *)
-  val get_backtrace : unit -> Diagnostic.backtrace
-
-  (** [retrace bt f] runs the thunk [f] with the backtrace [bt].
-
-      Example:
-      {[
-        (* running code with a fresh backtrace *)
-        retrace Emp @@ fun () -> ...
-      ]}
-  *)
-  val retrace : Diagnostic.backtrace -> (unit -> 'a) -> 'a
-
-  (** [trace msg f] records the message [msg] and runs the thunk [f] with the new backtrace. It is [retrace (get_backtrace() <: fr) f]. *)
-  val trace : Diagnostic.message -> (unit -> 'a) -> 'a
-
-  (** [trace_string str f] records the string [str] and runs the thunk [f] with the new backtrace. It is [trace (Diagnostic.message_of_string str) f].
-
-      @param loc The location of the text (usually the code) to highlight.
-  *)
-  val trace_string : ?loc:Span.t -> string -> (unit -> 'a) -> 'a
-
-  (** [tracef format ... f] constructs and records a frame, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
-
-      @param loc The location of the text (usually the code) to highlight.
-  *)
-  val tracef : ?loc:Span.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
+  val kdiagnosticf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> (Code.t Diagnostic.t -> 'b) -> Code.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** {2 Algebraic Effects} *)
 
@@ -150,8 +150,8 @@ sig
       {[
         let adopt m f run =
           run ?init_backtrace:(Some (get_backtrace()))
-            ~emit:(fun d -> emit (m d))
-            ~fatal:(fun d -> fatal (m d))
+            ~emit:(fun d -> emit_diagnostic (m d))
+            ~fatal:(fun d -> fatal_diagnostic (m d))
             f
       ]}
 
@@ -170,8 +170,8 @@ sig
 
   (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit} and {!val:emitf}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal} and {!val:fatalf}). The default interceptors re-emit or re-raise the intercepted diagnostics.
 
-      @param emit The interceptor of non-fatal diagnostics. The default value is {!val:emit}.
-      @param fatal The interceptor of fatal diagnostics. The default value is {!val:fatal}. *)
+      @param emit The interceptor of non-fatal diagnostics. The default value is {!val:emit_diagnostic}.
+      @param fatal The interceptor of fatal diagnostics. The default value is {!val:fatal_diagnostic}. *)
   val try_with : ?emit:(Code.t Diagnostic.t -> unit) -> ?fatal:(Code.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
   val register_printer : ([ `Emit of Code.t Diagnostic.t | `Fatal of Code.t Diagnostic.t ] -> string option) -> unit

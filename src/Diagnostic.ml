@@ -1,8 +1,6 @@
 include DiagnosticData
 
-let ktextf = Format.kdprintf
-
-let text_of_string s fmt =
+let text s fmt =
   List.iteri
     (fun i s ->
        if i > 0 then Format.pp_force_newline fmt ();
@@ -12,12 +10,31 @@ let text_of_string s fmt =
 
 let textf = Format.dprintf
 
-let kmessagef k ?loc = ktextf @@ fun message -> k Span.{ loc; value = message }
+let ktextf = Format.kdprintf
 
-let message_of_string ?loc s =
-  Span.{ loc; value = text_of_string s }
+let message ?loc s = Span.{ loc; value = text s }
+
+let kmessagef ?loc k = ktextf @@ fun message -> k Span.{ loc; value = message }
 
 let messagef ?loc = kmessagef Fun.id ?loc
+
+let of_message ?(backtrace=Bwd.Emp) ?(additional_messages=[]) severity code message : _ t =
+  { severity
+  ; code
+  ; message
+  ; backtrace
+  ; additional_messages
+  }
+
+let make ?loc ?backtrace ?additional_messages severity code str =
+  of_message ?backtrace ?additional_messages severity code @@ message ?loc str
+
+let kmakef ?loc ?backtrace ?additional_messages k severity code =
+  kmessagef ?loc @@ fun message ->
+  k @@ of_message ?backtrace ?additional_messages severity code message
+
+let makef ?loc ?backtrace ?additional_messages severity code =
+  kmessagef ?loc @@ of_message ?backtrace ?additional_messages severity code
 
 let string_of_severity =
   function
