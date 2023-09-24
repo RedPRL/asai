@@ -97,4 +97,11 @@ let () =
 
 {1 Add Location Information}
 
-Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is expecting an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex}of_lex} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
+Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is taking an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex}of_lex} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
+
+Note that [Logger] will remember the last location, and thus you do not have to explicitly pass locations all the times. For example, in the following code
+{[
+Logger.trace ~loc "When checking this code ..." @@ fun () ->
+Logger.emit "Wow!"
+]}
+the inner message will inherit the location [loc] of the trace. Check out {{!val:Asai.Logger.S.get_loc}get_loc}, {{!val:Asai.Logger.S.with_loc}with_loc} and {{!val:Asai.Logger.S.merge_loc}merge_loc} to learn how to manipulate the current location.
