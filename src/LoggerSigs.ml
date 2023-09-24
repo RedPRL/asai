@@ -167,7 +167,9 @@ sig
       [adopt] is a convenience function that can be implemented as follows:
       {[
         let adopt m f run =
-          run ?init_backtrace:(Some (get_backtrace()))
+          run
+            ?init_loc:(get_loc())
+            ?init_backtrace:(Some (get_backtrace()))
             ~emit:(fun d -> emit_diagnostic (m d))
             ~fatal:(fun d -> fatal_diagnostic (m d))
             f
