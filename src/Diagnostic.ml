@@ -26,15 +26,18 @@ let of_message ?(backtrace=Bwd.Emp) ?(additional_messages=[]) severity code mess
   ; additional_messages
   }
 
+let of_text ?loc ?backtrace ?additional_messages severity code text : _ t =
+  of_message ?backtrace ?additional_messages severity code {loc; value = text}
+
 let make ?loc ?backtrace ?additional_messages severity code str =
-  of_message ?backtrace ?additional_messages severity code @@ message ?loc str
+  of_text ?loc ?backtrace ?additional_messages severity code @@ text str
 
 let kmakef ?loc ?backtrace ?additional_messages k severity code =
-  kmessagef ?loc @@ fun message ->
-  k @@ of_message ?backtrace ?additional_messages severity code message
+  ktextf @@ fun text ->
+  k @@ of_text ?loc ?backtrace ?additional_messages severity code text
 
 let makef ?loc ?backtrace ?additional_messages severity code =
-  kmessagef ?loc @@ of_message ?backtrace ?additional_messages severity code
+  ktextf @@ of_text ?loc ?backtrace ?additional_messages severity code
 
 let string_of_severity =
   function
