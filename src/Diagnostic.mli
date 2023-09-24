@@ -33,18 +33,6 @@ val kmessagef : ?loc:Span.t -> (message -> 'b) -> ('a, Format.formatter, unit, '
 
 (** {1 Constructions of Diagnostics} *)
 
-(** [of_message severity code message] constructs a diagnostic with the [message].
-
-    Example:
-    {[
-      make Warning `ChiError @@ message "Your Ch'i is critically low"
-    ]}
-
-    @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-    @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
-*)
-val of_message : ?backtrace:backtrace -> ?additional_messages:message list -> severity -> 'code -> message -> 'code t
-
 (** [make severity code str] constructs a diagnostic with the message [str].
 
     Example:
@@ -78,14 +66,25 @@ val makef : ?loc:Span.t -> ?backtrace:backtrace -> ?additional_messages:message 
 *)
 val kmakef : ?loc:Span.t -> ?backtrace:backtrace -> ?additional_messages:message list -> ('code t -> 'b) -> severity -> 'code -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
+(** [of_message severity code message] constructs a diagnostic with the [message].
+
+    Example:
+    {[
+      make Warning `ChiError @@ message "Your Ch'i is critically low"
+    ]}
+
+    @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+    @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
+*)
+val of_message : ?backtrace:backtrace -> ?additional_messages:message list -> severity -> 'code -> message -> 'code t
 
 (** {1 Other Helper Functions} *)
+
+(** A convenience function that maps the message code. This is helpful when using {!val:Logger.S.adopt}. *)
+val map : ('code1 -> 'code2) -> 'code1 t -> 'code2 t
 
 (** A convenience function that converts a {!type:severity} into its constructor name. For example, {!constructor:Warning} will be converted into the string ["Warning"]. *)
 val string_of_severity : severity -> string
 
 (** A convenience function that converts a {!type:text} into a string by formatting it with the maximum admissible margin. Note that the resulting string may contain newline characters and thus not suitable to . *)
 val string_of_text : text -> string
-
-(** A convenience function that maps the message code. This is helpful when using {!val:Logger.S.adopt}. *)
-val map : ('code1 -> 'code2) -> 'code1 t -> 'code2 t
