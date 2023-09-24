@@ -4,7 +4,7 @@ sig
 
   (** {2 Sending Diagnostics} *)
 
-  (** [emit code str] emits a string and continue the computation.
+  (** [emit code str] emits a string and continues the computation.
 
       Example:
       {[
@@ -18,7 +18,7 @@ sig
   *)
   val emit : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?additional_messages:Diagnostic.message list -> Code.t -> string -> unit
 
-  (** [emitf code format ...] formats and emits a message, and then continue the computation. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [emitf code format ...] formats and emits a message, and then continues the computation. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
       Example:
       {[
