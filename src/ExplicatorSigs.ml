@@ -15,8 +15,8 @@ module type Style = sig
   (** The abstract type of highlighting styles. *)
   type t
 
-  (** [none] is the default style, meaning no highlighting is applied. It should be the unit of [compose]. *)
-  val none : t
+  (** [default] is the default style, meaning no highlighting is applied. It should be the unit of [compose]. *)
+  val default : t
 
   (** Comparing whether two styles are equivalent. *)
   val equal : t -> t -> bool
@@ -27,10 +27,10 @@ module type Style = sig
   (** [max s1 s2] gives the style that signals more importance. *)
   val max : t -> t -> t
 
-  (** [is_none s] checks if the style is the default style. It should be the same as [equal none s]. *)
-  val is_none : t -> bool
+  (** [is_default s] checks if the style is the default style. It should be equivalent to [equal default s]. *)
+  val is_default : t -> bool
 
-  (** Compose two styles into one. The operator should form a commutative group with {!val:none} being its unit. *)
+  (** Compose two styles into one. The operator should form a commutative group with {!val:default} being its unit. *)
   val compose : t -> t -> t
 end
 
@@ -38,8 +38,18 @@ end
 module type S = sig
   module Style : Style
 
-  val explicate : ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t explication
-  (** Explicate a span using content from the reader.
+  exception UnexpectedLineNumIncrement of Span.position
+  (** [UnexpectedLineNumIncrement pos] means the line number of [pos] is larger than than that of its preceding position, but the explicator did not encounter a newline character [\n] in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
 
-      @param splitting_threshold The maximum number of consecutive, non-highlighted lines allowed in a block. The function will try to minimize the number of blocks, as long as no block has too many consecutive, non-highlighted lines. A higher threshold will lead to fewer blocks. When the threshold is zero, it means no block can contain any non-highlighted line. The default value is zero. *)
+  exception PositionBeyondEndOfFile of Span.position
+  (** [PositionBeyondEndOfFile pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
+
+  val explicate : ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t explication
+  (** Explicate a list of spans using content from a data reader.
+
+      @param splitting_threshold The maximum number of consecutive, non-highlighted lines allowed in a block. The function will try to minimize the number of blocks, as long as no block has too many consecutive, non-highlighted lines. A higher threshold will lead to fewer blocks. When the threshold is zero, it means no block can contain any non-highlighted line. The default value is zero.
+
+      @raise UnexpectedLineNumIncrement if the line number of some position is increased by one but there was no newline character [\n].
+      @raise PositionBeyondEndOfFile if some position falls outside the data content. (That is, the file is too smaller, if the data reader is reading files.)
+  *)
 end

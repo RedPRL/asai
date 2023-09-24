@@ -4,8 +4,8 @@ open Notty.Infix
 
 module Style = struct
   type t = HighlightedPrimary | HighlightedAdditional | Primary | Additional | None
-  let none = None
-  let is_none x = x = None
+  let default = None
+  let is_default x = x = None
   let equal (x : t) y = x = y
   let compare (x : t) (y : t) = - Stdlib.compare x y
   let max x y = Stdlib.min x y

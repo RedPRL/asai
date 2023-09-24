@@ -40,7 +40,7 @@ struct
         {value = x; style = last} :: y :: ys
       | l -> l
     in
-    go Style.none
+    go Style.default
 
   let add {value; style} l =
     let x1, x2 = Span.split value in
@@ -50,7 +50,7 @@ struct
 
   let render l =
     l
-    |> Utils.drop_while (fun x -> Style.is_none x.style)
+    |> Utils.drop_while (fun x -> Style.is_default x.style)
     |> Utils.keep_first_in_groups (fun x y -> Style.equal x.style y.style)
 end
 
@@ -74,7 +74,7 @@ struct
     | None -> Some (F.singleton data)
     | Some m -> Some (F.add data m)
 
-  let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.none l
+  let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.default l
 
   let render m : (string * Style.t block) list =
     FileMap.bindings m
@@ -93,7 +93,7 @@ end
 struct
   let split ~splitting_threshold =
     Utils.group @@ fun p q ->
-    not (Style.is_none p.style) ||
+    not (Style.is_default p.style) ||
     p.value.Span.line_num - q.value.line_num <= splitting_threshold
 end
 
