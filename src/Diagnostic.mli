@@ -3,7 +3,7 @@
 (* @include *)
 include module type of DiagnosticData
 
-(** {1 Constructions of Messages} *)
+(** {1 Constructing Messages} *)
 
 (** [text str] converts the string [str] into a text, converting each ['\n'] into a call to {!val:Format.pp_force_newline}. *)
 val text : string -> text
@@ -31,7 +31,7 @@ val messagef : ?loc:Span.t -> ('a, Format.formatter, unit, message) format4 -> '
 *)
 val kmessagef : ?loc:Span.t -> (message -> 'b) -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
-(** {1 Constructions of Diagnostics} *)
+(** {1 Constructing Diagnostics} *)
 
 (** [make severity code str] constructs a diagnostic with the message [str].
 
