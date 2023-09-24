@@ -80,6 +80,7 @@ struct
       ~fatal:(fun d -> fatal_diagnostic (m d))
 
   let register_printer f =
+    Traces.register_printer (fun `Read -> f `Trace);
     Printexc.register_printer @@ function
     | Effect.Unhandled (Emit diag) -> f (`Emit diag)
     | Fatal diag -> f (`Fatal diag)
