@@ -2,7 +2,7 @@ module type S =
 sig
   module Code : Diagnostic.Code
 
-  (** {2 Sending Diagnostics} *)
+  (** {2 Sending Messages} *)
 
   (** [emit code str] emits a string and continues the computation.
 
@@ -112,7 +112,9 @@ sig
   (** [merge_loc loc f] "merges" [loc] into the current location and runs the thunk [f]. By "merge", it means that if [loc] is [None], then the current location is kept; otherwise, it is overwritten. Note that [with_loc None] will clear the current location, while [merge_loc None] will keep it. See {!val:with_loc}. *)
   val merge_loc : Span.t option -> (unit -> 'a) -> 'a
 
-  (** {2 Constructing Diagnostics with Current Backtraces} *)
+  (** {2 Constructing Diagnostics} *)
+
+  (** Functions in this section differ from the ones in {!module:Diagnostic} (for example, {!val:Diagnostic.make}) in that they fill out the current location, the current backtrace, and the severity automatically. (One can still overwrite them with optional arguments.) *)
 
   (** [diagnostic code str] constructs a diagnostic with the message [str] along with the backtrace frames recorded via {!val:tracef}.
 
