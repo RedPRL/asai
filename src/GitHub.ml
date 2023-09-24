@@ -9,6 +9,13 @@ module Make (Code : Diagnostic.Code) = struct
     | Diagnostic.Error -> "error"
     | Diagnostic.Bug -> "error"
 
+  let single_line_of_text msg =
+    String.map
+      (function
+        | '\r' | '\n' -> ' '
+        | c -> c) @@
+    Diagnostic.string_of_text msg
+
   let print_with_loc severity code loc msg =
     Format.printf "::%s file=%s,line=%i,endLine=%i,title=%s::%s@."
       (command_of_severity severity)
@@ -16,13 +23,13 @@ module Make (Code : Diagnostic.Code) = struct
       (Span.begin_line_num loc)
       (Span.end_line_num loc)
       (Code.to_string code)
-      (Diagnostic.string_of_text msg)
+      (single_line_of_text msg)
 
   let print_without_loc severity code msg =
     Format.printf "::%s title=%s::%s@."
       (command_of_severity severity)
       (Code.to_string code)
-      (Diagnostic.string_of_text msg)
+      (single_line_of_text msg)
 
   let print Diagnostic.{severity; code; message = {loc; value = msg};_} =
     match loc with
