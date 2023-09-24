@@ -97,4 +97,4 @@ let () =
 
 {1 Adding Location Information}
 
-Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is expecting an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex_position}of_lex_position} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
+Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is expecting an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex}of_lex} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
