@@ -86,5 +86,5 @@ val map : ('code1 -> 'code2) -> 'code1 t -> 'code2 t
 (** A convenience function that converts a {!type:severity} into its constructor name. For example, {!constructor:Warning} will be converted into the string ["Warning"]. *)
 val string_of_severity : severity -> string
 
-(** A convenience function that converts a {!type:text} into a string by formatting it with the maximum admissible margin. Note that the resulting string may contain newline characters and thus not suitable to . *)
+(** A convenience function that converts a {!type:text} into a string by formatting it with the maximum admissible margin. Note that the resulting string may contain control characters and might not be suitable for constructing new instances of {!type:text} or {!type:message}. *)
 val string_of_text : text -> string
