@@ -112,10 +112,10 @@ struct
     lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filepath };
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
-      | Lex.SyntaxError tok ->
-        Logger.fatalf ~loc:(Span.of_lex lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
+      | Lex.SyntaxError token ->
+        Logger.fatalf ~loc:(Span.of_lexbuf lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped token)
       | Grammar.Error ->
-        Logger.fatalf ~loc:(Span.of_lex lexbuf) `LexingError "Failed to parse"
+        Logger.fatal ~loc:(Span.of_lexbuf lexbuf) `LexingError "Could not parse the program"
     in
     Elab.Reader.run ~env:Emp @@ fun () ->
     Elab.chk tm tp

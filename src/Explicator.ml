@@ -4,6 +4,8 @@ open Bwd.Infix
 include ExplicatorData
 include ExplicatorSigs
 
+let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
+
 module Make (R : Reader) (Style : Style) = struct
   type position = Span.position
 
@@ -38,7 +40,7 @@ module Make (R : Reader) (Style : Style) = struct
     function
     | [] -> invalid_arg "explicate_block"
     | (b :: _) as bs ->
-      let start_pos = Span.to_start_of_line b.value in
+      let start_pos = to_start_of_line b.value in
       let[@tailcall] rec go ~lines ~segments (cur : _ styled) : _ styled list -> _ =
         function
         | p::ps when cur.value.Span.line_num = p.value.Span.line_num ->

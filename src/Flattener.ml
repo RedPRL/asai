@@ -43,7 +43,7 @@ struct
     go Style.none
 
   let add {value; style} l =
-    let x1, x2 = Span.to_positions value in
+    let x1, x2 = Span.split value in
     impose {value = x1, x2; style} @@ add_point x1 @@ add_point x2 l
 
   let singleton data = add data empty
