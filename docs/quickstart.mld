@@ -20,7 +20,7 @@ struct
     | (* ... *) -> Warning
 
   (** A short, concise, ideally Google-able string representation for each message code. *)
-  let to_string =
+  let to_string : t -> string =
     function
     | (* ... *) -> "E0001"
     | (* ... *) -> "E0002"
@@ -37,11 +37,11 @@ The most important step is to decide the {i message codes}. It should be a meani
 
 Once you have filled out the template, run [dune build] or other tools to check that everything compiles. If so, you are ready for the next step.
 
-{1 Start Using Logger}
+{1 Start Sending Messages}
 
 Now, go to the places where you want to send a message to end users, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Logger.S.emit}emit} a string:
 {[
-Logger.emit Greeting "hello!";
+Logger.emit Greeting "Hello!";
 (* continue doing other things *)
 ]}
 where [Greeting] is the message code of this message. The fancier version is {{!val:Asai.Logger.S.emitf}emitf}, which formats a message like [printf] and sends it:
@@ -93,7 +93,9 @@ Note that, by default, the terminal backend will not show backtraces. You have t
 module Term = Asai.Tty.Make (Logger.Code)
 
 let () =
-  Logger.run ~emit:(Term.display ~show_backtrace:true) ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->
+  Logger.run
+    ~emit:(Term.display ~show_backtrace:true)
+    ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->
   (* your application code *)
 ]}
 
@@ -101,16 +103,55 @@ We do not recommend adding {{!val:Asai.Logger.S.trace}trace} to every single fun
 
 {1 Add Location Information}
 
-Lots of functions in your [Logger] is taking the optional argument [loc], including {{!val:Asai.Logger.S.trace}trace}. It is taking an argument of type {!type:Asai.Span.t}. If you are using OCamllex, perhaps you will find {{!val:Asai.Span.of_lex}of_lex} handy. Please take a look at {!module:Asai.Span} to learn how to work with spans.
+Good messages also help end users locate the issues in their program or proof. Here, a {i location} is a range of text from a file, which we call {i span.} Many functions in your [Logger] take an optional location argument [loc], including {{!val:Asai.Logger.S.trace}trace}, which should be a span highlighting the most relevant text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
+{[
+Logger.emit ~loc Greeting "Hello again!";
+(* continue doing other things *)
+]}
+You can use {{!val:Asai.Span.make}Span.make} to create such a span manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Span.make}Span.locate}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
+{v
+%inline
+locate(X):
+  | e = X
+    { Asai.Span.locate_lex $loc e }
+v}
+The annotated node will have type {{!type:Asai.Span.located}[data] Span.located} where [data] is the output type of [X]. Another one is {{!val:Asai.Span.of_lexbuf}Span.of_lexbuf}, which comes in handy when reporting a parsing error:
+{[
+try Grammar.start Lex.token lexbuf with
+| Lex.SyntaxError token ->
+  Logger.fatalf ~loc:(Span.of_lexbuf lexbuf) ParsingError
+    {|Unrecognized token "%s"|} String.escaped token
+| Grammar.Error ->
+  Logger.fatal ~loc:(Span.of_lexbuf lexbuf) ParsingError
+    "Could not parse the program"
+]}
+Please take a look at {!module:Asai.Span} to learn all kinds of ways to create a span!
 
 Note that [Logger] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[
-Logger.trace ~loc "When checking this code ..." @@ fun () ->
+Logger.trace ~loc "When checking this code..." @@ fun () ->
 (* ... *)
-Logger.emit "Wow!"
+Logger.emit "Wow!" (* using the location [loc] from above *)
 (* ... *)
 ]}
-the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Logger.S.trace}trace} function call. Check out {{!val:Asai.Logger.S.get_loc}get_loc}, {{!val:Asai.Logger.S.with_loc}with_loc} and {{!val:Asai.Logger.S.merge_loc}merge_loc} to learn how to manipulate the current "remembered" location.
+the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Logger.S.trace}trace} function call! You can also use {{!val:Asai.Logger.S.merge_loc}merge_loc} to "remember" a location for later use, which is helpful when you want to remember a location but not to leave a trace:
+{[
+Logger.merge_loc (Some loc) @@ fun () ->
+(* ... *)
+Logger.emit "Wow!" (* using the location [loc] from above *)
+(* ... *)
+]}
+Of course, you can always pass a new location to overwrite the remembered one:
+{[
+Logger.merge_loc (Some loc) @@ fun () ->
+(* ... *)
+Logger.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
+(* ... *)
+]}
+
+{1 Use a Library that Uses asai}
+
+🚧 We are still writing this part...
 
 {1 There are More!}
 

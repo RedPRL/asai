@@ -1,10 +1,5 @@
 %{
-open Asai
-
 open Syntax
-
-let locate (start, stop) (value : 'a) : 'a Span.located =
-  {value; loc = Some (Span.make (Span.of_lex_position start) (Span.of_lex_position stop))}
 %}
 
 %token <string> ATOM
@@ -22,7 +17,7 @@ let locate (start, stop) (value : 'a) : 'a Span.located =
 %inline
 locate(X):
   | e = X
-    { locate $loc e }
+    { Asai.Span.locate_lex $loc e }
 
 defn:
   | LPR; CHECK; tm = term; tp = typ; RPR

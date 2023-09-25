@@ -18,8 +18,8 @@
  (description "This package offers an implementation of compiler diagnostics and supports multiple backends for displaying diagnostics to the end user. Currently, the package comes with three backends: GitHub Actions workflow commands, UNIX terminals, and LSP (Language Server Protocol).")
  (depends
    ocaml
-   (algaeff (>= 0.2))
-   (bwd (>= 2.1))
+   (algaeff (>= 1.0))
+   (bwd (>= 2.2))
    (eio (>= 0.12))
    (eio_main (>= 0.12))
    (lsp (>= 1.12))
@@ -33,8 +33,8 @@
  (description "This package offers some examples of the asai package. They are organized into a separate package to reduce the dependencies of the main package.")
  (depends
    ocaml
-   (algaeff (>= 0.2))
-   (bwd (>= 2.1))
+   (algaeff (>= 1.0))
+   (bwd (>= 2.2))
    (menhir (>= 20220210))
    (asai (= :version))
    ))

@@ -13,7 +13,7 @@ module Diagnostic = Diagnostic
 (** Generating and handling diagnostics using algebraic effects. *)
 module Logger = Logger
 
-(** Turning location information into highlighted text suitable for rendering. *)
+(** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
 module Explicator = Explicator
 
 (** {1 Experimental Backends} *)

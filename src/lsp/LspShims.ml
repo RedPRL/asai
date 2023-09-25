@@ -10,7 +10,7 @@ struct
   let lsp_range_of_span (sp : Span.t option) =
     match sp with
     | Some sp ->
-      let (start , stop) = Span.to_positions sp in
+      let (start , stop) = Span.split sp in
       L.Range.create
         ~start:(lsp_pos_of_pos start)
         ~end_:(lsp_pos_of_pos stop)
