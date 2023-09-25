@@ -129,7 +129,7 @@ Please take a look at {!module:Asai.Span} to learn all kinds of ways to create a
 
 Note that [Logger] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[
-Logger.trace ~loc "When checking this code ..." @@ fun () ->
+Logger.trace ~loc "When checking this code..." @@ fun () ->
 (* ... *)
 Logger.emit "Wow!" (* using the location [loc] from above *)
 (* ... *)
@@ -141,10 +141,17 @@ Logger.merge_loc (Some loc) @@ fun () ->
 Logger.emit "Wow!" (* using the location [loc] from above *)
 (* ... *)
 ]}
+Of course, you can always pass a new location to overwrite the remembered one:
+{[
+Logger.merge_loc (Some loc) @@ fun () ->
+(* ... *)
+Logger.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
+(* ... *)
+]}
 
 {1 Use a Library that Uses asai}
 
-🚧 Under construction
+🚧 We are still writing this part...
 
 {1 There are More!}
 
