@@ -45,10 +45,15 @@ module Make (Code : Diagnostic.Code) : sig
   8 │ assert (asai is cool)
     ┷
       v}
-      @param show_backtrace Whether the backtrace should be shown. The default is [false].
-  *)
-  val display : ?show_backtrace:bool -> Code.t Diagnostic.t -> unit
 
-  (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace. *)
-  val interactive_trace : Code.t Diagnostic.t -> unit
+      @param show_backtrace Whether the backtrace should be shown. The default is [false].
+      @param tab_size The width of a horizontal tab on screen (in terms of the number of space characters that replace it).
+  *)
+  val display : ?show_backtrace:bool -> ?tab_size:int -> Code.t Diagnostic.t -> unit
+
+  (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace.
+
+      @param tab_size The width of a horizontal tab on screen (in terms of the number of space characters that replace it).
+  *)
+  val interactive_trace : ?tab_size:int -> Code.t Diagnostic.t -> unit
 end

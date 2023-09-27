@@ -103,20 +103,20 @@ struct
       ; I.string fringe_style (if is_backtrace then "⇃" else "│")
       ]
 
-  let show_code_segment severity Explicator.{style; value = seg} =
-    I.string (highlight_style severity style) seg
+  let show_code_segment ~tab_size severity Explicator.{style; value = seg} =
+    I.string (highlight_style severity style) (UserContent.replace_control ~tab_size seg)
 
-  let show_code_line severity (segs : _ Explicator.line) =
-    I.hcat @@ List.map (show_code_segment severity) segs
+  let show_code_line ~tab_size severity (segs : _ Explicator.line) =
+    I.hcat @@ List.map (show_code_segment ~tab_size severity) segs
 
   (* [3 ⇃ no, it is not my fault!!!] *)
-  let render_block ~line_number_width~is_backtrace ~severity Explicator.{start_line_num; lines} =
+  let render_block ~tab_size ~line_number_width~is_backtrace ~severity Explicator.{start_line_num; lines} =
     List.mapi (fun i line ->
         let line_num = start_line_num + i in
         hcat_with_pad ~pad:1
           [ I.hsnap ~align:`Right line_number_width (I.string fringe_style (Int.to_string line_num))
           ; I.string fringe_style (if is_backtrace then "⇃" else "│")
-          ; show_code_line severity line
+          ; show_code_line ~tab_size severity line
           ]
       ) lines
 
@@ -134,7 +134,7 @@ struct
       ; I.string fringe_style (if is_backtrace then "⇃" else "┷")
       ]
 
-  let render_part ~line_number_width ~is_backtrace ~severity Explicator.{file_path; blocks} =
+  let render_part ~tab_size ~line_number_width ~is_backtrace ~severity Explicator.{file_path; blocks} =
     [ render_file_header ~line_number_width ~is_backtrace file_path
     ; render_file_header_padding ~line_number_width ~is_backtrace
     ] @
@@ -144,14 +144,14 @@ struct
         (fun i b ->
            List.concat
              [ if i = 0 then [] else [ render_code_block_sep ~line_number_width ~is_backtrace ]
-             ; render_block ~line_number_width ~is_backtrace ~severity b
+             ; render_block ~tab_size ~line_number_width ~is_backtrace ~severity b
              ]
         ) blocks
     end @
     [ render_code_part_end ~line_number_width ~is_backtrace ]
 
-  let render_explication ~line_number_width ~is_backtrace ~severity parts =
-    I.vcat @@ List.concat_map (render_part ~line_number_width ~is_backtrace ~severity) parts
+  let render_explication ~tab_size ~line_number_width ~is_backtrace ~severity parts =
+    I.vcat @@ List.concat_map (render_part ~tab_size ~line_number_width ~is_backtrace ~severity) parts
 
   (* message *)
   let render_text ~line_number_width:_ ~is_backtrace:_ ~code text =
@@ -160,8 +160,8 @@ struct
       ; I.strf "%t" text
       ]
 
-  let render_message ~line_number_width ~is_backtrace ~severity ~code explication text =
-    render_explication ~line_number_width ~is_backtrace ~severity explication
+  let render_message ~tab_size ~line_number_width ~is_backtrace ~severity ~code explication text =
+    render_explication ~tab_size ~line_number_width ~is_backtrace ~severity explication
     <->
     render_text ~line_number_width ~is_backtrace ~code text
 
@@ -175,29 +175,29 @@ struct
     let line_number_width = line_number_width explication in
     render_message ~line_number_width ~is_backtrace ~severity ~code explication msg.value
 
-  let display_diagnostic show_backtrace Diagnostic.{severity; code; message; backtrace; additional_messages} =
+  let display_diagnostic ~tab_size show_backtrace Diagnostic.{severity; code; message; backtrace; additional_messages} =
     FileReader.run @@ fun () ->
     let msgs =
       Bwd.snoc
         (if show_backtrace then
-           Bwd.map (display_message ~is_backtrace:true ~severity ~code ~additional_messages:[]) backtrace
+           Bwd.map (display_message ~tab_size ~is_backtrace:true ~severity ~code ~additional_messages:[]) backtrace
          else
            Emp)
-        (display_message ~is_backtrace:false ~severity ~code message ~additional_messages)
+        (display_message ~tab_size ~is_backtrace:false ~severity ~code message ~additional_messages)
     in
     vcat_with_pad ~pad:1 (Bwd.to_list msgs)
 
   module F = Explicator.Make(FileReader)
 
-  let display ?(show_backtrace = false) diag =
-    Notty_unix.output_image (display_diagnostic show_backtrace diag)
+  let display ?(show_backtrace = false) ?(tab_size=8) diag =
+    Notty_unix.output_image (display_diagnostic ~tab_size show_backtrace diag)
 
-  let interactive_trace Diagnostic.{code; severity; message; additional_messages; backtrace} =
+  let interactive_trace ?(tab_size=8) Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let traces =
       FileReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun msg -> display_message ~is_backtrace:true ~severity ~code msg ~additional_messages:[]))
-        (display_message ~is_backtrace:false ~severity ~code message ~additional_messages)
+        (backtrace |> Bwd.map (fun msg -> display_message ~tab_size ~is_backtrace:true ~severity ~code msg ~additional_messages:[]))
+        (display_message ~tab_size ~is_backtrace:false ~severity ~code message ~additional_messages)
       |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in
