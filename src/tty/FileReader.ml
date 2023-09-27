@@ -28,12 +28,15 @@ struct
     E.set M.empty
 end
 
-let length file_path =
-  let fd, _ = Internal.load file_path in
-  (Unix.fstat fd).st_size
+type file = bigstring
 
-let unsafe_get file_path i =
-  let _, str = Internal.load file_path in
+let load file_path =
+  snd @@ Internal.load file_path
+
+let length (str : file) =
+  Bigarray.Array1.size_in_bytes str
+
+let[@inline] unsafe_get str i =
   Bigarray.Array1.unsafe_get str i
 
 let run f =

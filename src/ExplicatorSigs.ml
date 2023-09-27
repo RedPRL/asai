@@ -3,11 +3,17 @@ open ExplicatorData
 (** The signature of data readers. *)
 module type Reader =
 sig
+  (** An abstract type of files. *)
+  type file
+
+  (** [load file_path] loads the resource at [file_path]. *)
+  val load : string -> file
+
   (** [length file_path] gets the size of the file. *)
-  val length : string -> int
+  val length : file -> int
 
   (** [unsafe_get file_path i] reads the ith byte of the file without checking the file size. *)
-  val unsafe_get : string -> int -> char
+  val unsafe_get : file -> int -> char
 end
 
 (** The signature of highlighting styles *)
