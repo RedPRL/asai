@@ -55,7 +55,8 @@ let end_line_num sp = sp.end_line_num
 let begin_offset sp = sp.begin_offset
 let end_offset sp = sp.end_offset
 
-let locate loc value = {loc; value}
+let locate_opt loc value = {loc; value}
+let locate loc value = {loc = Some loc; value}
 
 let of_lex_position (pos : Lexing.position) : position =
   {
@@ -71,4 +72,4 @@ let of_lex_span (start, stop) =
 let of_lexbuf lexbuf =
   of_lex_span (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
 
-let locate_lex sp v = locate (Some (of_lex_span sp)) v
+let locate_lex sp v = locate (of_lex_span sp) v

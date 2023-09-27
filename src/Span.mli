@@ -47,8 +47,11 @@ val begin_offset : t -> int
 (** [end_offset span] returns the 0-indexed offset of the (exclusive) ending position. *)
 val end_offset : t -> int
 
-(** [locate sp v] is [{loc = sp; value = v}]. *)
-val locate : t option -> 'a -> 'a located
+(** [locate_opt sp v] is [{loc = sp; value = v}]. *)
+val locate_opt : t option -> 'a -> 'a located
+
+(** [locate sp v] is [{loc = Some sp; value = v}]. *)
+val locate : t -> 'a -> 'a located
 
 (** {1 Support of Lexing} *)
 
