@@ -46,18 +46,20 @@ module Make (Code : Diagnostic.Code) : sig
     ┷
       v}
 
-      @param show_backtrace Whether the backtrace should be shown. The default is [false].
+      @param line_breaks The set of line breaks that should be recognized. The [`Unicode] set recognizes all Unicode character sequences in Unicode 15.0.0 Table 5-1. The [`Traditional] set recognizes [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] set.
       @param tab_size The number of spaces that should be used to replace a horizontal tab. Note that a horizontal tab is always expanded to the same number of spaces. The result should still be visually appealing as long as horizontal tabs are only used at the beginning of lines. The default value is [8].
+      @param show_backtrace Whether the backtrace should be shown. The default is [false].
 
       @raise Invalid_argument if `tab_size < 0`.
   *)
-  val display : ?show_backtrace:bool -> ?tab_size:int -> Code.t Diagnostic.t -> unit
+  val display : ?line_breaks:[`Unicode | `Traditional] -> ?tab_size:int -> ?show_backtrace:bool -> Code.t Diagnostic.t -> unit
 
   (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace.
 
+      @param line_breaks The set of line breaks that should be recognized. The [`Unicode] set recognizes all Unicode character sequences in Unicode 15.0.0 Table 5-1. The [`Traditional] set recognizes [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] set.
       @param tab_size The number of spaces that should be used to replace a horizontal tab. Note that a horizontal tab is always expanded to the same number of spaces. The result should still be visually appealing as long as horizontal tabs are only used at the beginning of lines. The default value is [8].
 
       @raise Invalid_argument if `tab_size < 0`.
   *)
-  val interactive_trace : ?tab_size:int -> Code.t Diagnostic.t -> unit
+  val interactive_trace : ?line_breaks:[`Unicode | `Traditional] -> ?tab_size:int -> Code.t Diagnostic.t -> unit
 end

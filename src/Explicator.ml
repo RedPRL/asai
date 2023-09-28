@@ -9,18 +9,44 @@ let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_lin
 module Make (R : Reader) (Style : Style) = struct
   type position = Span.position
 
-  (** [find_eol pos] finds the position of the next ['\n']. If the end of file is reached before ['\n'], then the position of the end of the file is returned. *)
-  let find_eol ~file ~eof next =
+  (** [find_eol_traditional pos] finds the position of the next ['\n']. If the end of file is reached before ['\n'], then the position of the end of the file is returned. *)
+  let find_eol_traditional ~file ~eof next =
     let rec go i =
       if i >= eof then
         eof, 0
       else
         match R.unsafe_get file i with
-        | '\n' -> i, 1
+        | '\n' -> i, 1 (* LF *)
         | '\r' ->
           if i+1 < eof && R.unsafe_get file (i+1) = '\n'
-          then i, 2 (* [\r\n] *)
-          else i, 1
+          then i, 2 (* CRLF *)
+          else i, 1 (* CR *)
+        | _ ->
+          go (i+1)
+    in
+    go next
+
+  (** [find_eol_unicode pos] finds the position of the next ['\n']. If the end of file is reached before ['\n'], then the position of the end of the file is returned. *)
+  let find_eol_unicode ~file ~eof next =
+    let rec go i =
+      if i >= eof then
+        eof, 0
+      else
+        match R.unsafe_get file i with
+        | '\n' (* LF *) | '\x0b' (* VT *) | '\x0c' (* FF *) -> i, 1
+        | '\r' ->
+          if i+1 < eof && R.unsafe_get file (i+1) = '\n'
+          then i, 2 (* CRLF *)
+          else i, 1 (* CR *)
+        | '\xc2' ->
+          if i+1 < eof && R.unsafe_get file (i+1) = '\x85'
+          then i, 2 (* NEL *)
+          else go (i+1)
+        | '\xe2' ->
+          if i+2 < eof && R.unsafe_get file (i+1) = '\x80' &&
+             (let c2 = R.unsafe_get file (i+2) in c2 = '\xa8' || c2 = '\xa9')
+          then i, 3 (* LS and PS *)
+          else go (i+1)
         | _ ->
           go (i+1)
     in
@@ -41,7 +67,8 @@ module Make (R : Reader) (Style : Style) = struct
   exception UnexpectedLineNumIncrement of Span.position
   exception PositionBeyondEndOfFile of Span.position
 
-  let explicate_block : (Span.position, Style.t) styled list -> Style.t block =
+  let explicate_block ~line_breaks : (Span.position, Style.t) styled list -> Style.t block =
+    let find_eol = match line_breaks with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     function
     | [] -> invalid_arg "explicate_block"
     | (p :: _) as ps ->
@@ -76,13 +103,13 @@ module Make (R : Reader) (Style : Style) = struct
       ; lines = Bwd.to_list @@ go ~lines:Emp ~segments:Emp {style = Style.default; value = start_pos} ps
       }
 
-  let explicate_blocks = List.map explicate_block
+  let[@inline] explicate_blocks ~line_breaks = List.map (explicate_block ~line_breaks)
 
-  let explicate_part (file_path, bs) : Style.t part =
-    { file_path; blocks = explicate_blocks bs }
+  let explicate_part ~line_breaks (file_path, bs) : Style.t part =
+    { file_path; blocks = explicate_blocks ~line_breaks bs }
 
   module F = Flattener.Make(Style)
 
-  let explicate ?(splitting_threshold=0) spans =
-    List.map explicate_part @@ F.flatten ~splitting_threshold spans
+  let explicate ?(line_breaks=`Traditional) ?(splitting_threshold=0) spans =
+    List.map (explicate_part ~line_breaks) @@ F.flatten ~splitting_threshold spans
 end
