@@ -47,7 +47,7 @@ module Make (Code : Diagnostic.Code) : sig
       v}
 
       @param show_backtrace Whether the backtrace should be shown. The default is [false].
-      @param tab_size The width of a horizontal tab on screen (in terms of the number of space characters that replace it).
+      @param tab_size The width of a horizontal tab on screen (in terms of the number of space characters that replace it). Note that we will not use tab stops and a horizontal tab is always expanded to space characters of the same number. The result should remain visually pleasing as long as horizontal tabs are only used at the beginning of lines.
   *)
   val display : ?show_backtrace:bool -> ?tab_size:int -> Code.t Diagnostic.t -> unit
 
