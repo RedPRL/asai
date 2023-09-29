@@ -67,8 +67,8 @@ module Make (R : Reader) (Style : Style) = struct
   exception UnexpectedLineNumIncrement of Span.position
   exception PositionBeyondEndOfFile of Span.position
 
-  let explicate_block ~line_breaks : (Span.position, Style.t) styled list -> Style.t block =
-    let find_eol = match line_breaks with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
+  let explicate_block ~line_breaking : (Span.position, Style.t) styled list -> Style.t block =
+    let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     function
     | [] -> invalid_arg "explicate_block"
     | (p :: _) as ps ->
@@ -103,13 +103,13 @@ module Make (R : Reader) (Style : Style) = struct
       ; lines = Bwd.to_list @@ go ~lines:Emp ~segments:Emp {style = Style.default; value = start_pos} ps
       }
 
-  let[@inline] explicate_blocks ~line_breaks = List.map (explicate_block ~line_breaks)
+  let[@inline] explicate_blocks ~line_breaking = List.map (explicate_block ~line_breaking)
 
-  let explicate_part ~line_breaks (file_path, bs) : Style.t part =
-    { file_path; blocks = explicate_blocks ~line_breaks bs }
+  let explicate_part ~line_breaking (file_path, bs) : Style.t part =
+    { file_path; blocks = explicate_blocks ~line_breaking bs }
 
   module F = Flattener.Make(Style)
 
-  let explicate ?(line_breaks=`Traditional) ?(splitting_threshold=0) spans =
-    List.map (explicate_part ~line_breaks) @@ F.flatten ~splitting_threshold spans
+  let explicate ?(line_breaking=`Traditional) ?(splitting_threshold=0) spans =
+    List.map (explicate_part ~line_breaking) @@ F.flatten ~splitting_threshold spans
 end
