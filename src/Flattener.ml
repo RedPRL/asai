@@ -1,4 +1,4 @@
-open ExplicatorData
+open ExplicationData
 open ExplicatorSigs
 
 type 'style block = (Span.position, 'style) styled list

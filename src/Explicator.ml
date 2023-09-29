@@ -1,11 +1,10 @@
 open Bwd
 open Bwd.Infix
 
-include ExplicatorData
+open Explication
 include ExplicatorSigs
 
 let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
-let style s v = {style = s; value = v}
 
 module Make (R : Reader) (Style : Style) = struct
   type position = Span.position
@@ -65,11 +64,6 @@ module Make (R : Reader) (Style : Style) = struct
     String.init (end_ - begin_) @@ fun i ->
     R.unsafe_get file (begin_ + i)
 
-  exception UnexpectedLineNumIncrement of Span.position
-  exception UnexpectedEndOfFile of Span.position
-  exception UnexpectedNewline of Span.position
-  exception UnexpectedPositionInNewline of Span.position
-
   type explicator_state =
     { lines : (string, Style.t) styled list bwd
     ; segments : (string, Style.t) styled bwd
@@ -81,15 +75,15 @@ module Make (R : Reader) (Style : Style) = struct
   let explicate_block ~line_breaking : (Span.position, Style.t) styled list -> Style.t block =
     let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     function
-    | [] -> invalid_arg "explicate_block"
+    | [] -> invalid_arg "explicate_block: empty block"
     | (p :: _) as ps ->
       let file = R.load p.value.file_path in
       let eof = R.length file in
       let[@tailcall] rec go state : (Span.position, Style.t) styled list -> _ =
         function
         | p::ps when state.current.value.line_num = p.value.line_num ->
-          if p.value.offset > eof then raise @@ UnexpectedEndOfFile p.value;
-          if p.value.offset > state.eol then raise @@ UnexpectedNewline p.value;
+          if p.value.offset > eof then raise @@ Unexpected_end_of_file p.value;
+          if p.value.offset > state.eol then raise @@ Unexpected_newline p.value;
           (* Still on the same line *)
           let segments =
             state.segments <:
@@ -98,25 +92,27 @@ module Make (R : Reader) (Style : Style) = struct
           go { state with segments; current = p } ps
         | ps ->
           (* Shifting to the next line *)
-          let segments =
-            state.segments <:
-            style state.current.style (read_between ~file state.current.value.offset state.eol)
+          let lines =
+            let segments =
+              state.segments <:
+              style state.current.style (read_between ~file state.current.value.offset state.eol)
+            in
+            state.lines <: Bwd.to_list segments
           in
-          let lines = state.lines <: Bwd.to_list segments in
           (* Continue the process if [ps] is not empty. *)
           match ps with
           | [] ->
             assert (Style.is_default state.current.style); lines
           | p :: _ ->
-            if p.value.offset > eof then raise @@ UnexpectedEndOfFile p.value;
-            if p.value.offset <= state.eol then raise @@ UnexpectedLineNumIncrement p.value
-            else if p.value.offset <= state.eol + state.eol_shift then raise @@ UnexpectedPositionInNewline p.value;
+            if p.value.offset > eof then raise @@ Unexpected_end_of_file p.value;
+            if p.value.offset <= state.eol then raise @@ Unexpected_line_num_increment p.value
+            else if p.value.offset <= state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline p.value;
             (* Okay, p is really on the next line *)
             let current = style state.current.style @@
               eol_to_next_line state.eol_shift {state.current.value with offset = state.eol}
             in
             let eol, eol_shift = find_eol ~file ~eof (state.eol + state.eol_shift) in
-            go {lines; segments; current; eol; eol_shift} ps
+            go {lines; segments=Emp; current; eol; eol_shift} ps
       in
       let start_pos = to_start_of_line p.value in
       { start_line_num = start_pos.line_num

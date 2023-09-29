@@ -1,4 +1,16 @@
-open ExplicatorData
+open Explication
+
+exception Unexpected_end_of_file of Span.position
+(** [UnexpectedEndOfFile pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
+
+exception Unexpected_line_num_increment of Span.position
+(** [UnexpectedLineNumIncrement pos] means the line number of [pos] is larger than than that of its preceding position during explication, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Unexpected_newline of Span.position
+(** [UnexpectedNewline pos] means the line number of [pos] is the same as its preceding position during explication, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Unexpected_position_in_newline of Span.position
+(** [UnexpectedPositionInNewline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
 
 (** The signature of data readers. *)
 module type Reader =
@@ -38,25 +50,16 @@ module type Style = sig
 
   (** Compose two styles into one. The operator should form a commutative group with {!val:default} being its unit. *)
   val compose : t -> t -> t
+
+  (** Ugly printer for debugging *)
+  val dump : Format.formatter -> t -> unit
 end
 
 (** The signature of explicators. *)
 module type S = sig
   module Style : Style
 
-  exception UnexpectedEndOfFile of Span.position
-  (** [UnexpectedEndOfFile pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
-
-  exception UnexpectedLineNumIncrement of Span.position
-  (** [UnexpectedLineNumIncrement pos] means the line number of [pos] is larger than than that of its preceding position, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  exception UnexpectedNewline of Span.position
-  (** [UnexpectedNewline pos] means the line number of [pos] is the same as its preceding position, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  exception UnexpectedPositionInNewline of Span.position
-  (** [UnexpectedPositionInNewline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  val explicate : ?line_breaking:[`Unicode | `Traditional] -> ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t explication
+  val explicate : ?line_breaking:[`Unicode | `Traditional] -> ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t t
   (** Explicate a list of spans using content from a data reader.
 
       @param line_breaking The algorithm to recognize (hard) line breaks. The [`Unicode] algorithm recognizes all Unicode character sequences in {{:https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G41643}Unicode 15.0.0 Table 5-1} as line breaks. The [`Traditional] algorithm only recognizes [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] algorithm.
