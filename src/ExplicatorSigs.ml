@@ -44,11 +44,17 @@ end
 module type S = sig
   module Style : Style
 
-  exception UnexpectedLineNumIncrement of Span.position
-  (** [UnexpectedLineNumIncrement pos] means the line number of [pos] is larger than than that of its preceding position, but the explicator did not encounter a newline character [\n] in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+  exception UnexpectedEndOfFile of Span.position
+  (** [UnexpectedEndOfFile pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
 
-  exception PositionBeyondEndOfFile of Span.position
-  (** [PositionBeyondEndOfFile pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
+  exception UnexpectedLineNumIncrement of Span.position
+  (** [UnexpectedLineNumIncrement pos] means the line number of [pos] is larger than than that of its preceding position, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+  exception UnexpectedNewline of Span.position
+  (** [UnexpectedNewline pos] means the line number of [pos] is the same as its preceding position, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+  exception UnexpectedPositionInNewline of Span.position
+  (** [UnexpectedPositionInNewline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
 
   val explicate : ?line_breaking:[`Unicode | `Traditional] -> ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t explication
   (** Explicate a list of spans using content from a data reader.
