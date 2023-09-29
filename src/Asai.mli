@@ -13,9 +13,6 @@ module Diagnostic = Diagnostic
 (** Generating and handling diagnostics using algebraic effects. *)
 module Logger = Logger
 
-(** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
-module Explicator = Explicator
-
 (** {1 Experimental Backends} *)
 
 (** Diagnostic display for UNIX terminals. *)
@@ -26,3 +23,11 @@ module Lsp = AsaiLsp
 
 (** GitHub Actions workflow commands. *)
 module GitHub = GitHub
+
+(** {1 Internals} *)
+
+(** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
+module Explicator = Explicator
+
+(** An implementation of {!module-type:Explicator.Reader} using memory-mapped file I/O. *)
+module FileReader = FileReader

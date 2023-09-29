@@ -165,39 +165,39 @@ struct
     <->
     render_text ~line_number_width ~is_backtrace ~code text
 
-  let display_message ~is_backtrace ~severity ~code (msg : Diagnostic.message) ~additional_messages =
+  let display_message ~is_backtrace ~line_breaking ~severity ~code (msg : Diagnostic.message) ~additional_messages =
     let explication =
       let style s x = Explicator.{value = x; style = s} in
       let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) msg.loc in
       let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) additional_messages in
-      E.explicate ~splitting_threshold:5 (main_span @ additional_spans)
+      E.explicate ~line_breaking ~splitting_threshold:5 (main_span @ additional_spans)
     in
     let line_number_width = line_number_width explication in
     render_message ~line_number_width ~is_backtrace ~severity ~code explication msg.value
 
-  let display_diagnostic ~tab_size show_backtrace Diagnostic.{severity; code; message; backtrace; additional_messages} =
+  let display_diagnostic ~line_breaking ~tab_size show_backtrace Diagnostic.{severity; code; message; backtrace; additional_messages} =
     FileReader.run @@ fun () ->
     let msgs =
       Bwd.snoc
         (if show_backtrace then
-           Bwd.map (display_message ~tab_size ~is_backtrace:true ~severity ~code ~additional_messages:[]) backtrace
+           Bwd.map (display_message ~is_backtrace:true ~line_breaking ~tab_size ~severity ~code ~additional_messages:[]) backtrace
          else
            Emp)
-        (display_message ~tab_size ~is_backtrace:false ~severity ~code message ~additional_messages)
+        (display_message ~is_backtrace:false ~line_breaking ~tab_size ~severity ~code message ~additional_messages)
     in
     vcat_with_pad ~pad:1 (Bwd.to_list msgs)
 
   module F = Explicator.Make(FileReader)
 
-  let display ?(show_backtrace = false) ?(tab_size=8) diag =
-    Notty_unix.output_image (display_diagnostic ~tab_size show_backtrace diag)
+  let display ?(line_breaking=`Traditional) ?(tab_size=8) ?(show_backtrace = false) diag =
+    Notty_unix.output_image (display_diagnostic ~line_breaking ~tab_size show_backtrace diag)
 
-  let interactive_trace ?(tab_size=8) Diagnostic.{code; severity; message; additional_messages; backtrace} =
+  let interactive_trace ?(line_breaking=`Traditional) ?(tab_size=8) Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let traces =
       FileReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun msg -> display_message ~tab_size ~is_backtrace:true ~severity ~code msg ~additional_messages:[]))
-        (display_message ~tab_size ~is_backtrace:false ~severity ~code message ~additional_messages)
+        (backtrace |> Bwd.map (fun msg -> display_message ~line_breaking ~tab_size ~is_backtrace:true ~severity ~code msg ~additional_messages:[]))
+        (display_message ~line_breaking ~tab_size ~is_backtrace:false ~severity ~code message ~additional_messages)
       |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in

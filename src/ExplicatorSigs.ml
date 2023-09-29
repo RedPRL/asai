@@ -50,9 +50,10 @@ module type S = sig
   exception PositionBeyondEndOfFile of Span.position
   (** [PositionBeyondEndOfFile pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
 
-  val explicate : ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t explication
+  val explicate : ?line_breaking:[`Unicode | `Traditional] -> ?splitting_threshold:int -> (Span.t, Style.t) styled list -> Style.t explication
   (** Explicate a list of spans using content from a data reader.
 
+      @param line_breaking The algorithm to recognize (hard) line breaks. The [`Unicode] algorithm recognizes all Unicode character sequences in {{:https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G41643}Unicode 15.0.0 Table 5-1} as line breaks. The [`Traditional] algorithm only recognizes [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] algorithm.
       @param splitting_threshold The maximum number of consecutive, non-highlighted lines allowed in a block. The function will try to minimize the number of blocks, as long as no block has too many consecutive, non-highlighted lines. A higher threshold will lead to fewer blocks. When the threshold is zero, it means no block can contain any non-highlighted line. The default value is zero.
 
       @raise UnexpectedLineNumIncrement if the line number of some position is increased by one but there was no newline character [\n].
