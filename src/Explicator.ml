@@ -1,7 +1,7 @@
 open Bwd
 open Bwd.Infix
 
-include ExplicatorData
+open Explication
 include ExplicatorSigs
 
 let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
@@ -65,11 +65,6 @@ module Make (R : Reader) (Style : Style) = struct
     String.init (end_ - begin_) @@ fun i ->
     R.unsafe_get file (begin_ + i)
 
-  exception UnexpectedLineNumIncrement of Span.position
-  exception UnexpectedEndOfFile of Span.position
-  exception UnexpectedNewline of Span.position
-  exception UnexpectedPositionInNewline of Span.position
-
   type explicator_state =
     { lines : (string, Style.t) styled list bwd
     ; segments : (string, Style.t) styled bwd
@@ -88,8 +83,8 @@ module Make (R : Reader) (Style : Style) = struct
       let[@tailcall] rec go state : (Span.position, Style.t) styled list -> _ =
         function
         | p::ps when state.current.value.line_num = p.value.line_num ->
-          if p.value.offset > eof then raise @@ UnexpectedEndOfFile p.value;
-          if p.value.offset > state.eol then raise @@ UnexpectedNewline p.value;
+          if p.value.offset > eof then raise @@ Unexpected_end_of_file p.value;
+          if p.value.offset > state.eol then raise @@ Unexpected_newline p.value;
           (* Still on the same line *)
           let segments =
             state.segments <:
@@ -108,9 +103,9 @@ module Make (R : Reader) (Style : Style) = struct
           | [] ->
             assert (Style.is_default state.current.style); lines
           | p :: _ ->
-            if p.value.offset > eof then raise @@ UnexpectedEndOfFile p.value;
-            if p.value.offset <= state.eol then raise @@ UnexpectedLineNumIncrement p.value
-            else if p.value.offset <= state.eol + state.eol_shift then raise @@ UnexpectedPositionInNewline p.value;
+            if p.value.offset > eof then raise @@ Unexpected_end_of_file p.value;
+            if p.value.offset <= state.eol then raise @@ Unexpected_line_num_increment p.value
+            else if p.value.offset <= state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline p.value;
             (* Okay, p is really on the next line *)
             let current = style state.current.style @@
               eol_to_next_line state.eol_shift {state.current.value with offset = state.eol}

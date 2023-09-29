@@ -26,8 +26,11 @@ module GitHub = GitHub
 
 (** {1 Internals} *)
 
+(** The definition of highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
+module Explication = Explication
+
 (** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
 module Explicator = Explicator
 
-(** An implementation of {!module-type:Explicator.Reader} using memory-mapped file I/O. *)
+(** An implementation of {!module-type:Explicator.Reader} using memory-mapped file I/O. You probably do not need this module unless you want to create your own backend. *)
 module FileReader = FileReader

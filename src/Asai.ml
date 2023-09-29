@@ -6,5 +6,6 @@ module Tty = Tty
 module Lsp = AsaiLsp
 module GitHub = GitHub
 
+module Explication = Explication
 module Explicator = Explicator
 module FileReader = FileReader
