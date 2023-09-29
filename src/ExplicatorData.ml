@@ -5,9 +5,7 @@
       @canonical Asai.Explicator.styled *)
 type ('a, 'style) styled = { style : 'style; value : 'a }
 
-(** A segment is a styled string that should not have any control character (or new lines).
-
-    TODO: how about tabs?
+(** A segment is a styled string from the user content.
 
     @canonical Asai.Explicator.segment *)
 type 'style segment = (string, 'style) styled
