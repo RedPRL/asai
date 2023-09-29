@@ -1,10 +1,12 @@
 include ExplicationData
 
+let style s v = {style = s; value = v}
+
 let dump_seg dump_style fmt {style; value} =
-  Format.fprintf fmt {|@[<1>{style=%a;\,@[<2>value=\,"%s"@]}@]|} dump_style style value
+  Format.fprintf fmt {|@[<1>{style=%a;@,@[<2>value=@,"%s"@]}@]|} dump_style style (String.escaped value)
 
 let pp_list p fmt l =
-  Format.fprintf fmt "@[<1>[%a]@]"
+  Format.fprintf fmt "@[<hv1>[%a]@]"
     (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@,") p)
     l
 
@@ -16,8 +18,8 @@ let dump_block dump_style fmt {start_line_num; lines} =
     (pp_list (dump_line dump_style)) lines
 
 let dump_part dump_style fmt {file_path; blocks} =
-  Format.fprintf fmt {|@[<1>{@[<2>file_path=@,"%s"@];\,@[<2>blocks=@,%a@]}@]|}
-    file_path
+  Format.fprintf fmt {|@[<1>{@[<2>file_path=@,"%s"@];@,@[<2>blocks=@,%a@]}@]|}
+    (String.escaped file_path)
     (pp_list (dump_block dump_style)) blocks
 
 let dump dump_style = pp_list (dump_part dump_style)

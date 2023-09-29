@@ -5,7 +5,6 @@ open Explication
 include ExplicatorSigs
 
 let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
-let style s v = {style = s; value = v}
 
 module Make (R : Reader) (Style : Style) = struct
   type position = Span.position
@@ -76,7 +75,7 @@ module Make (R : Reader) (Style : Style) = struct
   let explicate_block ~line_breaking : (Span.position, Style.t) styled list -> Style.t block =
     let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     function
-    | [] -> invalid_arg "explicate_block"
+    | [] -> invalid_arg "explicate_block: empty block"
     | (p :: _) as ps ->
       let file = R.load p.value.file_path in
       let eof = R.length file in
@@ -93,11 +92,13 @@ module Make (R : Reader) (Style : Style) = struct
           go { state with segments; current = p } ps
         | ps ->
           (* Shifting to the next line *)
-          let segments =
-            state.segments <:
-            style state.current.style (read_between ~file state.current.value.offset state.eol)
+          let lines =
+            let segments =
+              state.segments <:
+              style state.current.style (read_between ~file state.current.value.offset state.eol)
+            in
+            state.lines <: Bwd.to_list segments
           in
-          let lines = state.lines <: Bwd.to_list segments in
           (* Continue the process if [ps] is not empty. *)
           match ps with
           | [] ->
@@ -111,7 +112,7 @@ module Make (R : Reader) (Style : Style) = struct
               eol_to_next_line state.eol_shift {state.current.value with offset = state.eol}
             in
             let eol, eol_shift = find_eol ~file ~eof (state.eol + state.eol_shift) in
-            go {lines; segments; current; eol; eol_shift} ps
+            go {lines; segments=Emp; current; eol; eol_shift} ps
       in
       let start_pos = to_start_of_line p.value in
       { start_line_num = start_pos.line_num
