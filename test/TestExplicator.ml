@@ -97,9 +97,11 @@ let tests =
   Alcotest.run "Explicator" [
     "single-line",
     [
+      test_case "traditional, empty" `Quick (single_line `Traditional "");
       test_case "traditional, CR" `Quick (single_line `Traditional "\r");
       test_case "traditional, LF" `Quick (single_line `Traditional "\n");
       test_case "traditional, CRLF" `Quick (single_line `Traditional "\r\n");
+      test_case "unicode, empty" `Quick (single_line `Unicode "");
       test_case "unicode, CR" `Quick (single_line `Unicode "\r");
       test_case "unicode, LF" `Quick (single_line `Unicode "\n");
       test_case "unicode, CRLF" `Quick (single_line `Unicode "\r\n");
