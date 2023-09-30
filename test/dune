@@ -1,3 +1,9 @@
 (test
  (name TestExplicator)
+ (modules TestExplicator)
+ (libraries asai algaeff menhirLib alcotest))
+
+(test
+ (name TestUserContent)
+ (modules TestUserContent)
  (libraries asai algaeff menhirLib alcotest))
