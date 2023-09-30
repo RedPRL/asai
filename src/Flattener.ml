@@ -87,14 +87,14 @@ end
 
 module Splitter (Style : Style) :
 sig
-  val split : splitting_threshold:int -> Style.t block -> Style.t block list
+  val split : block_splitting_threshold:int -> Style.t block -> Style.t block list
 end
 =
 struct
-  let split ~splitting_threshold =
+  let split ~block_splitting_threshold =
     Utils.group @@ fun p q ->
     not (Style.is_default p.style) ||
-    p.value.Span.line_num - q.value.line_num <= splitting_threshold
+    q.value.Span.line_num - p.value.line_num <= block_splitting_threshold
 end
 
 module Make (Style : Style) = struct
@@ -102,9 +102,9 @@ module Make (Style : Style) = struct
   module S = Splitter(Style)
 
   (* Currently, this can take \tilde{O}(n^2) time where n is the number of styled spans. *)
-  let flatten ~splitting_threshold spans : Style.t part list =
+  let flatten ~block_splitting_threshold spans : Style.t part list =
     spans
     |> List.fold_left (fun f data -> F.add data f) F.empty
     |> F.render
-    |> List.map (fun (file_path, block) -> file_path, S.split ~splitting_threshold block)
+    |> List.map (fun (file_path, block) -> file_path, S.split ~block_splitting_threshold block)
 end

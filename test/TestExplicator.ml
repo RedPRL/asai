@@ -30,43 +30,19 @@ let single_line mode eol () =
   let span1 = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 3}, {start_of_line1 with offset = 9}) in
   let span2 = Explication.style 2 @@ Span.make ({start_of_line1 with offset = 6}, {start_of_line1 with offset = 12}) in
   let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aaa"};
-               {style=1; value="bbb"};
-               {style=3; value="ccc"};
-               {style=2; value="ddd"};
-               {style=0; value="eee"};
+    [{file_path;
+      blocks =
+        [{start_line_num = 1;
+          lines =
+            [[{style=0; value="aaa"};
+              {style=1; value="bbb"};
+              {style=3; value="ccc"};
+              {style=2; value="ddd"};
+              {style=0; value="eee"};
              ]]}
-         ]}
+        ]}
     ] in
   let actual = E.explicate ~line_breaking:mode [span1; span2] in
-  Alcotest.(check test_explication) "Explication is correct" expected actual
-
-let multi_lines_with_crlf () =
-  let file_path = "aabbbbb\r\nbbbbccc" in
-  let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
-  let start_of_line2 : Span.position = {file_path; offset = 9; start_of_line = 9; line_num = 2} in
-  let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 13}) in
-  let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aa"};
-               {style=1; value="bbbbb"};
-             ];
-              [
-                {style=1; value="bbbb"};
-                {style=0; value="ccc"};
-              ]]}
-         ]}
-    ] in
-  let actual = E.explicate ~line_breaking:`Traditional [span] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines_with_ls () =
@@ -75,21 +51,78 @@ let multi_lines_with_ls () =
   let start_of_line2 : Span.position = {file_path; offset = 10; start_of_line = 10; line_num = 2} in
   let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 14}) in
   let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aa"};
-               {style=1; value="bbbbb"};
+    [{file_path;
+      blocks =
+        [{start_line_num = 1;
+          lines =
+            [[{style=0; value="aa"};
+              {style=1; value="bbbbb"};
              ];
-              [
-                {style=1; value="bbbb"};
-                {style=0; value="ccc"};
-              ]]}
-         ]}
-    ] in
+             [{style=1; value="bbbb"};
+              {style=0; value="ccc"};
+             ]]}
+        ]}
+    ]
+  in
   let actual = E.explicate ~line_breaking:`Unicode [span] in
+  Alcotest.(check test_explication) "Explication is correct" expected actual
+
+let multi_lines () =
+  let file_path =
+    {|
+aabbbbb
+bbbbbbb
+b*ccddd
+1
+2
+3
+4
+ee++fff
+1
+2
+3
+4
+5
+ggggghh
+|}
+  in
+  let start_of_line2 : Span.position = {file_path; offset = 1; start_of_line = 1; line_num = 2} in
+  let start_of_line4 : Span.position = {file_path; offset = 17; start_of_line = 17; line_num = 4} in
+  let start_of_line9 : Span.position = {file_path; offset = 33; start_of_line = 33; line_num = 9} in
+  let start_of_line15 : Span.position = {file_path; offset = 51; start_of_line = 51; line_num = 15} in
+  let spans =
+    [
+      Explication.style 2 @@ Span.make ({start_of_line4 with offset = 17+1}, {start_of_line4 with offset = 17+4});
+      Explication.style 1 @@ Span.make ({start_of_line2 with offset = 1+2}, {start_of_line4 with offset = 17+4});
+      Explication.style 4 @@ Span.make ({start_of_line9 with offset = 33+2}, {start_of_line9 with offset = 33+7});
+      Explication.style 8 @@ Span.make ({start_of_line9 with offset = 33+4}, {start_of_line9 with offset = 33+7});
+      Explication.style 16 @@ Span.make (start_of_line15, {start_of_line15 with offset = 51+5});
+    ]
+  in
+  let expected : _ Explication.t =
+    [{file_path;
+      blocks=
+        [{start_line_num=2;
+          lines=
+            [[{style=0;value="aa"};
+              {style=1;value="bbbbb"}];
+             [{style=1;value="bbbbbbb"}];
+             [{style=1;value="b"};
+              {style=3;value="*cc"};
+              {style=0;value="ddd"}];
+             [{style=0;value="1"}];
+             [{style=0;value="2"}];
+             [{style=0;value="3"}];
+             [{style=0;value="4"}];
+             [{style=0;value="ee"};
+              {style=4;value="++"};
+              {style=12;value="fff"}]]};
+         {start_line_num=15;
+          lines=
+            [[{style=16;value="ggggg"};
+              {style=0;value="hh"}]]}]}]
+  in
+  let actual = E.explicate ~line_breaking:`Traditional ~block_splitting_threshold:5 spans in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let tests =
@@ -113,7 +146,7 @@ let tests =
     ];
     "multi-line",
     [
-      test_case "multi-line span with CRLF" `Quick multi_lines_with_crlf;
+      test_case "multi-line span with CRLF" `Quick multi_lines;
       test_case "multi-line span with LS" `Quick multi_lines_with_ls;
     ]
   ]
