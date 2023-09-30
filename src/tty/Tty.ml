@@ -247,13 +247,14 @@ struct
     let len = Array.length traces in
     let open Notty_unix in
     let rec loop t i =
-      Term.image t (I.pad ~b:1 traces.(i) <->
-                    I.strf "%d/%d" (i + 1) len <->
-                    I.string A.empty "Use arrow keys to navigate the stack trace" <->
-                    I.string A.empty "Press ESC to Quit");
+      Term.image t
+        (I.pad ~b:1 traces.(i) <->
+         I.strf "%d/%d" (i + 1) len <->
+         I.string A.empty "Use left/right keys to navigate the stack trace" <->
+         I.string A.empty "Press ESC to Quit");
       match Term.event t with
-      | `Key (`Arrow `Up, _) -> loop t (Int.max 0 (i - 1))
-      | `Key (`Arrow `Down, _) -> loop t (Int.min (len-1) (i + 1))
+      | `Key (`Arrow `Left, _) -> loop t (Int.max 0 (i - 1))
+      | `Key (`Arrow `Right, _) -> loop t (Int.min (len-1) (i + 1))
       | `Key (`Escape, _) -> ()
       | _ -> loop t i
     in
