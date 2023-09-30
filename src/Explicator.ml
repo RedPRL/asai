@@ -72,6 +72,11 @@ module Make (R : Reader) (Style : Style) = struct
     ; eol_shift : int
     }
 
+  exception Unexpected_end_of_file of Span.position
+  exception Unexpected_line_num_increment of Span.position
+  exception Unexpected_newline of Span.position
+  exception Unexpected_position_in_newline of Span.position
+
   let explicate_block ~line_breaking : (Span.position, Style.t) styled list -> Style.t block =
     let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     function
@@ -84,18 +89,24 @@ module Make (R : Reader) (Style : Style) = struct
         | p::ps when state.current.value.line_num = p.value.line_num ->
           if p.value.offset > eof then raise @@ Unexpected_end_of_file p.value;
           if p.value.offset > state.eol then raise @@ Unexpected_newline p.value;
-          (* Still on the same line *)
-          let segments =
-            state.segments <:
-            style state.current.style (read_between ~file state.current.value.offset p.value.offset)
-          in
-          go { state with segments; current = p } ps
+          if p.value.offset = state.current.value.offset then
+            go {state with current = p} ps
+          else
+            (* Still on the same line *)
+            let segments =
+              state.segments <:
+              style state.current.style (read_between ~file state.current.value.offset p.value.offset)
+            in
+            go { state with segments; current = p } ps
         | ps ->
           (* Shifting to the next line *)
           let lines =
             let segments =
-              state.segments <:
-              style state.current.style (read_between ~file state.current.value.offset state.eol)
+              if state.current.value.offset < state.eol then
+                state.segments <:
+                style state.current.style (read_between ~file state.current.value.offset state.eol)
+              else
+                state.segments
             in
             state.lines <: Bwd.to_list segments
           in
@@ -105,8 +116,8 @@ module Make (R : Reader) (Style : Style) = struct
             assert (Style.is_default state.current.style); lines
           | p :: _ ->
             if p.value.offset > eof then raise @@ Unexpected_end_of_file p.value;
-            if p.value.offset <= state.eol then raise @@ Unexpected_line_num_increment p.value
-            else if p.value.offset <= state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline p.value;
+            if p.value.offset <= state.eol then raise @@ Unexpected_line_num_increment p.value;
+            if p.value.offset < state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline p.value;
             (* Okay, p is really on the next line *)
             let current = style state.current.style @@
               eol_to_next_line state.eol_shift {state.current.value with offset = state.eol}
@@ -128,6 +139,6 @@ module Make (R : Reader) (Style : Style) = struct
 
   module F = Flattener.Make(Style)
 
-  let explicate ?(line_breaking=`Traditional) ?(splitting_threshold=0) spans =
-    List.map (explicate_part ~line_breaking) @@ F.flatten ~splitting_threshold spans
+  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=0) spans =
+    List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold spans
 end

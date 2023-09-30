@@ -24,144 +24,129 @@ module E = Explicator.Make(FilePathAsContent)(IntStyle)
 
 let test_explication = Alcotest.of_pp (Explication.dump IntStyle.dump)
 
-let single_line () =
-  let file_path = "aabbbcccccc" in
+let single_line mode eol () =
+  let file_path = "aaabbbcccdddeee" ^ eol in
   let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
-  let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line1 with offset = 5}) in
+  let span1 = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 3}, {start_of_line1 with offset = 9}) in
+  let span2 = Explication.style 2 @@ Span.make ({start_of_line1 with offset = 6}, {start_of_line1 with offset = 12}) in
   let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aa"};
-               {style=1; value="bbb"};
-               {style=0; value="cccccc"};
+    [{file_path;
+      blocks =
+        [{start_line_num = 1;
+          lines =
+            [[{style=0; value="aaa"};
+              {style=1; value="bbb"};
+              {style=3; value="ccc"};
+              {style=2; value="ddd"};
+              {style=0; value="eee"};
              ]]}
-         ]}
+        ]}
     ] in
-  let actual = E.explicate [span] in
-  Alcotest.(check test_explication) "Explication is correct" expected actual
-
-let single_line_with_crlf () =
-  let file_path = "aabbbcccccc\r\n" in
-  let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
-  let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line1 with offset = 5}) in
-  let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aa"};
-               {style=1; value="bbb"};
-               {style=0; value="cccccc"};
-             ]]}
-         ]}
-    ] in
-  let actual = E.explicate [span] in
-  Alcotest.(check test_explication) "Explication is correct" expected actual
-
-let multi_lines_with_crlf () =
-  let file_path = "aabbbbb\r\nbbbbccc" in
-  let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
-  let start_of_line2 : Span.position = {file_path; offset = 9; start_of_line = 9; line_num = 2} in
-  let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 13}) in
-  let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aa"};
-               {style=1; value="bbbbb"};
-             ];
-              [
-                {style=1; value="bbbb"};
-                {style=0; value="ccc"};
-              ]]}
-         ]}
-    ] in
-  let actual = E.explicate ~line_breaking:`Traditional [span] in
+  let actual = E.explicate ~line_breaking:mode [span1; span2] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines_with_ls () =
-  let file_path = "aabbbbb\r\nbbbbccc" in
+  let file_path = "aabbbbb\u{2028}bbbbccc" in
   let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
-  let start_of_line2 : Span.position = {file_path; offset = 9; start_of_line = 9; line_num = 2} in
-  let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 13}) in
+  let start_of_line2 : Span.position = {file_path; offset = 10; start_of_line = 10; line_num = 2} in
+  let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 14}) in
   let expected : _ Explication.t =
-    [ {file_path;
-       blocks =
-         [{start_line_num = 1;
-           lines =
-             [[
-               {style=0; value="aa"};
-               {style=1; value="bbbbb"};
+    [{file_path;
+      blocks =
+        [{start_line_num = 1;
+          lines =
+            [[{style=0; value="aa"};
+              {style=1; value="bbbbb"};
              ];
-              [
-                {style=1; value="bbbb"};
-                {style=0; value="ccc"};
-              ]]}
-         ]}
-    ] in
+             [{style=1; value="bbbb"};
+              {style=0; value="ccc"};
+             ]]}
+        ]}
+    ]
+  in
   let actual = E.explicate ~line_breaking:`Unicode [span] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
-(*
-let slice_multi_line_ascii_string () =
-  let filename = "test" in
-  let start = Pos.create ~point:2 ~bol:0 ~line:1 ~filename in
-  let stop = Pos.create ~point:6 ~bol:5 ~line:2 ~filename in
-  let span = Span.spanning start stop in
-
-  let expected = "b\nbb" in
-  let actual = Span.utf8_slice "aab\nbbccc" span in
-  Alcotest.(check string) "Extracted the correct slice" expected actual
-
-let slice_lines_multline_ascii_string () =
-  let filename = "test" in
-  let start = Pos.create ~point:4 ~bol:3 ~line:2 ~filename in
-  let stop = Pos.create ~point:9 ~bol:7 ~line:3 ~filename in
-  let span = Span.spanning start stop in
-
-  let expected = ("b", "bb\ncc", "cc") in
-  let actual = Span.utf8_slice_lines "aa\nbbb\ncccc\nddd" span in
-  Alcotest.(check (triple string string string)) "Extracted the correct slice" expected actual
-
-let slice_lines_end_of_string () =
-  let filename = "test" in
-  let start = Pos.create ~point:4 ~bol:0 ~line:1 ~filename in
-  let stop = Pos.create ~point:9 ~bol:0 ~line:1 ~filename in
-  let span = Span.spanning start stop in
-  let expected = ("aaaa", "bbbbb", "") in
-  let actual = Span.utf8_slice_lines "aaaabbbbb" span in
-  Alcotest.(check (triple string string string)) "Extracted the correct slice" expected actual
-
-let slice_lines_unicode_string () =
-  let filename = "test" in
-  let start = Pos.create ~point:2 ~bol:0 ~line:1 ~filename in
-  let stop = Pos.create ~point:4 ~bol:0 ~line:1 ~filename in
-  let span = Span.spanning start stop in
-  let expected = ("λ", "α", "β") in
-  let actual = Span.utf8_slice_lines "λαβ" span in
-  Alcotest.(check (triple string string string)) "Extracted the correct slice" expected actual
-*)
+let multi_lines () =
+  let file_path =
+    {|
+aabbbbb
+bbbbbbb
+b*ccddd
+1
+2
+3
+4
+ee++fff
+1
+2
+3
+4
+5
+ggggghh
+|}
+  in
+  let start_of_line2 : Span.position = {file_path; offset = 1; start_of_line = 1; line_num = 2} in
+  let start_of_line4 : Span.position = {file_path; offset = 17; start_of_line = 17; line_num = 4} in
+  let start_of_line9 : Span.position = {file_path; offset = 33; start_of_line = 33; line_num = 9} in
+  let start_of_line15 : Span.position = {file_path; offset = 51; start_of_line = 51; line_num = 15} in
+  let spans =
+    [
+      Explication.style 2 @@ Span.make ({start_of_line4 with offset = 17+1}, {start_of_line4 with offset = 17+4});
+      Explication.style 1 @@ Span.make ({start_of_line2 with offset = 1+2}, {start_of_line4 with offset = 17+4});
+      Explication.style 4 @@ Span.make ({start_of_line9 with offset = 33+2}, {start_of_line9 with offset = 33+7});
+      Explication.style 8 @@ Span.make ({start_of_line9 with offset = 33+4}, {start_of_line9 with offset = 33+7});
+      Explication.style 16 @@ Span.make (start_of_line15, {start_of_line15 with offset = 51+5});
+    ]
+  in
+  let expected : _ Explication.t =
+    [{file_path;
+      blocks=
+        [{start_line_num=2;
+          lines=
+            [[{style=0;value="aa"};
+              {style=1;value="bbbbb"}];
+             [{style=1;value="bbbbbbb"}];
+             [{style=1;value="b"};
+              {style=3;value="*cc"};
+              {style=0;value="ddd"}];
+             [{style=0;value="1"}];
+             [{style=0;value="2"}];
+             [{style=0;value="3"}];
+             [{style=0;value="4"}];
+             [{style=0;value="ee"};
+              {style=4;value="++"};
+              {style=12;value="fff"}]]};
+         {start_line_num=15;
+          lines=
+            [[{style=16;value="ggggg"};
+              {style=0;value="hh"}]]}]}]
+  in
+  let actual = E.explicate ~line_breaking:`Traditional ~block_splitting_threshold:5 spans in
+  Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let tests =
   let open Alcotest in
   Alcotest.run "Explicator" [
-    "Explicator",
+    "single-line",
     [
-      test_case "single-line span" `Quick single_line;
-      test_case "single-line span" `Quick single_line_with_crlf;
-      test_case "multi-line span with CRLF" `Quick multi_lines_with_crlf;
+      test_case "traditional, empty" `Quick (single_line `Traditional "");
+      test_case "traditional, CR" `Quick (single_line `Traditional "\r");
+      test_case "traditional, LF" `Quick (single_line `Traditional "\n");
+      test_case "traditional, CRLF" `Quick (single_line `Traditional "\r\n");
+      test_case "unicode, empty" `Quick (single_line `Unicode "");
+      test_case "unicode, CR" `Quick (single_line `Unicode "\r");
+      test_case "unicode, LF" `Quick (single_line `Unicode "\n");
+      test_case "unicode, CRLF" `Quick (single_line `Unicode "\r\n");
+      test_case "unicode, VT" `Quick (single_line `Unicode "\x0b");
+      test_case "unicode, FF" `Quick (single_line `Unicode "\x0c");
+      test_case "unicode, NEL" `Quick (single_line `Unicode "\u{0085}");
+      test_case "unicode, LS" `Quick (single_line `Unicode "\u{2028}");
+      test_case "unicode, PS" `Quick (single_line `Unicode "\u{2029}");
+    ];
+    "multi-line",
+    [
+      test_case "multi-line span with CRLF" `Quick multi_lines;
       test_case "multi-line span with LS" `Quick multi_lines_with_ls;
-      (*
-      test_case "Slice a multi line ASCII string" `Quick slice_multi_line_ascii_string;
-      test_case "Slice lines of an ASCII string" `Quick slice_lines_multline_ascii_string;
-      test_case "Slice till the end of line of an ASCII string" `Quick slice_lines_end_of_string;
-      test_case "Slice lines of a UTF8 string" `Quick slice_lines_unicode_string
-      *)
     ]
   ]

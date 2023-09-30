@@ -25,13 +25,27 @@ module E = Explicator.Make(FileReader)(Style)
 module Make (Code : Diagnostic.Code) =
 struct
 (*
-    🭁 examples/stlc/source.lambda
-    ⇃
-  3 ⇃ no, it is not my fault!!!
-  4 ⇃ I was just calling some function!!!
-    ⇃
- [E002] When looking into the meaning of 42
-
+ ╭
+ │    🭁 examples/stlc/example.lambda
+ │    │
+ │  1 │ (check (λ ä (λ 123
+ │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+ │    ┊
+ │ 20 │ ahhhhhhhhhhhhhhhhhh
+ │ 21 │ noooooooooooooooooo
+ │    ┷
+ │ When blah blah blah
+ │
+ │    🭁 examples/stlc/example.lambda
+ │    │
+ │  1 │ (check (λ ä (λ 123
+ │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+ │    ┊
+ │ 20 │ ahhhhhhhhhhhhhhhhhh
+ │ 21 │ noooooooooooooooooo
+ │    ┷
+ │ When blah blah blah
+ ╰
     🭁 examples/stlc/example.lambda
     │
   1 │ (check (λ ä (λ 123
@@ -40,9 +54,6 @@ struct
  20 │ ahhhhhhhhhhhhhhhhhh
  21 │ noooooooooooooooooo
     ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
-        which looks amazing!!!
-
     🭁 examples/stlc/example2.lambda
     │
   3 │ let x = 1
@@ -52,15 +63,15 @@ struct
     │
   8 │ assert (asai is cool)
     ┷
+ [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
+        which looks amazing!!!
+
 *)
 
   (* helper functions *)
 
   let hcat_with_pad ~pad l =
     I.hcat @@ List.map (I.pad ~l:pad) l
-
-  let vcat_with_pad ~pad l =
-    I.vcat @@ List.map (I.pad ~b:pad) l
 
   (* styles *)
 
@@ -79,6 +90,7 @@ struct
       | Bug -> bg red ++ fg black
 
   let fringe_style = A.fg @@ A.gray 8
+  let indentation_style = A.(++) (A.st A.bold) (A.fg @@ A.gray 5)
 
   (* calculating the width of line numbers *)
 
@@ -96,116 +108,151 @@ struct
 
   (* different parts of the display *)
 
+  (* parameters *)
+  type param =
+    {
+      show_backtrace : bool;
+      line_breaking : [`Unicode | `Traditional];
+      block_splitting_threshold : int;
+      line_number_width : int;
+      tab_size : int;
+      severity : Diagnostic.severity;
+      code : Code.t
+    }
+
+  let indentation = I.string indentation_style "│"
+
   (* [ 🭁 examples/stlc/source.lambda] *)
-  let render_file_header ~line_number_width ~is_backtrace:_ file_path =
-    hcat_with_pad ~pad:1
-      [ I.void line_number_width 0
-      ; I.string fringe_style "🭁"
-      ; I.string A.empty file_path
+  let render_file_header ~param ~backtrace_depth file_path =
+    hcat_with_pad ~pad:1 @@ List.concat
+      [ if backtrace_depth > 0 then [indentation] else []
+      ; [ I.void param.line_number_width 0 ]
+      ; [ I.string fringe_style "🭁" ]
+      ; [ I.string A.empty file_path ]
       ]
 
-  (* [ ⇃ ] or [ │ ] *)
-  let render_file_header_padding ~line_number_width ~is_backtrace =
-    hcat_with_pad ~pad:1
-      [ I.void line_number_width 0
-      ; I.string fringe_style (if is_backtrace then "⇃" else "│")
+  (* [ │ ] *)
+  let render_file_header_padding ~param ~backtrace_depth =
+    hcat_with_pad ~pad:1 @@ List.concat
+      [ if backtrace_depth > 0 then [indentation] else []
+      ; [ I.void param.line_number_width 0 ]
+      ; [ I.string fringe_style "│" ]
       ]
 
-  let show_code_segment ~tab_size severity Explication.{style; value = seg} =
-    I.string (highlight_style severity style) (UserContent.replace_control ~tab_size seg)
+  let show_code_segment ~param Explication.{style; value = seg} =
+    I.string (highlight_style param.severity style) (UserContent.replace_control ~tab_size:param.tab_size seg)
 
-  let show_code_line ~tab_size severity (segs : _ Explication.line) =
-    I.hcat @@ List.map (show_code_segment ~tab_size severity) segs
+  let show_code_line ~param (segs : _ Explication.line) =
+    I.hcat @@ List.map (show_code_segment ~param) segs
 
   (* [3 ⇃ no, it is not my fault!!!] *)
-  let render_block ~tab_size ~line_number_width~is_backtrace ~severity Explication.{start_line_num; lines} =
+  let render_block ~param ~backtrace_depth Explication.{start_line_num; lines} =
     List.mapi (fun i line ->
         let line_num = start_line_num + i in
-        hcat_with_pad ~pad:1
-          [ I.hsnap ~align:`Right line_number_width (I.string fringe_style (Int.to_string line_num))
-          ; I.string fringe_style (if is_backtrace then "⇃" else "│")
-          ; show_code_line ~tab_size severity line
+        hcat_with_pad ~pad:1 @@ List.concat
+          [ if backtrace_depth > 0 then [indentation] else []
+          ; [ I.hsnap ~align:`Right param.line_number_width (I.string fringe_style (Int.to_string line_num)) ]
+          ; [ I.string fringe_style "│" ]
+          ; [ show_code_line ~param line ]
           ]
       ) lines
 
   (* [ ┊ ] *)
-  let render_code_block_sep ~line_number_width ~is_backtrace:_ =
-    hcat_with_pad ~pad:1
-      [ I.void line_number_width 0
-      ; I.string fringe_style "┊"
+  let render_code_block_sep ~param ~backtrace_depth =
+    hcat_with_pad ~pad:1 @@ List.concat
+      [ if backtrace_depth > 0 then [indentation] else []
+      ; [ I.void param.line_number_width 0 ]
+      ; [ I.string fringe_style "┊" ]
       ]
 
-  (* [ ⇃ ] or [ ┷ ] *)
-  let render_code_part_end ~line_number_width ~is_backtrace =
-    hcat_with_pad ~pad:1
-      [ I.void line_number_width 0
-      ; I.string fringe_style (if is_backtrace then "⇃" else "┷")
-      ]
+  (* [ ┷ ] *)
+  let render_code_part_end ~param ~backtrace_depth =
+    hcat_with_pad ~pad:1 @@
+    (if backtrace_depth > 0 then [indentation] else []) @
+    [ I.void param.line_number_width 0
+    ; I.string fringe_style "┷"
+    ]
 
-  let render_part ~tab_size ~line_number_width ~is_backtrace ~severity Explication.{file_path; blocks} =
-    [ render_file_header ~line_number_width ~is_backtrace file_path
-    ; render_file_header_padding ~line_number_width ~is_backtrace
-    ] @
-    begin
-      List.concat @@
-      List.mapi
-        (fun i b ->
-           List.concat
-             [ if i = 0 then [] else [ render_code_block_sep ~line_number_width ~is_backtrace ]
-             ; render_block ~tab_size ~line_number_width ~is_backtrace ~severity b
-             ]
-        ) blocks
-    end @
-    [ render_code_part_end ~line_number_width ~is_backtrace ]
+  let render_part ~param ~backtrace_depth Explication.{file_path; blocks} =
+    List.concat @@
+    [ [ render_file_header ~param ~backtrace_depth file_path ]
+    ; [ render_file_header_padding ~param ~backtrace_depth ]
+    ; List.concat begin
+        blocks |> List.mapi @@ fun i b ->
+        List.concat
+          [ if i = 0 then [] else [ render_code_block_sep ~param ~backtrace_depth ]
+          ; render_block ~param ~backtrace_depth b
+          ]
+      end
+    ; [ render_code_part_end ~param ~backtrace_depth ]
+    ]
 
-  let render_explication ~tab_size ~line_number_width ~is_backtrace ~severity parts =
-    I.vcat @@ List.concat_map (render_part ~tab_size ~line_number_width ~is_backtrace ~severity) parts
+  let render_explication ~param ~backtrace_depth parts =
+    I.vcat @@ List.concat_map (render_part ~param ~backtrace_depth) parts
 
   (* message *)
-  let render_text ~line_number_width:_ ~is_backtrace:_ ~code text =
-    hcat_with_pad ~pad:1
-      [ I.strf "[%s]" (Code.to_string code)
-      ; I.strf "%t" text
-      ]
+  let render_text ~param ~backtrace_depth text =
+    hcat_with_pad ~pad:1 @@
+    let text = I.strf "%t" text in
+    [ if backtrace_depth > 0 then
+        I.tabulate 1 (I.height text) (fun _ _ -> indentation)
+      else
+        I.strf "[%s]" (Code.to_string param.code)
+    ; text
+    ]
 
-  let render_message ~tab_size ~line_number_width ~is_backtrace ~severity ~code explication text =
-    render_explication ~tab_size ~line_number_width ~is_backtrace ~severity explication
+  let render_message ~param ~backtrace_depth explication text =
+    render_explication ~param ~backtrace_depth explication
     <->
-    render_text ~line_number_width ~is_backtrace ~code text
+    render_text ~param ~backtrace_depth text
 
-  let display_message ~is_backtrace ~line_breaking ~severity ~code (msg : Diagnostic.message) ~additional_messages =
+  let display_message ~param ~backtrace_depth (msg : Diagnostic.message) ~additional_messages =
     let explication =
       let style s x = Explication.{value = x; style = s} in
       let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) msg.loc in
       let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) additional_messages in
-      E.explicate ~line_breaking ~splitting_threshold:5 (main_span @ additional_spans)
+      E.explicate ~block_splitting_threshold:param.block_splitting_threshold (main_span @ additional_spans)
     in
-    let line_number_width = line_number_width explication in
-    render_message ~line_number_width ~is_backtrace ~severity ~code explication msg.value
+    let line_number_width = Int.max param.line_number_width (line_number_width explication) in
+    render_message ~param:{param with line_number_width} ~backtrace_depth explication msg.value
 
-  let display_diagnostic ~line_breaking ~tab_size show_backtrace Diagnostic.{severity; code; message; backtrace; additional_messages} =
-    FileReader.run @@ fun () ->
-    let msgs =
-      Bwd.snoc
-        (if show_backtrace then
-           Bwd.map (display_message ~is_backtrace:true ~line_breaking ~tab_size ~severity ~code ~additional_messages:[]) backtrace
-         else
-           Emp)
-        (display_message ~is_backtrace:false ~line_breaking ~tab_size ~severity ~code message ~additional_messages)
+  let display_backtrace ~param backtrace =
+    let backtrace =
+      Bwd.to_list @@ Bwd.mapi
+        (fun i m -> display_message ~param ~backtrace_depth:(i+1) ~additional_messages:[] m)
+        backtrace
     in
-    vcat_with_pad ~pad:1 (Bwd.to_list msgs)
+    I.vcat @@ List.concat
+      [ [ hcat_with_pad ~pad:1 [I.string indentation_style "╭"] ]
+      ; List.mapi
+          (fun i image -> if i > 0 then hcat_with_pad ~pad:1 [indentation] <-> image else image )
+          backtrace
+      ; [ hcat_with_pad ~pad:1 [I.string indentation_style "╰"] ]
+      ]
+
+  let display_diagnostic ~param ~message ~backtrace ~additional_messages =
+    FileReader.run @@ fun () ->
+    (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
+    <->
+    display_message ~param ~backtrace_depth:0 message ~additional_messages
+    <->
+    I.void 0 1
 
   module F = Explicator.Make(FileReader)
 
-  let display ?(line_breaking=`Traditional) ?(tab_size=8) ?(show_backtrace = false) diag =
-    Notty_unix.output_image (display_diagnostic ~line_breaking ~tab_size show_backtrace diag)
+  let display ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
+      Diagnostic.{severity; code; message; backtrace; additional_messages} =
+    let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
+    Notty_unix.output_image (display_diagnostic ~param ~message ~backtrace ~additional_messages)
 
-  let interactive_trace ?(line_breaking=`Traditional) ?(tab_size=8) Diagnostic.{code; severity; message; additional_messages; backtrace} =
+  let interactive_trace ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
+      Diagnostic.{code; severity; message; additional_messages; backtrace} =
+    let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
     let traces =
       FileReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun msg -> display_message ~line_breaking ~tab_size ~is_backtrace:true ~severity ~code msg ~additional_messages:[]))
-        (display_message ~line_breaking ~tab_size ~is_backtrace:false ~severity ~code message ~additional_messages)
+        (backtrace |> Bwd.map (fun msg -> display_message ~param ~backtrace_depth:0 msg ~additional_messages:[]))
+        (display_message ~param ~backtrace_depth:0 message ~additional_messages)
       |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in

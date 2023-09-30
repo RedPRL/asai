@@ -34,3 +34,8 @@ module Explicator = Explicator
 
 (** An implementation of {!module-type:Explicator.Reader} using memory-mapped file I/O. You probably do not need this module unless you want to create your own backend. *)
 module FileReader = FileReader
+
+(**/**)
+
+(** Helper functions for handling user content. *)
+module UserContent = UserContent
