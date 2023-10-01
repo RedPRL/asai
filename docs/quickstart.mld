@@ -212,7 +212,7 @@ let lift_cool f = adopt embed_cool CoolLibrary.run f
 
 {1 Treat All Messages as Errors}
 
-🚧 {i Note: we are not happy with the ugly code you have to write in this section, so we might come up with a cooler API to ease your pain in the future.}
+🚧 {i Note: we might come up with a new, cooler API to simplify this section.}
 
 If you want to turn everything into an error, add the following lines to the end of your [Logger.ml]:
 {[
