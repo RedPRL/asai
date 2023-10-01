@@ -14,7 +14,7 @@
 
 (package
  (name asai)
- (synopsis "A library for constructing and printing diagnostics")
+ (synopsis "A library for constructing and printing compiler diagnostics")
  (description "This package offers an implementation of compiler diagnostics and supports multiple backends for displaying diagnostics to the end user. Currently, the package comes with three backends: GitHub Actions workflow commands, UNIX terminals, and LSP (Language Server Protocol).")
  (depends
    ocaml
