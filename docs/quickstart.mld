@@ -151,7 +151,101 @@ Logger.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
 
 {1 Use a Library that Uses asai}
 
-🚧 We are still writing this part...
+Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the messages from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Logger]. You want to painlessly incorporate the library.
+
+{2 Extend Your [Code] Module}
+
+The first step is to extend your message code type so that it can embed all message codes from the library. Open up your [Logger.ml] and update the type and functions as follows. It is recommended to add a helper function (such as [cool]) to save typing, and this tutorial will assume you have done that.
+
+{[
+module Code =
+struct
+  (** All message codes used in your application. *)
+  type t = (* ... *)
+    | Cool of CoolLibrary.Logger.t (* Embed all message codes from [CoolLibrary]. *)
+
+  (** The default severity of messages with a particular message code. *)
+  let default_severity : t -> Asai.Diagnostic.severity =
+    function
+    (* ... *)
+    | Cool c -> CoolLibrary.Logger.default_severity c
+
+  (** A short, concise, ideally Google-able string representation for each message code. *)
+  let to_string : t -> Asai.Diagnostic.severity =
+    function
+    (* ... *)
+    | Cool c -> CoolLibrary.Logger.to_string c
+
+  (** It is recommended to add a helper function to save typing. *)
+  let cool c = Cool c
+end
+]}
+
+After updating the module, move to the end of the [Logger.ml] and add the following line:
+
+{[
+let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.run f
+]}
+
+Remember to run [dune build] or your development tool to check that everything still compiles. Now you are ready to call any function in the cool library!
+
+PS: If you know Haskell, yes, the name [lift] is inspired by the monadic lifting from Haskell.
+
+{2 Use the Lifting}
+
+Whenever you want to use the cool library, wrap the code under [Logger.lift_cool]---it will take care of backtraces, locations, effects, etc.
+{[
+Logger.lift_cool @@ fun () -> CoolLibrary.cool_function "argument" 123
+]}
+That's it!
+
+{2 Customize the Lifting}
+
+Suppose you want to modify the messages from the cool library before sending them to end users. Open your [Logger.ml] again and replace [(Asai.Diagnostic.map Code.cool)] within [lift_cool]
+{[
+let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Logger.run f
+]}
+with any function of type [CoolLibrary.Code.t Asai.Diagnostic.t -> Code.t Asai.Diagnostic.t]. Say you have defined your own message transformation as function [embed_cool]. The new lifting is:
+{[
+let lift_cool f = adopt embed_cool CoolLibrary.run f
+]}
+
+{1 Treat All Messages as Errors}
+
+🚧 {i Note: we are not happy with the ugly code you have to write in this section, so we might come up with a cooler API to ease your pain in the future.}
+
+If you want to turn everything into an error, add the following lines to the end of your [Logger.ml]:
+{[
+let all_as_errors f =
+  try_with
+    ~emit:(fun d -> emit_diagnostic {d with severity = Error})
+    ~fatal:(fun d -> fatal_diagnostic {d with severity = Error})
+    f
+]}
+And then use [Logger.all_as_errors] to turn all messages into errors:
+{[
+Logger.all_as_errors @@ fun () -> (* any message sent here will be an error *)
+]}
+{b Note that turning a message into an error does not abort the computation.} [all_as_errors] only makes the message look scarier and it will not affect the control flow. If you wish to also abort the program the moment {i any} message is sent, replace {{!val:Asai.Logger.S.emit_diagnostic}emit_diagnostic} with {{!val:Asai.Logger.S.fatal_diagnostic}fatal_diagnostic}:
+{[
+let abort_at_any f =
+  try_with
+    ~emit:(fun d -> fatal_diagnostic {d with severity = Error})
+    ~fatal:(fun d -> fatal_diagnostic {d with severity = Error})
+    f
+]}
+Within [abort_at_any], every message will become a {i fatal} error:
+{[
+Logger.abort_at_any @@ fun () -> (* any message will be an error AND abort the program *)
+]}
+
+{1 Recover from Fatal Messages}
+
+Just like the usual [try ... with] in OCaml, you can use [Logger.try_with] to intercept fatal messages. However, unlike messages sent via {{!val:Asai.Logger.S.emit}emit}, there is no way to resume the aborted computation (as what you can do with an OCaml exception). Therefore, you have to provide a new value as a replacement. For example, the code:
+{[
+Logger.try_with ~fatal:(fun _ -> 42) @@ fun () -> Logger.fatal "abort!"
+]}
+will give you the number [42] in the end. It intercepts the fatal message and gives [42] instead.
 
 {1 There are More!}
 

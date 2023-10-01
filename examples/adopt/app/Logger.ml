@@ -11,9 +11,22 @@ struct
   let to_string : t -> string = function
     | Syslib c -> Syslib.Logger.Code.to_string c
     | UserError -> "A000"
+
+  let syslib c = Syslib c
 end
 
 include Asai.Logger.Make(Code)
 
-let embed_syslib d = Asai.Diagnostic.map (fun c -> Code.Syslib c) d
-let lift_syslib f = adopt embed_syslib Syslib.Logger.run f
+let lift_syslib f = adopt (Asai.Diagnostic.map Code.syslib) Syslib.Logger.run f
+
+let all_as_errors f =
+  try_with
+    ~emit:(fun d -> emit_diagnostic {d with severity = Error})
+    ~fatal:(fun d -> fatal_diagnostic {d with severity = Error})
+    f
+
+let abort_at_any f =
+  try_with
+    ~emit:(fun d -> fatal_diagnostic {d with severity = Error})
+    ~fatal:(fun d -> fatal_diagnostic {d with severity = Error})
+    f
