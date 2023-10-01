@@ -22,7 +22,7 @@
    (bwd (>= 2.2))
    (eio (>= 0.12))
    (eio_main (>= 0.12))
-   (lsp (>= 1.12))
+   (lsp (>= 1.15))
    (notty (>= 0.2.3))
    ;; Tests
    (alcotest (and :with-test (>= 1.5)))
