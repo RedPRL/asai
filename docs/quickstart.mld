@@ -78,13 +78,13 @@ let f x y =
 Add {{!val:Asai.Logger.S.trace}trace} to add a frame to the current backtrace:
 {[
 let f x y =
-  Logger.trace "When calling f..." @@ fun () ->
+  Logger.trace "When calling f" @@ fun () ->
   (* very important code *)
 ]}
 Similar to {{!val:Asai.Logger.S.emitf}emitf}, there is also {{!val:Asai.Logger.S.tracef}tracef} which allows you to format messages:
 {[
 let f x y =
-  Logger.tracef "When calling f on %d and %d..." x y @@ fun () ->
+  Logger.tracef "When calling f on %d and %d" x y @@ fun () ->
   (* very important code *)
 ]}
 
@@ -129,7 +129,7 @@ Please take a look at {!module:Asai.Span} to learn all kinds of ways to create a
 
 Note that [Logger] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[
-Logger.trace ~loc "When checking this code..." @@ fun () ->
+Logger.trace ~loc "When checking this code" @@ fun () ->
 (* ... *)
 Logger.emit "Wow!" (* using the location [loc] from above *)
 (* ... *)
