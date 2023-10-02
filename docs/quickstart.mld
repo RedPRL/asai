@@ -120,10 +120,10 @@ The annotated node will have type {{!type:Asai.Span.located}[data] Span.located}
 try Grammar.start Lex.token lexbuf with
 | Lex.SyntaxError token ->
   Logger.fatalf ~loc:(Span.of_lexbuf lexbuf) ParsingError
-    {|Unrecognized token "%s"|} String.escaped token
+    {|Unrecognized token `%s'|} (String.escaped token)
 | Grammar.Error ->
   Logger.fatal ~loc:(Span.of_lexbuf lexbuf) ParsingError
-    "Could not parse the program"
+    "Failed to parse the code"
 ]}
 Please take a look at {!module:Asai.Span} to learn all kinds of ways to create a span!
 
