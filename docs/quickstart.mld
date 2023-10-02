@@ -184,7 +184,7 @@ end
 After updating the module, move to the end of the [Logger.ml] and add the following line:
 
 {[
-let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.run f
+let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Logger.run f
 ]}
 
 Remember to run [dune build] or your development tool to check that everything still compiles. Now you are ready to call any function in the cool library!
@@ -207,7 +207,7 @@ let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Logger.run f
 ]}
 with any function of type [CoolLibrary.Code.t Asai.Diagnostic.t -> Code.t Asai.Diagnostic.t]. Say you have defined your own message transformation as function [embed_cool]. The new lifting is:
 {[
-let lift_cool f = adopt embed_cool CoolLibrary.run f
+let lift_cool f = adopt embed_cool CoolLibrary.Logger.run f
 ]}
 
 {1 Treat All Messages as Errors}
