@@ -36,7 +36,7 @@ It is thus wise to think twice before using emoji sequences and other tricky cha
   {ul
     {- {{: https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=[:ea=H:]|[:ea=Na:]}All characters whose East Asian width is either Halfwidth or Narrow} have the same visual width. This class includes all ASCII printable characters and thus an ASCII art very likely satisfies Level 2b.}
     {- {{: https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=[:ea=F:]|[:ea=W:]}All characters whose East Asian width is either Fullwidth or Wide} have the same visual width (as long as they are not used as part of an emoji sequence). Note that we do not assume the visual width of these characters is exactly double the visual width of the characters in the previous class.}
-    {- {{: https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=[:Block=Box_Drawing:]}All box-drawing characters} have the same visual width.}
+    {- {{: https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=[:Block=Box_Drawing:]%26[:ea=A:]}All box-drawing characters whose East Asian width is Ambiguous} have the same visual width.}
     {- Equivalent {{: https://unicode.org/glossary/#extended_grapheme_cluster}(extended) grapheme clusters} have the same visual width (regardless of the context). Note that an application can and maybe should customize grapheme clusters, but we believe it is okay to leave out the detail here.}}
   Level 2b is making explicit what Level 2a means; we might update the details of Level 2b later to better match our understanding of Level 2a. Collectively, Levels 2a and 2b are called "Level 2".
 
