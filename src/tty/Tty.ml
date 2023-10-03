@@ -26,7 +26,7 @@ module Make (Code : Diagnostic.Code) =
 struct
 (*
  ╭
- │    🭁 examples/stlc/example.lambda
+ │    ╒══ examples/stlc/example.lambda
  │    │
  │  1 │ (check (λ ä (λ 123
  │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -36,7 +36,7 @@ struct
  │    ┷
  │ When blah blah blah
  │
- │    🭁 examples/stlc/example.lambda
+ │    ╒══ examples/stlc/example.lambda
  │    │
  │  1 │ (check (λ ä (λ 123
  │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -46,7 +46,7 @@ struct
  │    ┷
  │ When blah blah blah
  ╰
-    🭁 examples/stlc/example.lambda
+    ╒══ examples/stlc/example.lambda
     │
   1 │ (check (λ ä (λ 123
   2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -54,12 +54,12 @@ struct
  20 │ ahhhhhhhhhhhhhhhhhh
  21 │ noooooooooooooooooo
     ┷
-    🭁 examples/stlc/example2.lambda
+    ╒══ examples/stlc/example2.lambda
     │
   3 │ let x = 1
   4 │ let y = 1
     ┷
-    🭁 examples/stlc/example3.lambda
+    ╒══ examples/stlc/example3.lambda
     │
   8 │ assert (asai is cool)
     ┷
@@ -119,11 +119,11 @@ struct
       code : Code.t
     }
 
-  (* [ 🭁 examples/stlc/source.lambda] *)
+  (* [ ╒══ examples/stlc/source.lambda] *)
   let render_file_header ~param file_path =
     hcat_with_pad ~pad:1
       [ I.void param.line_number_width 0
-      ; I.string fringe_style "🭁"
+      ; I.string fringe_style "╒══"
       ; I.string A.empty file_path
       ]
 

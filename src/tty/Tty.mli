@@ -7,7 +7,7 @@
 (** This module provides functions to display or interact with diagnostics in UNIX terminals. A message will look like this:
 
     {v
-    🭁 examples/stlc/example.lambda
+    ╒══ examples/stlc/example.lambda
     │
   1 │ (check (λ ä (λ 123
   2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -24,7 +24,7 @@ module Make (Code : Diagnostic.Code) : sig
   (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this:
 
       {v
-    🭁 examples/stlc/example1.lambda
+    ╒══ examples/stlc/example1.lambda
     │
   1 │ (check (λ ä (λ 123
   2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -32,12 +32,12 @@ module Make (Code : Diagnostic.Code) : sig
  20 │ ahhhhhhhhhhhhhhhhhh
  21 │ noooooooooooooooooo
     ┷
-    🭁 examples/stlc/example2.lambda
+    ╒══ examples/stlc/example2.lambda
     │
   3 │ let x = 1 // additional information
   4 │ let y = 1
     ┷
-    🭁 examples/stlc/example3.lambda
+    ╒══ examples/stlc/example3.lambda
     │
   8 │ assert (asai is cool)
     ┷
