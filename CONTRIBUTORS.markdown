@@ -1,5 +1,5 @@
 # CONTRIBUTORS
 
-Favonia
-Matthew McQuaid
-Reed Mullanix
+- Favonia
+- Matthew McQuaid
+- Reed Mullanix
