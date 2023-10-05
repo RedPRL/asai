@@ -39,6 +39,10 @@ let kmakef ?loc ?backtrace ?additional_messages k severity code =
 let makef ?loc ?backtrace ?additional_messages severity code =
   ktextf @@ of_text ?loc ?backtrace ?additional_messages severity code
 
+let map f d = {d with code = f d.code}
+
+let map_text f d = {d with message = {d.message with value = f d.message.value}}
+
 let string_of_severity =
   function
   | Hint -> "Hint"
@@ -53,5 +57,3 @@ let string_of_text text : string =
   let () = Format.pp_set_geometry fmt ~max_indent:(Int.max_int-1) ~margin:Int.max_int in
   text fmt;
   Buffer.contents buf
-
-let map f d = {d with code = f d.code}
