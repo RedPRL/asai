@@ -1,6 +1,7 @@
 module Span = Span
 module Diagnostic = Diagnostic
 module Reporter = Reporter
+module Logger = Reporter
 
 module Tty = Tty
 module Lsp = AsaiLsp

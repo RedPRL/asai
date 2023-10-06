@@ -37,5 +37,8 @@ module FileReader = FileReader
 
 (**/**)
 
+(** Backward compatibility *)
+module Logger = Reporter [@@ocaml.alert deprecated "Use Reporter instead"]
+
 (** Helper functions for handling user content. *)
 module UserContent = UserContent
