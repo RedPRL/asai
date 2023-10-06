@@ -56,4 +56,5 @@ let string_of_text text : string =
   let fmt = Format.formatter_of_buffer buf in
   let () = Format.pp_set_geometry fmt ~max_indent:(Int.max_int-1) ~margin:Int.max_int in
   text fmt;
+  Format.pp_print_flush fmt ();
   Buffer.contents buf
