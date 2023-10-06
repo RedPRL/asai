@@ -153,7 +153,7 @@ Reporter.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
 
 {1 Wrapping Errors}
 
-It is common to wrap an error message to give a more intuitive explanation. For example, when using an I/O library to read a configuration file, the I/O library might send out a fatal message saying:
+It is common to wrap an error message to give a more intuitive explanation. For example, when using a file I/O library to read a configuration file, the library might send out a fatal message saying:
 {v
 File '/path/config.json' does not exist
 v}
@@ -178,12 +178,12 @@ Reporter.map_text
     "@[<2>Failed to load settings:@ @[%t@]@]"
     t)
   @@ fun () ->
-(* using the I/O library *)
+(* using the file I/O library *)
 ]}
 The {{!val:Asai.Reporter.S.map_text}map_text} will map the {{!type:Asai.Diagnostic.text}text} in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Reporter.S.emitf}emitf} and {{!val:Asai.Reporter.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
 {[
 Reporter.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@]") @@ fun () ->
-(* using the I/O library *)
+(* using the file I/O library *)
 ]}
 
 {1 Use a Library that Uses asai}
