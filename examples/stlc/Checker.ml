@@ -18,7 +18,7 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Reporter.fatalf ?loc ~severity:Warning `UnboundVariable "Variable '%s' is not in scope" nm
+      Reporter.fatalf ?loc `UnboundVariable "Variable '%s' is not in scope" nm
 
   let expected_connective ?loc conn tp =
     Reporter.fatalf ?loc `TypeError "Expected a %s, but got %a." conn pp_tp tp
