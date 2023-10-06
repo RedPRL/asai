@@ -149,6 +149,41 @@ Logger.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
 (* ... *)
 ]}
 
+{1 Wrapping Errors}
+
+It is common to wrap an error message to give a more intuitive explanation. For example, when using an I/O library to read a configuration file, the I/O library might send out a fatal message saying:
+{v
+File '/path/config.json' does not exist
+v}
+We would like to turn it into a more readable message such as
+{v
+Failed to load settings:
+  File '/path/config.json' does not exist
+v}
+Arguably, this can be achieved via the backtrace API mentioned before:
+{v
+When loading settings...
+File '/path/config.json' does not exist
+v}
+by writing
+{[
+Logger.trace "When loading settings..." @@ fun () -> ...
+]}
+However, if you agree with us that the wrapped error message reads better, do the following instead:
+{[
+Logger.map_text
+  (fun t -> Asai.Diagnostic.textf
+    "@[<2>Failed to load settings:@ @[%t@]@]"
+    t)
+  @@ fun () ->
+(* using the I/O library *)
+]}
+The {{!val:Asai.Logger.S.map_text}map_text} will map the {{!type:Asai.Diagnostic.text}text} in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Logger.S.emitf}emitf} and {{!val:Asai.Logger.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
+{[
+Logger.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@]") @@ fun () ->
+(* using the I/O library *)
+]}
+
 {1 Use a Library that Uses asai}
 
 Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the messages from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Logger]. You want to painlessly incorporate the library.
@@ -212,15 +247,9 @@ let lift_cool f = adopt embed_cool CoolLibrary.Logger.run f
 
 {1 Treat All Messages as Errors}
 
-🚧 {i Note: we might come up with a new, cooler API to simplify this section.}
-
 If you want to turn everything into an error, add the following lines to the end of your [Logger.ml]:
 {[
-let all_as_errors f =
-  try_with
-    ~emit:(fun d -> emit_diagnostic {d with severity = Error})
-    ~fatal:(fun d -> fatal_diagnostic {d with severity = Error})
-    f
+let all_as_errors f = map (fun d -> {d with severity = Error}) f
 ]}
 And then use [Logger.all_as_errors] to turn all messages into errors:
 {[
@@ -228,15 +257,11 @@ Logger.all_as_errors @@ fun () -> (* any message sent here will be an error *)
 ]}
 {b Note that turning a message into an error does not abort the computation.} [all_as_errors] only makes the message look scarier and it will not affect the control flow. If you wish to also abort the program the moment {i any} message is sent, replace {{!val:Asai.Logger.S.emit_diagnostic}emit_diagnostic} with {{!val:Asai.Logger.S.fatal_diagnostic}fatal_diagnostic}:
 {[
-let abort_at_any f =
-  try_with
-    ~emit:(fun d -> fatal_diagnostic {d with severity = Error})
-    ~fatal:(fun d -> fatal_diagnostic {d with severity = Error})
-    f
+let abort_at_any f = map fatal_diagnostic f
 ]}
-Within [abort_at_any], every message will become a {i fatal} error:
+Within [abort_at_any], every message will become {i fatal}:
 {[
-Logger.abort_at_any @@ fun () -> (* any message will be an error AND abort the program *)
+Logger.abort_at_any @@ fun () -> (* any message will abort the program *)
 ]}
 
 {1 Recover from Fatal Messages}
