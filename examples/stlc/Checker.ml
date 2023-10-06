@@ -3,8 +3,9 @@ open Bwd
 
 open Syntax
 
-module Terminal = Asai.Tty.Make(ErrorCode)
 module Logger = Asai.Logger.Make(ErrorCode)
+module Terminal = Asai.Tty.Make(ErrorCode)
+module GitHub = Asai.GitHub.Make(ErrorCode)
 module Server = Asai.Lsp.Make(ErrorCode)
 
 module Elab =
@@ -121,11 +122,12 @@ struct
     Elab.chk tm tp
 
   let load mode filepath =
-    let display =
+    let display : ErrorCode.t Diagnostic.t -> unit =
       match mode with
-      | `Debug -> Terminal.display ~show_backtrace:true
-      | `Normal ->  Terminal.display ~show_backtrace:false
-      | `Interactive -> Terminal.interactive_trace
+      | `Debug -> fun d -> Terminal.display ~show_backtrace:true d
+      | `Normal -> fun d -> Terminal.display ~show_backtrace:false d
+      | `Interactive -> fun d -> Terminal.interactive_trace d
+      | `GitHub -> GitHub.print
     in
     Logger.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
@@ -142,4 +144,5 @@ let () =
   | "--server" -> Driver.server ()
   | "--debug" -> Driver.load `Debug Sys.argv.(2)
   | "--interactive" -> Driver.load `Interactive Sys.argv.(2)
+  | "--github" -> Driver.load `GitHub Sys.argv.(2)
   | filepath -> Driver.load `Normal filepath
