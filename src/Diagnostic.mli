@@ -80,7 +80,7 @@ val of_message : ?backtrace:backtrace -> ?additional_messages:message list -> se
 
 (** {1 Other Helper Functions} *)
 
-(** A convenience function that maps the message code of a diagnostic. This is helpful when using {!val:Logger.S.adopt}. *)
+(** A convenience function that maps the message code of a diagnostic. This is helpful when using {!val:Reporter.S.adopt}. *)
 val map : ('code1 -> 'code2) -> 'code1 t -> 'code2 t
 
 (** A convenience function that maps the message text of a diagnostic.

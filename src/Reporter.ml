@@ -1,7 +1,7 @@
 open Bwd
 open Bwd.Infix
 
-module type S = LoggerSigs.S
+module type S = ReporterSigs.S
 
 module Make (Code : Diagnostic.Code) : S with module Code := Code =
 struct
@@ -110,5 +110,5 @@ struct
     | Fatal diag -> f (`Fatal diag)
     | _ -> None
 
-  let () = register_printer @@ fun _ -> Some "Unhandled asai effect/exception; use Asai.Logger.run"
+  let () = register_printer @@ fun _ -> Some "Unhandled asai effect/exception; use Asai.Reporter.run"
 end

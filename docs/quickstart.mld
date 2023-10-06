@@ -2,9 +2,11 @@
 
 This tutorial is for an implementer (you!) to adopt this library as quickly as possible. We will assume you are already familiar with OCaml and are using a typical OCaml package structure.
 
+{i This tutorial is for the (unreleased) version 0.2.0.} If you are using an older version, some code might not work.
+
 {1 Define Error Codes}
 
-The first step is to create a file [Logger.ml] with the following template:
+The first step is to create a file [Reporter.ml] with the following template:
 
 {[
 module Code =
@@ -27,7 +29,7 @@ struct
 end
 
 (** Include all the goodies from the asai library. *)
-include Asai.Logger.Make(Code)
+include Asai.Reporter.Make(Code)
 ]}
 
 The most important step is to decide the {i message codes}. It should be a meaningful classification of all the messages that could be sent to the end users. For example, [UndefinedSymbol] could be a reasonable code for a message about failing to find the definition of a symbol. Once you define the type of all message codes, you will have to define two functions [default_severity] and [to_string]:
@@ -39,19 +41,19 @@ Once you have filled out the template, run [dune build] or other tools to check 
 
 {1 Start Sending Messages}
 
-Now, go to the places where you want to send a message to end users, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Logger.S.emit}emit} a string:
+Now, go to the places where you want to send a message to end users, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Reporter.S.emit}emit} a string:
 {[
-Logger.emit Greeting "Hello!";
+Reporter.emit Greeting "Hello!";
 (* continue doing other things *)
 ]}
-where [Greeting] is the message code of this message. The fancier version is {{!val:Asai.Logger.S.emitf}emitf}, which formats a message like [printf] and sends it:
+where [Greeting] is the message code of this message. The fancier version is {{!val:Asai.Reporter.S.emitf}emitf}, which formats a message like [printf] and sends it:
 {[
-Logger.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term;
+Reporter.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term;
 (* continue doing other things *)
 ]}
-There is an important limitation of {{!val:Asai.Logger.S.emitf}emitf} though: you should not include {i any} control character (for example the newline character [\n]) {i anywhere} when using {{!val:Asai.Logger.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. See {!module:Stdlib.Format} for more information on boxes and break hints.
+There is an important limitation of {{!val:Asai.Reporter.S.emitf}emitf} though: you should not include {i any} control character (for example the newline character [\n]) {i anywhere} when using {{!val:Asai.Reporter.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. See {!module:Stdlib.Format} for more information on boxes and break hints.
 
-If you wish to terminate your program after sending a message instead of continuing the execution, use {{!val:Asai.Logger.S.fatal}fatal} instead of {{!val:Asai.Logger.S.emit}emit}. There's also a fancier {{!val:Asai.Logger.S.fatalf}fatalf} that works in the same way as {{!val:Asai.Logger.S.emitf}emitf}.
+If you wish to terminate your program after sending a message instead of continuing the execution, use {{!val:Asai.Reporter.S.fatal}fatal} instead of {{!val:Asai.Reporter.S.emit}emit}. There's also a fancier {{!val:Asai.Reporter.S.fatalf}fatalf} that works in the same way as {{!val:Asai.Reporter.S.emitf}emitf}.
 
 {1 Choose a Backend}
 
@@ -61,10 +63,10 @@ let () = (* your application code *)
 ]}
 You can use the {{!module:Asai.Tty}terminal} backend as follows:
 {[
-module Term = Asai.Tty.Make (Logger.Code)
+module Term = Asai.Tty.Make (Reporter.Code)
 
 let () =
-  Logger.run ~emit:Term.display ~fatal:Term.display @@ fun () ->
+  Reporter.run ~emit:Term.display ~fatal:Term.display @@ fun () ->
   (* your application code *)
 ]}
 
@@ -75,37 +77,37 @@ Great messages come with meaningful backtraces. To add backtraces, you will have
 let f x y =
   (* very important code *)
 ]}
-Add {{!val:Asai.Logger.S.trace}trace} to add a frame to the current backtrace:
+Add {{!val:Asai.Reporter.S.trace}trace} to add a frame to the current backtrace:
 {[
 let f x y =
-  Logger.trace "When calling f" @@ fun () ->
+  Reporter.trace "When calling f" @@ fun () ->
   (* very important code *)
 ]}
-Similar to {{!val:Asai.Logger.S.emitf}emitf}, there is also {{!val:Asai.Logger.S.tracef}tracef} which allows you to format messages:
+Similar to {{!val:Asai.Reporter.S.emitf}emitf}, there is also {{!val:Asai.Reporter.S.tracef}tracef} which allows you to format messages:
 {[
 let f x y =
-  Logger.tracef "When calling f on %d and %d" x y @@ fun () ->
+  Reporter.tracef "When calling f on %d and %d" x y @@ fun () ->
   (* very important code *)
 ]}
 
 Note that, by default, the terminal backend will not show backtraces. You have to enable it as follows in your entry-point module:
 {[
-module Term = Asai.Tty.Make (Logger.Code)
+module Term = Asai.Tty.Make (Reporter.Code)
 
 let () =
-  Logger.run
+  Reporter.run
     ~emit:(Term.display ~show_backtrace:true)
     ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->
   (* your application code *)
 ]}
 
-We do not recommend adding {{!val:Asai.Logger.S.trace}trace} to every single function. Remember that they have to make sense to end users!
+We do not recommend adding {{!val:Asai.Reporter.S.trace}trace} to every single function. Remember that they have to make sense to end users!
 
 {1 Add Location Information}
 
-Good messages also help end users locate the issues in their program or proof. Here, a {i location} is a range of text from a file, which we call {i span.} Many functions in your [Logger] take an optional location argument [loc], including {{!val:Asai.Logger.S.trace}trace}, which should be a span highlighting the most relevant text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
+Good messages also help end users locate the issues in their program or proof. Here, a {i location} is a range of text from a file, which we call {i span.} Many functions in your [Reporter] take an optional location argument [loc], including {{!val:Asai.Reporter.S.trace}trace}, which should be a span highlighting the most relevant text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
 {[
-Logger.emit ~loc Greeting "Hello again!";
+Reporter.emit ~loc Greeting "Hello again!";
 (* continue doing other things *)
 ]}
 You can use {{!val:Asai.Span.make}Span.make} to create such a span manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Span.make}Span.locate}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
@@ -119,33 +121,33 @@ The annotated node will have type {{!type:Asai.Span.located}[data] Span.located}
 {[
 try Grammar.start Lex.token lexbuf with
 | Lex.SyntaxError token ->
-  Logger.fatalf ~loc:(Span.of_lexbuf lexbuf) ParsingError
+  Reporter.fatalf ~loc:(Span.of_lexbuf lexbuf) ParsingError
     {|Unrecognized token `%s'|} (String.escaped token)
 | Grammar.Error ->
-  Logger.fatal ~loc:(Span.of_lexbuf lexbuf) ParsingError
+  Reporter.fatal ~loc:(Span.of_lexbuf lexbuf) ParsingError
     "Failed to parse the code"
 ]}
 Please take a look at {!module:Asai.Span} to learn all kinds of ways to create a span!
 
-Note that [Logger] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
+Note that [Reporter] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[
-Logger.trace ~loc "When checking this code" @@ fun () ->
+Reporter.trace ~loc "When checking this code" @@ fun () ->
 (* ... *)
-Logger.emit "Wow!" (* using the location [loc] from above *)
+Reporter.emit "Wow!" (* using the location [loc] from above *)
 (* ... *)
 ]}
-the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Logger.S.trace}trace} function call! You can also use {{!val:Asai.Logger.S.merge_loc}merge_loc} to "remember" a location for later use, which is helpful when you want to remember a location but not to leave a trace:
+the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Reporter.S.trace}trace} function call! You can also use {{!val:Asai.Reporter.S.merge_loc}merge_loc} to "remember" a location for later use, which is helpful when you want to remember a location but not to leave a trace:
 {[
-Logger.merge_loc (Some loc) @@ fun () ->
+Reporter.merge_loc (Some loc) @@ fun () ->
 (* ... *)
-Logger.emit "Wow!" (* using the location [loc] from above *)
+Reporter.emit "Wow!" (* using the location [loc] from above *)
 (* ... *)
 ]}
 Of course, you can always pass a new location to overwrite the remembered one:
 {[
-Logger.merge_loc (Some loc) @@ fun () ->
+Reporter.merge_loc (Some loc) @@ fun () ->
 (* ... *)
-Logger.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
+Reporter.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
 (* ... *)
 ]}
 
@@ -167,59 +169,59 @@ File '/path/config.json' does not exist
 v}
 by writing
 {[
-Logger.trace "When loading settings..." @@ fun () -> ...
+Reporter.trace "When loading settings..." @@ fun () -> ...
 ]}
 However, if you agree with us that the wrapped error message reads better, do the following instead:
 {[
-Logger.map_text
+Reporter.map_text
   (fun t -> Asai.Diagnostic.textf
     "@[<2>Failed to load settings:@ @[%t@]@]"
     t)
   @@ fun () ->
 (* using the I/O library *)
 ]}
-The {{!val:Asai.Logger.S.map_text}map_text} will map the {{!type:Asai.Diagnostic.text}text} in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Logger.S.emitf}emitf} and {{!val:Asai.Logger.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
+The {{!val:Asai.Reporter.S.map_text}map_text} will map the {{!type:Asai.Diagnostic.text}text} in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Reporter.S.emitf}emitf} and {{!val:Asai.Reporter.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
 {[
-Logger.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@]") @@ fun () ->
+Reporter.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@]") @@ fun () ->
 (* using the I/O library *)
 ]}
 
 {1 Use a Library that Uses asai}
 
-Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the messages from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Logger]. You want to painlessly incorporate the library.
+Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the messages from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Reporter]. You want to painlessly incorporate the library.
 
 {2 Extend Your [Code] Module}
 
-The first step is to extend your message code type so that it can embed all message codes from the library. Open up your [Logger.ml] and update the type and functions as follows. It is recommended to add a helper function (such as [cool]) to save typing, and this tutorial will assume you have done that.
+The first step is to extend your message code type so that it can embed all message codes from the library. Open up your [Reporter.ml] and update the type and functions as follows. It is recommended to add a helper function (such as [cool]) to save typing, and this tutorial will assume you have done that.
 
 {[
 module Code =
 struct
   (** All message codes used in your application. *)
   type t = (* ... *)
-    | Cool of CoolLibrary.Logger.t (* Embed all message codes from [CoolLibrary]. *)
+    | Cool of CoolLibrary.Reporter.t (* Embed all message codes from [CoolLibrary]. *)
 
   (** The default severity of messages with a particular message code. *)
   let default_severity : t -> Asai.Diagnostic.severity =
     function
     (* ... *)
-    | Cool c -> CoolLibrary.Logger.default_severity c
+    | Cool c -> CoolLibrary.Reporter.default_severity c
 
   (** A short, concise, ideally Google-able string representation for each message code. *)
   let to_string : t -> Asai.Diagnostic.severity =
     function
     (* ... *)
-    | Cool c -> CoolLibrary.Logger.to_string c
+    | Cool c -> CoolLibrary.Reporter.to_string c
 
   (** It is recommended to add a helper function to save typing. *)
   let cool c = Cool c
 end
 ]}
 
-After updating the module, move to the end of the [Logger.ml] and add the following line:
+After updating the module, move to the end of the [Reporter.ml] and add the following line:
 
 {[
-let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Logger.run f
+let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Reporter.run f
 ]}
 
 Remember to run [dune build] or your development tool to check that everything still compiles. Now you are ready to call any function in the cool library!
@@ -228,47 +230,47 @@ PS: If you know Haskell, yes, the name [lift] is inspired by the monadic lifting
 
 {2 Use the Lifting}
 
-Whenever you want to use the cool library, wrap the code under [Logger.lift_cool]---it will take care of backtraces, locations, effects, etc.
+Whenever you want to use the cool library, wrap the code under [Reporter.lift_cool]---it will take care of backtraces, locations, effects, etc.
 {[
-Logger.lift_cool @@ fun () -> CoolLibrary.cool_function "argument" 123
+Reporter.lift_cool @@ fun () -> CoolLibrary.cool_function "argument" 123
 ]}
 That's it!
 
 {2 Customize the Lifting}
 
-Suppose you want to modify the messages from the cool library before sending them to end users. Open your [Logger.ml] again and replace [(Asai.Diagnostic.map Code.cool)] within [lift_cool]
+Suppose you want to modify the messages from the cool library before sending them to end users. Open your [Reporter.ml] again and replace [(Asai.Diagnostic.map Code.cool)] within [lift_cool]
 {[
-let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Logger.run f
+let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Reporter.run f
 ]}
 with any function of type [CoolLibrary.Code.t Asai.Diagnostic.t -> Code.t Asai.Diagnostic.t]. Say you have defined your own message transformation as function [embed_cool]. The new lifting is:
 {[
-let lift_cool f = adopt embed_cool CoolLibrary.Logger.run f
+let lift_cool f = adopt embed_cool CoolLibrary.Reporter.run f
 ]}
 
 {1 Treat All Messages as Errors}
 
-If you want to turn everything into an error, add the following lines to the end of your [Logger.ml]:
+If you want to turn everything into an error, add the following lines to the end of your [Reporter.ml]:
 {[
 let all_as_errors f = map (fun d -> {d with severity = Error}) f
 ]}
-And then use [Logger.all_as_errors] to turn all messages into errors:
+And then use [Reporter.all_as_errors] to turn all messages into errors:
 {[
-Logger.all_as_errors @@ fun () -> (* any message sent here will be an error *)
+Reporter.all_as_errors @@ fun () -> (* any message sent here will be an error *)
 ]}
-{b Note that turning a message into an error does not abort the computation.} [all_as_errors] only makes the message look scarier and it will not affect the control flow. If you wish to also abort the program the moment {i any} message is sent, replace {{!val:Asai.Logger.S.emit_diagnostic}emit_diagnostic} with {{!val:Asai.Logger.S.fatal_diagnostic}fatal_diagnostic}:
+{b Note that turning a message into an error does not abort the computation.} [all_as_errors] only makes the message look scarier and it will not affect the control flow. If you wish to also abort the program the moment {i any} message is sent, replace {{!val:Asai.Reporter.S.emit_diagnostic}emit_diagnostic} with {{!val:Asai.Reporter.S.fatal_diagnostic}fatal_diagnostic}:
 {[
 let abort_at_any f = map fatal_diagnostic f
 ]}
 Within [abort_at_any], every message will become {i fatal}:
 {[
-Logger.abort_at_any @@ fun () -> (* any message will abort the program *)
+Reporter.abort_at_any @@ fun () -> (* any message will abort the program *)
 ]}
 
 {1 Recover from Fatal Messages}
 
-Just like the usual [try ... with] in OCaml, you can use [Logger.try_with] to intercept fatal messages. However, unlike messages sent via {{!val:Asai.Logger.S.emit}emit}, there is no way to resume the aborted computation (as what you can do with an OCaml exception). Therefore, you have to provide a new value as a replacement. For example, the code:
+Just like the usual [try ... with] in OCaml, you can use [Reporter.try_with] to intercept fatal messages. However, unlike messages sent via {{!val:Asai.Reporter.S.emit}emit}, there is no way to resume the aborted computation (as what you can do with an OCaml exception). Therefore, you have to provide a new value as a replacement. For example, the code:
 {[
-Logger.try_with ~fatal:(fun _ -> 42) @@ fun () -> Logger.fatal "abort!"
+Reporter.try_with ~fatal:(fun _ -> 42) @@ fun () -> Reporter.fatal "abort!"
 ]}
 will give you the number [42] in the end. It intercepts the fatal message and gives [42] instead.
 

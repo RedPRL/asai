@@ -13,4 +13,4 @@ struct
     | EmojiError -> "C002"
 end
 
-include Asai.Logger.Make(Code)
+include Asai.Reporter.Make(Code)
