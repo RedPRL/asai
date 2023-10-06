@@ -74,6 +74,14 @@ struct
   let try_with ?(emit=emit_diagnostic) ?(fatal=fatal_diagnostic) f =
     Effect.Deep.match_with f () @@ handler ~emit ~fatal
 
+  let map_diagnostic m f =
+    try_with
+      ~emit:(fun d -> emit_diagnostic (m d))
+      ~fatal:(fun d -> fatal_diagnostic (m d))
+      f
+
+  let map_text m f = map_diagnostic (Diagnostic.map_text m) f
+
   (* Convenience functions *)
 
   let emit ?severity ?loc ?backtrace ?additional_messages code str =

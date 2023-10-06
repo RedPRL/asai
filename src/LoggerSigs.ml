@@ -191,6 +191,28 @@ sig
       @param fatal The interceptor of fatal diagnostics. The default value is {!val:fatal_diagnostic}. *)
   val try_with : ?emit:(Code.t Diagnostic.t -> unit) -> ?fatal:(Code.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
+  (** [map_diagnostic m f] runs the thunk [f] and applies [m] to any message sent by [f]. It is a convenience function that can be implemented as follows:
+      {[
+        let map_diagnostic m f =
+          try_with
+            ~fatal:(fun d -> fatal_diagnostic (m d))
+            ~emit:(fun d -> emit_diagnostic (m d))
+            f
+      ]}
+
+      @since 0.2.0
+  *)
+  val map_diagnostic : (Code.t Diagnostic.t -> Code.t Diagnostic.t) -> (unit -> 'a) -> 'a
+
+  (** [map_text m f] runs the thunk [f] and applies [m] to any message sent by [f]. It is a convenience function that can be implemented as follows:
+      {[
+        let map_text m f = map_diagnostic (Diagnostic.map_text m) f
+      ]}
+
+      @since 0.2.0
+  *)
+  val map_text : (Diagnostic.text -> Diagnostic.text) -> (unit -> 'a) -> 'a
+
   val register_printer : ([ `Trace | `Emit of Code.t Diagnostic.t | `Fatal of Code.t Diagnostic.t ] -> string option) -> unit
   (** [register_printer p] registers a printer [p] via {!val:Printexc.register_printer} to convert unhandled internal effects and exceptions into strings for the OCaml runtime system to display. Ideally, all internal effects and exceptions should have been handled by {!val:run} and there is no need to use this function, but when it is not the case, this function can be helpful for debugging. The functor {!module:Logger.Make} always registers a simple printer to suggest using {!val:run}, but you can register new ones to override it. The return type of the printer [p] should return [Some s] where [s] is the resulting string, or [None] if it chooses not to convert a particular effect or exception. The registered printers are tried in reverse order until one of them returns [Some s] for some [s]; that is, the last registered printer is tried first. Note that this function is a wrapper of {!val:Printexc.register_printer} and all the registered printers (via this function or {!val:Printexc.register_printer}) are put into the same list.
 
