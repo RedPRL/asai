@@ -1,2 +1,2 @@
-module Logger = Logger
+module Reporter = Reporter
 module Operations = Operations

@@ -11,7 +11,7 @@ module Span = Span
 module Diagnostic = Diagnostic
 
 (** Generating and handling diagnostics using algebraic effects. *)
-module Logger = Logger
+module Reporter = Reporter
 
 (** {1 Experimental Backends} *)
 

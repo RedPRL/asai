@@ -1,7 +1,7 @@
 module Code =
 struct
   type t =
-    | Syslib of Syslib.Logger.Code.t
+    | Syslib of Syslib.Reporter.Code.t
     | UserError
 
   let default_severity : t -> Asai.Diagnostic.severity =
@@ -9,15 +9,15 @@ struct
     | _ -> Warning
 
   let to_string : t -> string = function
-    | Syslib c -> Syslib.Logger.Code.to_string c
+    | Syslib c -> Syslib.Reporter.Code.to_string c
     | UserError -> "A000"
 
   let syslib c = Syslib c
 end
 
-include Asai.Logger.Make(Code)
+include Asai.Reporter.Make(Code)
 
-let lift_syslib f = adopt (Asai.Diagnostic.map Code.syslib) Syslib.Logger.run f
+let lift_syslib f = adopt (Asai.Diagnostic.map Code.syslib) Syslib.Reporter.run f
 
 let all_as_errors f =
   try_with

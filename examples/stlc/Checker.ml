@@ -1,12 +1,9 @@
-open Asai
 open Bwd
-
 open Syntax
 
-module Logger = Asai.Logger.Make(ErrorCode)
-module Terminal = Asai.Tty.Make(ErrorCode)
-module GitHub = Asai.GitHub.Make(ErrorCode)
-module Server = Asai.Lsp.Make(ErrorCode)
+module Terminal = Asai.Tty.Make(Reporter.Code)
+module GitHub = Asai.GitHub.Make(Reporter.Code)
+module Server = Asai.Lsp.Make(Reporter.Code)
 
 module Elab =
 struct
@@ -21,13 +18,13 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Logger.fatalf ?loc `UnboundVariable "Variable '%s' is not in scope" nm
+      Reporter.fatalf ?loc ~severity:Warning `UnboundVariable "Variable '%s' is not in scope" nm
 
   let expected_connective ?loc conn tp =
-    Logger.fatalf ?loc `TypeError "Expected a %s, but got %a." conn pp_tp tp
+    Reporter.fatalf ?loc `TypeError "Expected a %s, but got %a." conn pp_tp tp
 
   let rec equate ?loc expected actual =
-    Logger.tracef ?loc "When equating terms" @@ fun () ->
+    Reporter.tracef ?loc "When equating terms" @@ fun () ->
     match expected, actual with
     | Fun (a0, b0), Fun (a1, b1) ->
       equate a0 a1;
@@ -38,10 +35,10 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Logger.fatalf ?loc `TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
+      Reporter.fatalf ?loc `TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
-    Logger.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
+    Reporter.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
     match tm.value, tp with
     | Lam (nm, body), Fun (a, b) ->
       bind_var nm a @@ fun () ->
@@ -66,7 +63,7 @@ struct
       equate ?loc:tm.loc tp actual_tp
 
   and syn (tm : tm) : tp =
-    Logger.tracef ?loc:tm.loc "When synthesizing" @@ fun () ->
+    Reporter.tracef ?loc:tm.loc "When synthesizing" @@ fun () ->
     match tm.value with
     | Var nm ->
       lookup ?loc:tm.loc nm
@@ -103,7 +100,7 @@ struct
         mot
       end
     | _ ->
-      Logger.fatalf ?loc:tm.loc `TypeError "Unable to infer type"
+      Reporter.fatalf ?loc:tm.loc `TypeError "Unable to infer type"
 end
 
 module Driver =
@@ -114,29 +111,29 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Logger.fatalf ~loc:(Span.of_lexbuf lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
+        Reporter.fatalf ~loc:(Asai.Span.of_lexbuf lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
       | Grammar.Error ->
-        Logger.fatalf ~loc:(Span.of_lexbuf lexbuf) `LexingError "Failed to parse"
+        Reporter.fatalf ~loc:(Asai.Span.of_lexbuf lexbuf) `LexingError "Failed to parse"
     in
     Elab.Reader.run ~env:Emp @@ fun () ->
     Elab.chk tm tp
 
   let load mode filepath =
-    let display : ErrorCode.t Diagnostic.t -> unit =
+    let display : Reporter.Code.t Asai.Diagnostic.t -> unit =
       match mode with
       | `Debug -> fun d -> Terminal.display ~show_backtrace:true d
       | `Normal -> fun d -> Terminal.display ~show_backtrace:false d
       | `Interactive -> fun d -> Terminal.interactive_trace d
       | `GitHub -> GitHub.print
     in
-    Logger.run ~emit:display ~fatal:display @@ fun () ->
+    Reporter.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
 
   let server () =
     Server.start
       ~source:(Some "STLC")
       ~init:(fun ~root:_ -> ())
-      ~load_file:(fun ~display:push file -> Logger.run ~emit:push ~fatal:push @@ fun () -> load_file file)
+      ~load_file:(fun ~display:push file -> Reporter.run ~emit:push ~fatal:push @@ fun () -> load_file file)
 end
 
 let () =
