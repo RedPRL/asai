@@ -2,13 +2,13 @@
 
 {1 Five Independent Parameters of a Diagnostic}
 
-In addition to the main message, the API should allow implementers to easily specify the following five factors of a diagnostic, and it should be possible to specify them independently.
+In addition to the main message, the API should allow implementers to easily specify the following five factors of a diagnostic, and it should be possible to specify them {i independently.}
 
 + {b Whether the program terminates after sending the message.} This is indicated by the choice between {{!val:Asai.Reporter.S.emit}emit} (for non-fatal messages) and {{!val:Asai.Reporter.S.fatal}fatal} (for fatal ones).
 + {b A message code with a succinct Google-able representation,} for example [V0003]. A succinct representation is useful for an end user to report a bug or ask for help.
 + {b How seriously end users should take the message.} Is it a warning, an error, or just a hint? See the type {{!type:Asai.Diagnostic.severity}severity} for available classifications. In practice, messages with the same message code tend to have the same severity, and thus our API requires an implementer to specify a default severity for each message code. While this seems to violate the independence constraint, our API allows overriding the default severity at each call of {{!val:Asai.Reporter.S.emit}emit} or {{!val:Asai.Reporter.S.fatal}fatal}.
 + {b A stack backtrace.} There should be a straightforward way to push new stack frames. Our implementation is {{!val:Asai.Reporter.S.trace}trace}.
-+ {b Additional messages.} It should be possible to attach any numbers of additional related messages. Currently, {{!val:Asai.Reporter.S.emit}emit} and {{!val:Asai.Reporter.S.fatal}fatal} are taking .
++ {b Additional messages.} It should be possible to attach any numbers of additional related messages. Currently, {{!val:Asai.Reporter.S.emit}emit} and {{!val:Asai.Reporter.S.fatal}fatal} are taking an optional argument [additional_messages].
 
 {1 Compositionality: Using Libraries that Use [asai]}
 
