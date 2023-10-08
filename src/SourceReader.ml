@@ -3,7 +3,7 @@ type bigstring = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.
 module M = Map.Make (String)
 module E = Algaeff.State.Make (struct type state = (Unix.file_descr * bigstring) M.t end)
 
-module Internal =
+module FileInternal =
 struct
   let load file_path =
     match M.find_opt file_path (E.get ()) with
@@ -28,17 +28,23 @@ struct
     E.set M.empty
 end
 
-type file = bigstring
+type source = File of bigstring | String of string
 
-let load file_path =
-  snd @@ Internal.load file_path
+let load : Span.source -> _ =
+  function
+  | `File file_path -> File (snd @@ FileInternal.load file_path)
+  | `String str -> String str
 
-let length (str : file) =
-  Bigarray.Array1.size_in_bytes str
+let length =
+  function
+  | File arr -> Bigarray.Array1.size_in_bytes arr
+  | String str -> String.length str
 
-let[@inline] unsafe_get str i =
-  Bigarray.Array1.unsafe_get str i
+let[@inline] unsafe_get res i =
+  match res with
+  | File arr -> Bigarray.Array1.unsafe_get arr i
+  | String str -> String.unsafe_get str i
 
 let run f =
   E.run ~init:M.empty @@ fun () ->
-  Fun.protect ~finally:Internal.close_all f
+  Fun.protect ~finally:FileInternal.close_all f

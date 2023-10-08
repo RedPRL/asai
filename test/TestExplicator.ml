@@ -1,13 +1,5 @@
 open Asai
 
-module FilePathAsContent : Explicator.Reader =
-struct
-  type file = string
-  let load s = s
-  let length s = String.length s
-  let unsafe_get s i = s.[i]
-end
-
 module IntStyle : Explicator.Style with type t = int =
 struct
   type t = int
@@ -20,17 +12,17 @@ struct
   let dump = Format.pp_print_int
 end
 
-module E = Explicator.Make(FilePathAsContent)(IntStyle)
+module E = Explicator.Make(IntStyle)
 
 let test_explication = Alcotest.of_pp (Explication.dump IntStyle.dump)
 
 let single_line mode eol () =
-  let file_path = "aaabbbcccdddeee" ^ eol in
-  let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
+  let source = `String ("aaabbbcccdddeee" ^ eol) in
+  let start_of_line1 : Span.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let span1 = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 3}, {start_of_line1 with offset = 9}) in
   let span2 = Explication.style 2 @@ Span.make ({start_of_line1 with offset = 6}, {start_of_line1 with offset = 12}) in
   let expected : _ Explication.t =
-    [{file_path;
+    [{source;
       blocks =
         [{start_line_num = 1;
           lines =
@@ -46,12 +38,12 @@ let single_line mode eol () =
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines_with_ls () =
-  let file_path = "aabbbbb\u{2028}bbbbccc" in
-  let start_of_line1 : Span.position = {file_path; offset = 0; start_of_line = 0; line_num = 1} in
-  let start_of_line2 : Span.position = {file_path; offset = 10; start_of_line = 10; line_num = 2} in
+  let source = `String "aabbbbb\u{2028}bbbbccc" in
+  let start_of_line1 : Span.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
+  let start_of_line2 : Span.position = {source; offset = 10; start_of_line = 10; line_num = 2} in
   let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 14}) in
   let expected : _ Explication.t =
-    [{file_path;
+    [{source;
       blocks =
         [{start_line_num = 1;
           lines =
@@ -68,8 +60,8 @@ let multi_lines_with_ls () =
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines () =
-  let file_path =
-    {|
+  let source = `String
+      {|
 aabbbbb
 bbbbbbb
 b*ccddd
@@ -86,10 +78,10 @@ ee++fff
 ggggghh
 |}
   in
-  let start_of_line2 : Span.position = {file_path; offset = 1; start_of_line = 1; line_num = 2} in
-  let start_of_line4 : Span.position = {file_path; offset = 17; start_of_line = 17; line_num = 4} in
-  let start_of_line9 : Span.position = {file_path; offset = 33; start_of_line = 33; line_num = 9} in
-  let start_of_line15 : Span.position = {file_path; offset = 51; start_of_line = 51; line_num = 15} in
+  let start_of_line2 : Span.position = {source; offset = 1; start_of_line = 1; line_num = 2} in
+  let start_of_line4 : Span.position = {source; offset = 17; start_of_line = 17; line_num = 4} in
+  let start_of_line9 : Span.position = {source; offset = 33; start_of_line = 33; line_num = 9} in
+  let start_of_line15 : Span.position = {source; offset = 51; start_of_line = 51; line_num = 15} in
   let spans =
     [
       Explication.style 2 @@ Span.make ({start_of_line4 with offset = 17+1}, {start_of_line4 with offset = 17+4});
@@ -100,7 +92,7 @@ ggggghh
     ]
   in
   let expected : _ Explication.t =
-    [{file_path;
+    [{source;
       blocks=
         [{start_line_num=2;
           lines=
@@ -125,7 +117,7 @@ ggggghh
   let actual = E.explicate ~line_breaking:`Traditional ~block_splitting_threshold:5 spans in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
-let tests =
+let () =
   let open Alcotest in
   Alcotest.run "Explicator" [
     "single-line",

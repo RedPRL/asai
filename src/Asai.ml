@@ -9,6 +9,6 @@ module GitHub = GitHub
 
 module Explication = Explication
 module Explicator = Explicator
-module FileReader = FileReader
+module SourceReader = SourceReader
 
 module UserContent = UserContent

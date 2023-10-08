@@ -17,9 +17,9 @@ let dump_block dump_style fmt {start_line_num; lines} =
     start_line_num
     (pp_list (dump_line dump_style)) lines
 
-let dump_part dump_style fmt {file_path; blocks} =
-  Format.fprintf fmt {|@[<1>{@[<2>file_path=@,"%s"@];@,@[<2>blocks=@,%a@]}@]|}
-    (String.escaped file_path)
+let dump_part dump_style fmt {source; blocks} =
+  Format.fprintf fmt {|@[<1>{@[<2>source=@,%a@];@,@[<2>blocks=@,%a@]}@]|}
+    Span.dump_source source
     (pp_list (dump_block dump_style)) blocks
 
 let dump dump_style = pp_list (dump_part dump_style)

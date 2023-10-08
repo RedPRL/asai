@@ -17,13 +17,20 @@ module Make (Code : Diagnostic.Code) = struct
     Diagnostic.string_of_text msg
 
   let print_with_loc severity code loc msg =
-    Format.printf "::%s file=%s,line=%i,endLine=%i,title=%s::%s@."
-      (command_of_severity severity)
-      (Span.file_path loc)
-      (Span.begin_line_num loc)
-      (Span.end_line_num loc)
-      (Code.to_string code)
-      (single_line_of_text msg)
+    match Span.source loc with
+    | `String _ ->
+      Format.printf "::%s title=%s::%s@."
+        (command_of_severity severity)
+        (Code.to_string code)
+        (single_line_of_text msg)
+    | `File file_path ->
+      Format.printf "::%s file=%s,line=%i,endLine=%i,title=%s::%s@."
+        (command_of_severity severity)
+        file_path
+        (Span.begin_line_num loc)
+        (Span.end_line_num loc)
+        (Code.to_string code)
+        (single_line_of_text msg)
 
   let print_without_loc severity code msg =
     Format.printf "::%s title=%s::%s@."

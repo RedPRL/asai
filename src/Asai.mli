@@ -32,8 +32,8 @@ module Explication = Explication
 (** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
 module Explicator = Explicator
 
-(** An implementation of {!module-type:Explicator.Reader} using memory-mapped file I/O. You probably do not need this module unless you want to create your own backend. *)
-module FileReader = FileReader
+(** Reading the source content. It uses memory-mapped I/O for files. You probably do not need this module unless you want to create your own backend. *)
+module SourceReader = SourceReader
 
 (**/**)
 
