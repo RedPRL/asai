@@ -1,12 +1,18 @@
 (** {1 Types} *)
 
+(** The source of a position or a span. The [`String] source can be used for REPL. *)
+type source =
+  [ `File of string (** File path of the source file. *)
+  | `String of string (** The content of an in-memory source. *)
+  ]
+
 (** The type of positions; this is isomorphic to {!type:Lexing.position}, but with arguably better field names. *)
 type position = {
-  file_path : string;
-  (** The absolute file path of the file that contains the position. *)
+  source : source;
+  (** The source (e.g., the file) that contains the position. *)
 
   offset : int;
-  (** The 0-indexed byte offset of the position relative to the beginning of the file. *)
+  (** The 0-indexed byte offset of the position relative to the beginning of the source. *)
 
   start_of_line : int;
   (** The 0-indexed byte offset pointing to the start of the line that contains the position. *)
@@ -23,17 +29,17 @@ type 'a located = { loc : t option; value : 'a }
 
 (** {1 Spans} *)
 
-(** [make (beginning, ending)] builds the span [\[begining, ending)] (not including the byte at the ending position) from a pair of positions [beginning] and [ending].
+(** [make (beginning, ending)] builds the span [\[beginning, ending)] (not including the byte at the ending position) from a pair of positions [beginning] and [ending].
 
-    @raise Invalid_argument if the positions do not share the same file path or if [end_] comes before [begin_]. (It is okay if [end_] equals to [begin_], which means the span is empty.) The comparison of file paths is done by [String.equal] without any path normalization.
+    @raise Invalid_argument if the positions do not share the same source or if [ending] comes before [beginning]. (It is okay if [ending] equals to [beginning], which means the span is empty.) The comparison of source file paths is done by [String.equal] without any path normalization.
 *)
 val make : position * position -> t
 
 (** [split span] returning the pair of the beginning and ending positions of [span]. It is the right inverse of {!val:make}. *)
 val split : t -> position * position
 
-(** [file_path span] returns the file path associated with [span]. *)
-val file_path : t -> string
+(** [source span] returns the source associated with [span]. *)
+val source : t -> source
 
 (** [begin_line_num span] returns the 1-indexed line number of the beginning position. *)
 val begin_line_num : t -> int
@@ -74,3 +80,8 @@ locate(X):
 v}
 *)
 val locate_lex : Lexing.position * Lexing.position -> 'a -> 'a located
+
+(** {1 Debugging} *)
+
+(** Ugly printer for debugging *)
+val dump_source : Format.formatter -> source -> unit

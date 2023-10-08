@@ -1,21 +1,5 @@
 open Explication
 
-(** The signature of data readers. *)
-module type Reader =
-sig
-  (** An abstract type of files. *)
-  type file
-
-  (** [load file_path] loads the resource at [file_path]. *)
-  val load : string -> file
-
-  (** [length file_path] gets the size of the file. *)
-  val length : file -> int
-
-  (** [unsafe_get file_path i] reads the ith byte of the file without checking the file size. *)
-  val unsafe_get : file -> int -> char
-end
-
 (** The signature of highlighting styles *)
 module type Style = sig
   (** The abstract type of highlighting styles. *)
@@ -47,8 +31,8 @@ end
 module type S = sig
   module Style : Style
 
-  exception Unexpected_end_of_file of Span.position
-  (** [Unexpected_end_of_file pos] means the [pos] lies beyond the end of file. This usually means the file has been truncated after the parsing. *)
+  exception Unexpected_end_of_source of Span.position
+  (** [Unexpected_end_of_source pos] means the [pos] lies beyond the end of source. This usually means the file has been truncated after the parsing. *)
 
   exception Unexpected_line_num_increment of Span.position
   (** [Unexpected_line_num_increment pos] means the line number of [pos] is larger than than that of its preceding position during explication, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
@@ -65,7 +49,9 @@ module type S = sig
       @param line_breaking The algorithm to recognize (hard) line breaks. The [`Unicode] algorithm recognizes all Unicode character sequences in {{:https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G41643}Unicode 15.0.0 Table 5-1} as line breaks. The [`Traditional] algorithm only recognizes [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] algorithm.
       @param block_splitting_threshold The maximum number of consecutive, non-highlighted lines allowed in a block. The function will try to minimize the number of blocks, as long as no block has too many consecutive, non-highlighted lines. A higher threshold will lead to fewer blocks. When the threshold is zero, it means no block can contain any non-highlighted line. The default value is zero.
 
-      @raise UnexpectedLineNumIncrement if the line number of some position is increased by one but there was no newline character [\n].
-      @raise PositionBeyondEndOfFile if some position falls outside the data content. (That is, the file is too smaller, if the data reader is reading files.)
+      @raise Unexpected_end_of_source See {!exception:Unexpected_end_of_source}.
+      @raise Unexpected_line_num_increment See {!exception:Unexpected_line_num_increment}.
+      @raise Unexpected_newline See {!exception:Unexpected_newline}
+      @raise Unexpected_position_in_newline See {!Unexpected_position_in_newline}
   *)
 end

@@ -2,12 +2,12 @@ open ExplicationData
 open ExplicatorSigs
 
 type 'style block = (Span.position, 'style) styled list
-type 'style part = string * 'style block list
+type 'style part = Span.source * 'style block list
 
 module File (Style : Style) :
 sig
   type t
-  val empty : t
+  val empty : t [@@warning "-32"]
   val singleton : (Span.t, Style.t) styled -> t
   val add : (Span.t, Style.t) styled -> t -> t
   val render : t -> Style.t block
@@ -20,7 +20,7 @@ struct
 
   let (<) x y = x.Span.offset < y.Span.offset
   let (<=) x y = x.Span.offset <= y.Span.offset
-  let (=) x y = x.Span.offset = y.Span.offset
+  let (=) x y = x.Span.offset = y.Span.offset [@@warning "-32"]
 
   (* precondition: x1 < x2 and there are already points at x1 and x2 *)
   let impose {value = x1, x2; style = xst} : _ list -> _ list =
@@ -59,30 +59,33 @@ sig
   type t
   val empty : t
   val add : (Span.t, Style.t) styled -> t -> t
-  val render : t -> (string * Style.t block) list
+  val render : t -> (Span.source * Style.t block) list
 end
 =
 struct
-  module FileMap = Map.Make(String)
+  module FileMap = Map.Make(struct
+      type t = Span.source
+      let compare : t -> t -> int = compare
+    end)
   module F = File(Style)
   type t = F.t FileMap.t
 
   let empty : t = FileMap.empty
 
   let add data =
-    FileMap.update (Span.file_path data.value) @@ function
+    FileMap.update (Span.source data.value) @@ function
     | None -> Some (F.singleton data)
     | Some m -> Some (F.add data m)
 
   let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.default l
 
-  let render m : (string * Style.t block) list =
+  let render m : (Span.source * Style.t block) list =
     FileMap.bindings m
-    |> List.map (fun (f, x) -> f, F.render x)
-    |> List.filter (fun (_, l) -> l <> []) (* filter out files with only empty spans *)
-    |> List.map (fun (f, l) -> f, (max_style l, l)) (* calculate the importance *)
+    |> List.map (fun (src, x) -> src, F.render x)
+    |> List.filter (fun (_, l) -> l <> []) (* filter out sources with only empty spans *)
+    |> List.map (fun (src, l) -> src, (max_style l, l)) (* calculate the importance *)
     |> List.stable_sort (fun (_, (sx, _)) (_, (sy, _)) -> Style.compare sx sy)
-    |> List.map (fun (file_path, (_, block)) -> file_path, block)
+    |> List.map (fun (src, (_, block)) -> src, block)
 end
 
 module Splitter (Style : Style) :
@@ -106,5 +109,5 @@ module Make (Style : Style) = struct
     spans
     |> List.fold_left (fun f data -> F.add data f) F.empty
     |> F.render
-    |> List.map (fun (file_path, block) -> file_path, S.split ~block_splitting_threshold block)
+    |> List.map (fun (src, block) -> src, S.split ~block_splitting_threshold block)
 end

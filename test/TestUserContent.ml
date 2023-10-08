@@ -3,7 +3,7 @@ let of_test name ~tab_size input expected =
   Alcotest.(check string) "Output matched" expected @@
   Asai.UserContent.replace_control ~tab_size input
 
-let tests =
+let () =
   Alcotest.run "UserContent" [
     "replace_control",
     [

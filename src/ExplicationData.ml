@@ -15,7 +15,7 @@ type 'style block =
 
 (** A part consists of multiple blocks from the same file. These blocks should be non-overlapping and sorted by importance or the textual order. *)
 type 'style part =
-  { file_path : string (** The file path of a part. *)
+  { source : Span.source (** The source of a part. *)
   ; blocks : 'style block list (** The blocks within a part. *)
   }
 

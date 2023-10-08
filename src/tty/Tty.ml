@@ -3,7 +3,7 @@ open Notty
 open Notty.Infix
 
 module Style = struct
-  type t = HighlightedPrimary | HighlightedAdditional | Primary | Additional | None
+  type t = HighlightedPrimary | Additional | None
   let default = None
   let is_default x = x = None
   let equal (x : t) y = x = y
@@ -13,14 +13,12 @@ module Style = struct
   let to_string =
     function
     | HighlightedPrimary -> "HighlightedPrimary"
-    | HighlightedAdditional -> "HighlightedAdditional"
-    | Primary -> "Primary"
     | Additional -> "Additional"
     | None -> "None"
   let dump fmt x = Format.pp_print_string fmt (to_string x)
 end
 
-module E = Explicator.Make(FileReader)(Style)
+module E = Explicator.Make(Style)
 
 module Make (Code : Diagnostic.Code) =
 struct
@@ -68,6 +66,45 @@ struct
 
 *)
 
+(*
+ ╭
+ │    ┯
+ │  1 │ (check (λ ä (λ 123
+ │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+ │    ┊
+ │ 20 │ ahhhhhhhhhhhhhhhhhh
+ │ 21 │ noooooooooooooooooo
+ │    ┷
+ │ When blah blah blah
+ │
+ │    ┯
+ │  1 │ (check (λ ä (λ 123
+ │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+ │    ┊
+ │ 20 │ ahhhhhhhhhhhhhhhhhh
+ │ 21 │ noooooooooooooooooo
+ │    ┷
+ │ When blah blah blah
+ ╰
+    ┯
+  1 │ (check (λ ä (λ 123
+  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+    ┊
+ 20 │ ahhhhhhhhhhhhhhhhhh
+ 21 │ noooooooooooooooooo
+    ┷
+    ┯
+  3 │ let x = 1
+  4 │ let y = 1
+    ┷
+    ┯
+  8 │ assert (asai is cool)
+    ┷
+ [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
+        which looks amazing!!!
+
+*)
+
   (* helper functions *)
 
   let hcat_with_pad ~pad l =
@@ -79,8 +116,8 @@ struct
     let open A in
     match style with
     | None -> empty
-    | HighlightedAdditional | Additional -> st underline
-    | HighlightedPrimary | Primary ->
+    | Additional -> st underline
+    | HighlightedPrimary ->
       st underline ++
       match severity with
       | Hint -> fg blue
@@ -120,19 +157,20 @@ struct
     }
 
   (* [ ╒══ examples/stlc/source.lambda] *)
-  let render_file_header ~param file_path =
-    hcat_with_pad ~pad:1
-      [ I.void param.line_number_width 0
-      ; I.string fringe_style "╒══"
-      ; I.string A.empty file_path
-      ]
-
   (* [ │ ] *)
-  let render_file_header_padding ~param =
-    hcat_with_pad ~pad:1
-      [ I.void param.line_number_width 0
-      ; I.string fringe_style "│"
-      ]
+  let render_source_header ~param =
+    function
+    | `String _ ->
+      hcat_with_pad ~pad:1
+        [ I.void param.line_number_width 0
+        ; I.string fringe_style "┯"
+        ]
+    | `File file_path ->
+      hcat_with_pad ~pad:1
+        [ I.void param.line_number_width 0
+        ; I.string fringe_style "╒══" <-> I.string fringe_style "│"
+        ; I.string A.empty file_path
+        ]
 
   let show_code_segment ~param Explication.{style; value = seg} =
     I.string (highlight_style param.severity style) (UserContent.replace_control ~tab_size:param.tab_size seg)
@@ -166,10 +204,9 @@ struct
       ; I.string fringe_style "┷"
       ]
 
-  let render_part ~param Explication.{file_path; blocks} =
+  let render_part ~param Explication.{source; blocks} =
     I.vcat @@ List.concat @@
-    [ [ render_file_header ~param file_path ]
-    ; [ render_file_header_padding ~param ]
+    [ [ render_source_header ~param source ]
     ; begin
       blocks |> List.mapi @@ fun i b ->
       (if i > 0 then render_code_block_sep ~param else I.empty)
@@ -222,12 +259,10 @@ struct
       ]
 
   let display_diagnostic ~param ~message ~backtrace ~additional_messages =
-    FileReader.run @@ fun () ->
+    SourceReader.run @@ fun () ->
     (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
     <->
     display_message ~param ~show_code:true message ~additional_messages
-
-  module F = Explicator.Make(FileReader)
 
   let display ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; code; message; backtrace; additional_messages} =
@@ -238,7 +273,7 @@ struct
       Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
     let traces =
-      FileReader.run @@ fun () ->
+      SourceReader.run @@ fun () ->
       Bwd.snoc
         (backtrace |> Bwd.map (fun msg -> display_message ~param ~show_code:true msg ~additional_messages:[]))
         (display_message ~param ~show_code:true message ~additional_messages)
