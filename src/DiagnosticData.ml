@@ -2,11 +2,11 @@ open Bwd
 
 (** The type of severity. *)
 type severity =
-  | Hint
-  | Info
-  | Warning
-  | Error
-  | Bug
+  | Hint (** This corresponds to the [Hint] severity level from LSP (Language Server Protocol). The official specification did not give much guidance on the difference between this level and {!constructor:Info}. However, {{: https://github.com/microsoft/language-server-protocol/issues/325#issuecomment-344570720}according to the LSP developers, "the idea of the hint severity" is that "for example we in VS Code don't render in the UI as squiggles."} They are often used to indicate code smell and come with "code actions" that suggest edit changes. *)
+  | Info (** This corresponds to the [Information] severity level from LSP (Language Server Protocol). The official specification did not give much guidance on the difference between this level and {!constructor:Hint}. *)
+  | Warning (** Something went wrong, but the error may be ignored. *)
+  | Error (** A serious error caused by end users or external factors (e.g., internet not working) *)
+  | Bug (** A serious error likely caused by bugs. This is useful to indicate the "impossible" cases. *)
 
 (** The type of text.
 
