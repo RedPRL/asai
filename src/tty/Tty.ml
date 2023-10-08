@@ -61,8 +61,17 @@ struct
     │
   8 │ assert (asai is cool)
     ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
-        which looks amazing!!!
+ Error[E002]:
+ Why am I checking the term against (→ ℕ (→ ℕ ℕ)),
+ when it looks amazing?
+
+    ╒══ examples/stlc/example4.lambda
+    │
+  8 │ assert (asai is cool)
+    ┷
+ Error[E002]:
+ Why am I checking the term against (→ ℕ (→ ℕ ℕ)),
+ when it looks amazing?
 
 *)
 
@@ -100,8 +109,9 @@ struct
     ┯
   8 │ assert (asai is cool)
     ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
-        which looks amazing!!!
+ Error[E002]:
+ Why am I checking the term (→ ℕ (→ ℕ ℕ))
+ which looks amazing!!
 
 *)
 
@@ -115,7 +125,9 @@ struct
  │
  │ When synthesizing
  ╯
- [E002] Variable 'sdaf' is not in scope
+ Error[E002]:
+ Variable 'sdaf' is not in scope
+
 *)
 
   (* helper functions *)
@@ -238,10 +250,13 @@ struct
   (* message *)
   let render_text ~param ~show_code text =
     let attr = message_style param.severity in
-    hcat_with_pad ~pad:1 @@ List.concat
-      [ if show_code then [ I.strf ~attr "[%s]" (Code.to_string param.code) ] else []
-      ; [ I.strf ~attr "%t" text ]
-      ]
+    I.pad ~l:1 begin
+      (if show_code
+       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Code.to_string param.code)
+       else I.empty)
+      <->
+      I.strf ~attr "%t" text
+    end
 
   let render_message ~param ~show_code explication text =
     render_explication ~param explication
@@ -280,6 +295,8 @@ struct
     (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
     <->
     display_message ~param ~show_code:true message ~additional_messages
+    <->
+    I.void 0 1 (* new line *)
 
   let display ?(output=Stdlib.stdout) ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; code; message; backtrace; additional_messages} =
