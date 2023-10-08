@@ -43,7 +43,7 @@ struct
  │ 21 │ noooooooooooooooooo
  │    ┷
  │ When blah blah blah
- ╰
+ ╯
     ╒══ examples/stlc/example.lambda
     │
   1 │ (check (λ ä (λ 123
@@ -85,7 +85,7 @@ struct
  │ 21 │ noooooooooooooooooo
  │    ┷
  │ When blah blah blah
- ╰
+ ╯
     ┯
   1 │ (check (λ ä (λ 123
   2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -259,7 +259,7 @@ struct
     I.vcat
       [ I.string indentation_style " ╭"
       ; I.tabulate 1 (I.height backtrace) (fun _ _ -> I.string indentation_style " │") <|> backtrace
-      ; I.string indentation_style " ╰"
+      ; I.string indentation_style " ╯"
       ]
 
   let display_diagnostic ~param ~message ~backtrace ~additional_messages =
