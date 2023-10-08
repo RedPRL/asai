@@ -112,19 +112,22 @@ struct
 
   (* styles *)
 
+  let message_style (severity : Diagnostic.severity) =
+    let open A in
+    match severity with
+    | Hint -> fg blue
+    | Info -> fg green
+    | Warning -> fg yellow
+    | Error -> fg red
+    | Bug -> bg red ++ fg black
+
   let highlight_style (severity : Diagnostic.severity) (style : Style.t) =
     let open A in
     match style with
     | None -> empty
     | Additional -> st underline
     | HighlightedPrimary ->
-      st underline ++
-      match severity with
-      | Hint -> fg blue
-      | Info -> fg green
-      | Warning -> fg yellow
-      | Error -> fg red
-      | Bug -> bg red ++ fg black
+      st underline ++ message_style severity
 
   let fringe_style = A.fg @@ A.gray 8
 
@@ -221,9 +224,10 @@ struct
 
   (* message *)
   let render_text ~param ~show_code text =
+    let attr = message_style param.severity in
     hcat_with_pad ~pad:1 @@ List.concat
-      [ if show_code then [ I.strf "[%s]" (Code.to_string param.code) ] else []
-      ; [ I.strf "%t" text ]
+      [ if show_code then [ I.strf ~attr "[%s]" (Code.to_string param.code) ] else []
+      ; [ I.strf ~attr "%t" text ]
       ]
 
   let render_message ~param ~show_code explication text =
