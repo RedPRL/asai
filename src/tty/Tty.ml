@@ -264,12 +264,12 @@ struct
     <->
     display_message ~param ~show_code:true message ~additional_messages
 
-  let display ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
+  let display ?(output=Stdlib.stdout) ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; code; message; backtrace; additional_messages} =
     let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
-    Notty_unix.output_image @@ Notty_unix.eol @@ display_diagnostic ~param ~message ~backtrace ~additional_messages
+    Notty_unix.output_image ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~message ~backtrace ~additional_messages
 
-  let interactive_trace ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
+  let interactive_trace ?(input=Unix.stdin) ?(output=Unix.stdout) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{code; severity; message; additional_messages; backtrace} =
     let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
     let traces =
@@ -280,20 +280,23 @@ struct
       |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in
+    let images = traces |> Array.mapi @@ fun i image ->
+      (image <->
+       I.void 0 1 <->
+       I.strf "%d/%d" (i + 1) len <->
+       I.string A.empty "Use left/right keys to navigate the stack trace" <->
+       I.string A.empty "Press ESC to Quit")
+    in
     let open Notty_unix in
     let rec loop t i =
-      Term.image t
-        (I.pad ~b:1 traces.(i) <->
-         I.strf "%d/%d" (i + 1) len <->
-         I.string A.empty "Use left/right keys to navigate the stack trace" <->
-         I.string A.empty "Press ESC to Quit");
+      Term.image t images.(i);
       match Term.event t with
       | `Key (`Arrow `Left, _) -> loop t (Int.max 0 (i - 1))
       | `Key (`Arrow `Right, _) -> loop t (Int.min (len-1) (i + 1))
       | `Key (`Escape, _) -> ()
       | _ -> loop t i
     in
-    let t = Term.create () in
+    let t = Term.create ~input ~output () in
     loop t (len-1);
     Term.release t
 end
