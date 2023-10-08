@@ -134,7 +134,7 @@ module Make (Style : Style) = struct
 
   let[@inline] explicate_blocks ~line_breaking = List.map (explicate_block ~line_breaking)
 
-  let[@inlined] explicate_part ~line_breaking (source, bs) : Style.t part =
+  let[@inline] explicate_part ~line_breaking (source, bs) : Style.t part =
     { source; blocks = explicate_blocks ~line_breaking bs }
 
   module F = Flattener.Make(Style)
