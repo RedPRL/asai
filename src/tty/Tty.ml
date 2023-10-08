@@ -105,6 +105,19 @@ struct
 
 *)
 
+(*
+ ╭
+ │ When checking against (→ ℕ (→ ℕ ℕ))
+ │
+ │ When checking against (→ ℕ ℕ)
+ │
+ │ When checking against ℕ
+ │
+ │ When synthesizing
+ ╯
+ [E002] Variable 'sdaf' is not in scope
+*)
+
   (* helper functions *)
 
   let hcat_with_pad ~pad l =
