@@ -24,7 +24,7 @@ sig
 
       Example:
       {[
-        Reporter.emit `TypeError "This type is extremely unnatural:\nNat"
+        Reporter.emit TypeError "This type is extremely unnatural:\nNat"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
@@ -38,7 +38,7 @@ sig
 
       Example:
       {[
-        Reporter.emitf `TypeError "Type %a is too ugly" Syntax.pp tp
+        Reporter.emitf TypeError "Type %a is too ugly" Syntax.pp tp
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
@@ -55,7 +55,7 @@ sig
 
       Example:
       {[
-        Reporter.fatal `FileError "Forgot to feed the cat"
+        Reporter.fatal CatError "Forgot to feed the cat"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
@@ -69,7 +69,7 @@ sig
 
       Example:
       {[
-        Reporter.fatalf `FileError "Failed to write the password to %s" file_path
+        Reporter.fatalf FileError "Failed to write the password %s on the screen" file_path
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
@@ -132,11 +132,11 @@ sig
 
   (** Functions in this section differ from the ones in {!module:Diagnostic} (for example, {!val:Diagnostic.make}) in that they fill out the current location, the current backtrace, and the severity automatically. (One can still overwrite them with optional arguments.) *)
 
-  (** [diagnostic code str] constructs a diagnostic with the message [str] along with the backtrace frames recorded via {!val:tracef}.
+  (** [diagnostic code str] constructs a diagnostic with the message [str] along with the backtrace frames recorded via {!val:trace}.
 
       Example:
       {[
-        Reporter.diagnostic `TypeError "This\nis\ntoo\nmuch."
+        Reporter.diagnostic SyntaxError "Too many emojis."
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
@@ -150,7 +150,7 @@ sig
 
       Example:
       {[
-        Reporter.diagnosticf `TypeError "Term %a does not type check, or does it?" Syntax.pp tm
+        Reporter.diagnosticf TypeError "Term %a does not type check, or does it?" Syntax.pp tm
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the message [code]).
