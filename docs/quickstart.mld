@@ -55,13 +55,13 @@ There is an important limitation of {{!val:Asai.Reporter.S.emitf}emitf} though: 
 
 If you wish to terminate your program after sending a message instead of continuing the execution, use {{!val:Asai.Reporter.S.fatal}fatal} instead of {{!val:Asai.Reporter.S.emit}emit}. There's also a fancier {{!val:Asai.Reporter.S.fatalf}fatalf} that works in the same way as {{!val:Asai.Reporter.S.emitf}emitf}.
 
-{1 Choose a Backend}
+{1 Choose a Diagnostic Handler}
 
-Now your program is generating lots of messages, and you have to choose a {i backend} to handle them. We will show how to display those messages in a terminal. Suppose your entry point module looks like this:
+Now your program is generating lots of messages, and you have to choose a {i handler} to handle them. We will show how to display those messages in a terminal. Suppose your entry point module looks like this:
 {[
 let () = (* your application code *)
 ]}
-You can use the {{!module:Asai.Tty}terminal} backend as follows:
+You can use the {{!module:Asai.Tty}terminal} handler as follows:
 {[
 module Term = Asai.Tty.Make (Reporter.Code)
 
@@ -90,7 +90,7 @@ let f x y =
   (* very important code *)
 ]}
 
-Note that, by default, the terminal backend will not show backtraces. You have to enable it as follows in your entry-point module:
+Note that, by default, the terminal handler will not show backtraces. You have to enable it as follows in your entry-point module:
 {[
 module Term = Asai.Tty.Make (Reporter.Code)
 

@@ -1,7 +1,7 @@
 (** @canonical Asai.Lsp *)
 
 [@@@alert unstable
-    "The LSP backend may change significantly in the future."
+    "The LSP implementation and API may change significantly in the future."
 ]
 
 (** {1 Language Service Protocol} *)

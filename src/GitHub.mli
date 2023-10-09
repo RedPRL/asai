@@ -1,7 +1,7 @@
 (** @see <https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions> *)
 
 [@@@alert unstable
-    "The GitHub Actions backend will likely change significantly in the future to account for more features."
+    "The GitHub Actions handler will likely change significantly in the future to account for more features."
 ]
 
 (** The functor to create a printer for GitHub Actions workflow commands. *)
