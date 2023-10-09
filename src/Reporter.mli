@@ -1,4 +1,4 @@
-(** The signature of a logger.
+(** The signature of a reporter.
 
     @inline *)
 include module type of ReporterSigs
