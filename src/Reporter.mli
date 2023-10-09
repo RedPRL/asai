@@ -1,7 +1,6 @@
 (** The signature of a logger.
 
-    @open include
-*)
+    @inline *)
 include module type of ReporterSigs
 
 (** The functor to generate a logger. *)
