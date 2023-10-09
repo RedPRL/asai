@@ -1,4 +1,7 @@
-(** The signature of message code. An implementer should specify the message code used in their library or application. *)
+(** The signature of message code. An implementer should specify the message code used in their library or application.
+
+    @since 0.2.0 (moved from Diagnostic.Code)
+*)
 module type Code =
 sig
   (** The type of all message codes. *)
