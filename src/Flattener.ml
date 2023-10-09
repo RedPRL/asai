@@ -80,18 +80,16 @@ struct
   let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.default l
 
   (**
-     1. Strings go before files.
-     2. The ones with the more important highlighting go first.
-     3. Sort the rest by strings themselves or file paths.
+     Compare parts based on the importance
+     1. Strings are more important than files.
+     2. The ones with the more important highlighting are more important.
   *)
   let compare_annotated_part part1 part2 : int =
     match part1, part2 with
     | (`String _, _), (`File _, _) -> 1
     | (`File _, _), (`String _, _) -> -1
-    | (`String _, (st1, _bk1)), (`String _, (st2, _bk2)) | (`File _, (st1, _bk1)), (`File _, (st2, _bk2))
-      when Style.compare st1 st2 <> 0 -> Style.compare st1 st2
-    | (`String s1, _), (`String s2, _) | (`File s1, _), (`File s2, _) ->
-      String.compare s1 s2
+    | (`String _, (st1, _)), (`String _, (st2, _)) | (`File _, (st1, _)), (`File _, (st2, _)) ->
+      Style.compare st1 st2
 
   let render m : (Span.source * Style.t block) list =
     FileMap.bindings m
