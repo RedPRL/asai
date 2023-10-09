@@ -65,7 +65,7 @@ end
 struct
   module FileMap = Map.Make(struct
       type t = Span.source
-      let compare : t -> t -> int = compare
+      let compare : t -> t -> int = Stdlib.compare
     end)
   module F = File(Style)
   type t = F.t FileMap.t
@@ -79,12 +79,26 @@ struct
 
   let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.default l
 
+  (**
+     1. Strings go before files.
+     2. The ones with the more important highlighting go first.
+     3. Sort the rest by strings themselves or file paths.
+  *)
+  let compare_annotated_part part1 part2 : int =
+    match part1, part2 with
+    | (`String _, _), (`File _, _) -> 1
+    | (`File _, _), (`String _, _) -> -1
+    | (`String _, (st1, _bk1)), (`String _, (st2, _bk2)) | (`File _, (st1, _bk1)), (`File _, (st2, _bk2))
+      when Style.compare st1 st2 <> 0 -> Style.compare st1 st2
+    | (`String s1, _), (`String s2, _) | (`File s1, _), (`File s2, _) ->
+      String.compare s1 s2
+
   let render m : (Span.source * Style.t block) list =
     FileMap.bindings m
     |> List.map (fun (src, x) -> src, F.render x)
     |> List.filter (fun (_, l) -> l <> []) (* filter out sources with only empty spans *)
     |> List.map (fun (src, l) -> src, (max_style l, l)) (* calculate the importance *)
-    |> List.stable_sort (fun (_, (sx, _)) (_, (sy, _)) -> Style.compare sx sy)
+    |> List.stable_sort compare_annotated_part
     |> List.map (fun (src, (_, block)) -> src, block)
 end
 
