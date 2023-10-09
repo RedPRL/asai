@@ -11,7 +11,7 @@
     Note: many features are missing and it does not handle [positionEncoding].
 
     @canonical Asai.Lsp.Make *)
-module Make (Code : Diagnostic.Code) : sig
+module Make (Code : Reporter.Code) : sig
   val start : source:string option
     -> init:(root:string option -> unit)
     -> load_file:(display:(Code.t Diagnostic.t -> unit) -> string -> unit)

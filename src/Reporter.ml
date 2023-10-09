@@ -1,9 +1,9 @@
 open Bwd
 open Bwd.Infix
 
-module type S = ReporterSigs.S
+include ReporterSigs
 
-module Make (Code : Diagnostic.Code) : S with module Code := Code =
+module Make (Code : Code) : S with module Code := Code =
 struct
 
   (* Backtraces *)

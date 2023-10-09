@@ -1,6 +1,6 @@
 (** Diagnostic display for GitHub Actions. *)
 
-module Make (Code : Diagnostic.Code) = struct
+module Make (Code : Reporter.Code) = struct
   let command_of_severity =
     function
     | Diagnostic.Info -> "notice"

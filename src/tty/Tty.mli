@@ -5,7 +5,7 @@
 (** {1 Display} *)
 
 (** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
-module Make (Code : Diagnostic.Code) : sig
+module Make (Code : Reporter.Code) : sig
 
   (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this:
 
