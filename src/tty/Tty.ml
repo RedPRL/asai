@@ -20,7 +20,7 @@ end
 
 module E = Explicator.Make(Style)
 
-module Make (Code : Diagnostic.Code) =
+module Make (Code : Reporter.Code) =
 struct
 (*
  ╭

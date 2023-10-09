@@ -5,7 +5,7 @@ module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (Code : Diagnostic.Code) =
+module Make (Code : Reporter.Code) =
 struct
   type diagnostic = Code.t Diagnostic.t
 

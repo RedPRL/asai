@@ -1,7 +1,7 @@
 module L := Lsp.Types
 module RPC := Jsonrpc
 
-module Make (Code : Diagnostic.Code) : sig
+module Make (Code : Reporter.Code) : sig
   type lsp_error =
     | DecodeError of string
     | HandshakeError of string

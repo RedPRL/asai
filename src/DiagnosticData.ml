@@ -8,19 +8,6 @@ type severity =
   | Error
   | Bug
 
-(** The signature of message code. An implementer should specify the message code used in their library or application. *)
-module type Code =
-sig
-  (** The type of all message codes. *)
-  type t
-
-  (** The default severity of the code. The severity of a message is about whether the message is an error or a warning, etc. To clarify, it is about how serious the message is to the {i end user,} not whether the program should stop or continue. The severity may be overwritten at the time of issuing a message to the end user. *)
-  val default_severity : t -> severity
-
-  (** A concise, ideally Google-able string representation of each message code. Detailed or long descriptions of code should be avoided. For example, [E001] works better than [type-checking error]. The shorter, the better. It will be assumed that the string representation only uses ASCII printable characters. *)
-  val to_string : t -> string
-end
-
 (** The type of text.
 
     When we render a diagnostic, the layout engine of the rendering backend should be the one making layout choices. Therefore, we cannot pass already formatted strings. Instead, a text is defined to be a function that takes a formatter and uses it to render the content. The following two conditions must be satisfied:

@@ -1,7 +1,7 @@
 module L = Lsp.Types
 module RPC = Jsonrpc
 
-module Make (Code : Diagnostic.Code) =
+module Make (Code : Reporter.Code) =
 struct
   module Server = LspServer.Make(Code)
   open Server
