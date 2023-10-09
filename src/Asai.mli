@@ -10,10 +10,15 @@ module Span = Span
 (** The definition of diagnostics and some utility functions. *)
 module Diagnostic = Diagnostic
 
-(** Generating and handling diagnostics using algebraic effects.
+(** Generating and handling diagnostics using algebraic effects. The API is optimized for attaching free-form text.
 
     @since 0.2.0 (renamed from Logger) *)
 module Reporter = Reporter
+
+(** Generating and handling diagnostics using algebraic effects. The API is optimized for fully structured messages.
+
+    @since 0.2.0 *)
+module StructuredReporter = StructuredReporter
 
 (** {1 Experimental Diagnostic Handlers} *)
 
