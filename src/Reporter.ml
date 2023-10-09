@@ -34,7 +34,7 @@ struct
 
   let tracef ?loc = Diagnostic.kmessagef trace_message ?loc
 
-  (* Building messages *)
+  (* Sending messages *)
 
   let get_severity code = function None -> Code.default_severity code | Some severity -> severity
   let get_merged_loc = function None -> get_loc() | loc -> loc
@@ -65,7 +65,7 @@ struct
           Algaeff.Fun.Deep.finally k @@ fun () -> emit d
         | _ -> None }
 
-  (* Runners *)
+  (* Algebraic effects *)
 
   let run ?init_loc ?(init_backtrace=Emp) ~emit ~fatal f =
     Traces.run ~env:(init_loc, init_backtrace) @@ fun () ->
@@ -73,14 +73,6 @@ struct
 
   let try_with ?(emit=emit_diagnostic) ?(fatal=fatal_diagnostic) f =
     Effect.Deep.match_with f () @@ handler ~emit ~fatal
-
-  let map_diagnostic m f =
-    try_with
-      ~emit:(fun d -> emit_diagnostic (m d))
-      ~fatal:(fun d -> fatal_diagnostic (m d))
-      f
-
-  let map_text m f = map_diagnostic (Diagnostic.map_text m) f
 
   (* Convenience functions *)
 
@@ -102,6 +94,16 @@ struct
       ~init_backtrace:(get_backtrace())
       ~emit:(fun d -> emit_diagnostic (m d))
       ~fatal:(fun d -> fatal_diagnostic (m d))
+
+  let map_diagnostic m f =
+    try_with
+      ~emit:(fun d -> emit_diagnostic (m d))
+      ~fatal:(fun d -> fatal_diagnostic (m d))
+      f
+
+  let map_text m f = map_diagnostic (Diagnostic.map_text m) f
+
+  (* Debugging *)
 
   let register_printer f =
     Traces.register_printer (fun `Read -> f `Trace);
