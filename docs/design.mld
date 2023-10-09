@@ -16,7 +16,7 @@ It should be easy for an application to use other libraries who themselves use [
 
 {1 Unicode Art}
 
-There is a long history of using ASCII printable characters and ANSI escape sequences, and recently also non-ASCII Unicode characters, to draw pictures on terminals. To display compiler diagnostics, this technique has been used to assemble line numbers, code from end users, code highlighting, and other pieces of information in a visually pleasing way. Non-ASCII Unicode characters (from implementers or from end users) greatly expand the vocabulary of ASCII art, and we will call the new art form {i Unicode art} to signify the use of non-ASCII characters.
+There is a long history of using ASCII printable characters and {{: https://en.wikipedia.org/wiki/ANSI_escape_code}ANSI escape sequences,} and recently also non-ASCII Unicode characters, to draw pictures on terminals. To display compiler diagnostics, this technique has been used to assemble line numbers, code from end users, code highlighting, and other pieces of information in a visually pleasing way. Non-ASCII Unicode characters (from implementers or from end users) greatly expand the vocabulary of ASCII art, and we will call the new art form {i Unicode art} to signify the use of non-ASCII characters.
 
 {2 No Visual Column Numbers, Ever}
 
