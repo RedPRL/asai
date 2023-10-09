@@ -10,7 +10,9 @@ module Span = Span
 (** The definition of diagnostics and some utility functions. *)
 module Diagnostic = Diagnostic
 
-(** Generating and handling diagnostics using algebraic effects. *)
+(** Generating and handling diagnostics using algebraic effects.
+
+    @since 0.2.0 (renamed from Logger) *)
 module Reporter = Reporter
 
 (** {1 Experimental Diagnostic Handlers} *)
