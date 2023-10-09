@@ -110,5 +110,5 @@ struct
     | Fatal diag -> f (`Fatal diag)
     | _ -> None
 
-  let () = register_printer @@ fun _ -> Some "Unhandled asai effect/exception; use Asai.Reporter.run"
+  let () = register_printer @@ fun _ -> Some "Unhandled asai effect/exception; use Reporter.run"
 end

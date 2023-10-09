@@ -66,17 +66,31 @@ val makef : ?loc:Span.t -> ?backtrace:backtrace -> ?additional_messages:message 
 *)
 val kmakef : ?loc:Span.t -> ?backtrace:backtrace -> ?additional_messages:message list -> ('code t -> 'b) -> severity -> 'code -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
-(** [of_message severity code message] constructs a diagnostic with the [message].
+(** [of_message severity code message] constructs a diagnostic from a {!type:message}.
 
     Example:
     {[
-      make Warning `ChiError @@ message "Your Ch'i is critically low"
+      of_message Warning `ChiError @@ message "Your Ch'i is critically low"
     ]}
 
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
     @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
 *)
 val of_message : ?backtrace:backtrace -> ?additional_messages:message list -> severity -> 'code -> message -> 'code t
+
+(** [of_text severity code message] constructs a diagnostic from a {!type:text}.
+
+    Example:
+    {[
+      of_text Warning `ChiError @@ text "Your Ch'i is critically low"
+    ]}
+
+    @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+    @param additional_messages Additional messages that part of the backtrace. For example, they can be bindings shadowed by the current one.
+
+    @since 0.2.0
+*)
+val of_text : ?loc:Span.t -> ?backtrace:backtrace -> ?additional_messages:message list -> severity -> 'code -> text -> 'code t
 
 (** {1 Other Helper Functions} *)
 
