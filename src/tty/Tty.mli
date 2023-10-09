@@ -4,21 +4,7 @@
 
 (** {1 Display} *)
 
-(** This module provides functions to display or interact with diagnostics in UNIX terminals. A message will look like this:
-
-    {v
-    ╒══ examples/stlc/example.lambda
-    │
-  1 │ (check (λ ä (λ 123
-  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
-    ┊
- 20 │ ahhhhhhhhhhhhhhhhhh
- 21 │ noooooooooooooooooo
-    ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ)),
-        which looks amazing?
-    v}
-*)
+(** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
 module Make (Code : Diagnostic.Code) : sig
 
   (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this:
@@ -41,7 +27,8 @@ module Make (Code : Diagnostic.Code) : sig
     │
   8 │ assert (asai is cool)
     ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))?
+ Error [E002]
+ Why am I checking the term against (→ ℕ (→ ℕ ℕ))?
       v}
 
       @param output The output channel, such as {!val:stdout} and {!val:stderr}. By default, it is {!val:stdout}, the standard output.

@@ -43,7 +43,7 @@ struct
  │ 21 │ noooooooooooooooooo
  │    ┷
  │ When blah blah blah
- ╰
+ ╯
     ╒══ examples/stlc/example.lambda
     │
   1 │ (check (λ ä (λ 123
@@ -61,8 +61,17 @@ struct
     │
   8 │ assert (asai is cool)
     ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
-        which looks amazing!!!
+ Error[E002]:
+ Why am I checking the term against (→ ℕ (→ ℕ ℕ)),
+ when it looks amazing?
+
+    ╒══ examples/stlc/example4.lambda
+    │
+  8 │ assert (asai is cool)
+    ┷
+ Error[E002]:
+ Why am I checking the term against (→ ℕ (→ ℕ ℕ)),
+ when it looks amazing?
 
 *)
 
@@ -85,7 +94,7 @@ struct
  │ 21 │ noooooooooooooooooo
  │    ┷
  │ When blah blah blah
- ╰
+ ╯
     ┯
   1 │ (check (λ ä (λ 123
   2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
@@ -100,8 +109,24 @@ struct
     ┯
   8 │ assert (asai is cool)
     ┷
- [E002] Why am I checking the term (→ ℕ (→ ℕ ℕ))
-        which looks amazing!!!
+ Error[E002]:
+ Why am I checking the term (→ ℕ (→ ℕ ℕ))
+ which looks amazing!!
+
+*)
+
+(*
+ ╭
+ │ When checking against (→ ℕ (→ ℕ ℕ))
+ │
+ │ When checking against (→ ℕ ℕ)
+ │
+ │ When checking against ℕ
+ │
+ │ When synthesizing
+ ╯
+ Error[E002]:
+ Variable 'sdaf' is not in scope
 
 *)
 
@@ -112,19 +137,22 @@ struct
 
   (* styles *)
 
+  let message_style (severity : Diagnostic.severity) =
+    let open A in
+    match severity with
+    | Hint -> fg blue
+    | Info -> fg green
+    | Warning -> fg yellow
+    | Error -> fg red
+    | Bug -> bg red ++ fg black
+
   let highlight_style (severity : Diagnostic.severity) (style : Style.t) =
     let open A in
     match style with
     | None -> empty
     | Additional -> st underline
     | HighlightedPrimary ->
-      st underline ++
-      match severity with
-      | Hint -> fg blue
-      | Info -> fg green
-      | Warning -> fg yellow
-      | Error -> fg red
-      | Bug -> bg red ++ fg black
+      st underline ++ message_style severity
 
   let fringe_style = A.fg @@ A.gray 8
 
@@ -221,10 +249,14 @@ struct
 
   (* message *)
   let render_text ~param ~show_code text =
-    hcat_with_pad ~pad:1 @@ List.concat
-      [ if show_code then [ I.strf "[%s]" (Code.to_string param.code) ] else []
-      ; [ I.strf "%t" text ]
-      ]
+    let attr = message_style param.severity in
+    I.pad ~l:1 begin
+      (if show_code
+       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Code.to_string param.code)
+       else I.empty)
+      <->
+      I.strf ~attr "%t" text
+    end
 
   let render_message ~param ~show_code explication text =
     render_explication ~param explication
@@ -255,7 +287,7 @@ struct
     I.vcat
       [ I.string indentation_style " ╭"
       ; I.tabulate 1 (I.height backtrace) (fun _ _ -> I.string indentation_style " │") <|> backtrace
-      ; I.string indentation_style " ╰"
+      ; I.string indentation_style " ╯"
       ]
 
   let display_diagnostic ~param ~message ~backtrace ~additional_messages =
@@ -263,6 +295,8 @@ struct
     (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
     <->
     display_message ~param ~show_code:true message ~additional_messages
+    <->
+    I.void 0 1 (* new line *)
 
   let display ?(output=Stdlib.stdout) ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; code; message; backtrace; additional_messages} =
