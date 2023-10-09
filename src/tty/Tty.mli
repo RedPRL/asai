@@ -27,7 +27,7 @@ module Make (Code : Diagnostic.Code) : sig
     │
   8 │ assert (asai is cool)
     ┷
- Error [E002]
+ Error[E002]:
  Why am I checking the term against (→ ℕ (→ ℕ ℕ))?
       v}
 
