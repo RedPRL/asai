@@ -13,7 +13,7 @@ module Diagnostic = Diagnostic
 (** Generating and handling diagnostics using algebraic effects. *)
 module Reporter = Reporter
 
-(** {1 Experimental Backends} *)
+(** {1 Experimental Diagnostic Handlers} *)
 
 (** Diagnostic display for UNIX terminals. *)
 module Tty = Tty
@@ -26,13 +26,13 @@ module GitHub = GitHub
 
 (** {1 Internals} *)
 
-(** The definition of highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
+(** The definition of highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
 module Explication = Explication
 
-(** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own backend. *)
+(** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
 module Explicator = Explicator
 
-(** Reading the source content. It uses memory-mapped I/O for files. You probably do not need this module unless you want to create your own backend. *)
+(** Reading the source content. It uses memory-mapped I/O for files. You probably do not need this module unless you want to create your own diagnostic handler. *)
 module SourceReader = SourceReader
 
 (**/**)

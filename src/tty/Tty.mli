@@ -1,5 +1,5 @@
 [@@@alert unstable
-    "The TTY backend will likely change significantly in the future to account for more features."
+    "The TTY handler will likely change significantly in the future to account for more features."
 ]
 
 (** {1 Display} *)
