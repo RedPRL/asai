@@ -3,5 +3,5 @@
     @inline *)
 include module type of StructuredReporterSigs
 
-(** The functor to generate a logger. *)
+(** The functor to generate a reporter. *)
 module Make (Message : Message) : S with module Message := Message
