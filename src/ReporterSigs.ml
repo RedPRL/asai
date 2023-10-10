@@ -103,7 +103,7 @@ sig
   *)
   val trace : ?loc:Span.t -> string -> (unit -> 'a) -> 'a
 
-  (** [tracef format ... f] formats and records a loctext as a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
       @param loc The location of the text (usually the code) to highlight.
   *)
@@ -193,10 +193,9 @@ sig
 
       Here shows the intended usage, where [Lib] is the library to be used in the main application:
       {[
-        module MainReporter = Reporter.Make(Message)
         module LibReporter = Lib.Reporter
 
-        let _ = MainReporter.adopt (Diagnostic.map message_mapper) LibReporter.run @@ fun () -> ...
+        let _ = Reporter.adopt (Diagnostic.map message_mapper) LibReporter.run @@ fun () -> ...
       ]}
   *)
   val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Span.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
@@ -220,7 +219,7 @@ sig
   *)
   val map_diagnostic : (Message.t Diagnostic.t -> Message.t Diagnostic.t) -> (unit -> 'a) -> 'a
 
-  (** [map_text m f] runs the thunk [f] and applies [m] to any text sent by [f]. It is a convenience function that can be implemented as follows:
+  (** [map_text m f] runs the thunk [f] and applies [m] to the main text of any diagnostic sent by [f]. It is a convenience function that can be implemented as follows:
       {[
         let map_text m f = map_diagnostic (Diagnostic.map_text m) f
       ]}
