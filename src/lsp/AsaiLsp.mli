@@ -11,10 +11,10 @@
     Note: many features are missing and it does not handle [positionEncoding].
 
     @canonical Asai.Lsp.Make *)
-module Make (Code : Reporter.Code) : sig
+module Make (Message : Reporter.Message) : sig
   val start : source:string option
     -> init:(root:string option -> unit)
-    -> load_file:(display:(Code.t Diagnostic.t -> unit) -> string -> unit)
+    -> load_file:(display:(Message.t Diagnostic.t -> unit) -> string -> unit)
     -> unit
     (** [run ~init ~load_file] starts the LSP server with the two callbacks [init] and [load_file].
 

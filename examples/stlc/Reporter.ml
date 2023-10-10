@@ -1,4 +1,4 @@
-module Code =
+module Message =
 struct
   type t =
     [ `TypeError (* Type checking failed *)
@@ -10,7 +10,7 @@ struct
 
   let default_severity _ = Asai.Diagnostic.Error
 
-  let to_string : t -> string =
+  let short_code : t -> string =
     function
     | `TypeError -> "E001"
     | `UnboundVariable -> "E002"
@@ -19,4 +19,4 @@ struct
     | `ParsingError -> "E005"
 end
 
-include Asai.Reporter.Make(Code)
+include Asai.Reporter.Make(Message)

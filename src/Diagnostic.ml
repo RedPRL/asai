@@ -12,36 +12,36 @@ let textf = Format.dprintf
 
 let ktextf = Format.kdprintf
 
-let message ?loc s = Span.{ loc; value = text s }
+let loctext ?loc s = Span.{ loc; value = text s }
 
-let kmessagef ?loc k = ktextf @@ fun message -> k Span.{ loc; value = message }
+let kloctextf ?loc k = ktextf @@ fun loctext -> k Span.{ loc; value = loctext }
 
-let messagef ?loc = kmessagef Fun.id ?loc
+let loctextf ?loc = kloctextf Fun.id ?loc
 
-let of_message ?(backtrace=Bwd.Emp) ?(additional_messages=[]) severity code message : _ t =
+let of_loctext ?(backtrace=Bwd.Emp) ?(extra_remarks=[]) severity message explanation : _ t =
   { severity
-  ; code
   ; message
+  ; explanation
   ; backtrace
-  ; additional_messages
+  ; extra_remarks
   }
 
-let of_text ?loc ?backtrace ?additional_messages severity code text : _ t =
-  of_message ?backtrace ?additional_messages severity code {loc; value = text}
+let of_text ?loc ?backtrace ?extra_remarks severity message text : _ t =
+  of_loctext ?backtrace ?extra_remarks severity message {loc; value = text}
 
-let make ?loc ?backtrace ?additional_messages severity code str =
-  of_text ?loc ?backtrace ?additional_messages severity code @@ text str
+let make ?loc ?backtrace ?extra_remarks severity message explanation =
+  of_text ?loc ?backtrace ?extra_remarks severity message @@ text explanation
 
-let kmakef ?loc ?backtrace ?additional_messages k severity code =
+let kmakef ?loc ?backtrace ?extra_remarks k severity message =
   ktextf @@ fun text ->
-  k @@ of_text ?loc ?backtrace ?additional_messages severity code text
+  k @@ of_text ?loc ?backtrace ?extra_remarks severity message text
 
-let makef ?loc ?backtrace ?additional_messages severity code =
-  ktextf @@ of_text ?loc ?backtrace ?additional_messages severity code
+let makef ?loc ?backtrace ?extra_remarks severity message =
+  ktextf @@ of_text ?loc ?backtrace ?extra_remarks severity message
 
-let map f d = {d with code = f d.code}
+let map f d = {d with message = f d.message}
 
-let map_text f d = {d with message = {d.message with value = f d.message.value}}
+let map_text f d = {d with explanation = {d.explanation with value = f d.explanation.value}}
 
 let string_of_severity =
   function

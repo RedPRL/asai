@@ -1,7 +1,7 @@
 let lift_syslib f =
-  Reporter.adopt (Asai.Diagnostic.map (fun c -> Reporter.Code.Syslib c)) Syslib.Reporter.run f
+  Reporter.adopt (Asai.Diagnostic.map (fun c -> Reporter.Message.Syslib c)) Syslib.Reporter.run f
 
-module Term = Asai.Tty.Make (Reporter.Code)
+module Term = Asai.Tty.Make(Reporter.Message)
 
 let () =
   Reporter.run ~emit:Term.interactive_trace ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->

@@ -1,7 +1,7 @@
 module L := Lsp.Types
 module RPC := Jsonrpc
 
-module Make (Code : Reporter.Code) : sig
+module Make (Message : Reporter.Message) : sig
   type lsp_error =
     | DecodeError of string
     | HandshakeError of string
@@ -39,7 +39,7 @@ module Make (Code : Reporter.Code) : sig
   val run : Eio_unix.Stdenv.base
     -> ?source:string
     -> init:(root:string option -> unit)
-    -> load_file:(display:(Code.t Diagnostic.t -> unit) -> string -> unit)
+    -> load_file:(display:(Message.t Diagnostic.t -> unit) -> string -> unit)
     -> (unit -> 'a)
     -> 'a
 end

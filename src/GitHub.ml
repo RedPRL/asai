@@ -1,6 +1,6 @@
 (** Diagnostic display for GitHub Actions. *)
 
-module Make (Code : Reporter.Code) = struct
+module Make (Message : Reporter.Message) = struct
   let command_of_severity =
     function
     | Diagnostic.Info -> "notice"
@@ -16,30 +16,27 @@ module Make (Code : Reporter.Code) = struct
         | c -> c) @@
     Diagnostic.string_of_text msg
 
-  let print_with_loc severity code loc msg =
+  let print_without_loc severity msg text =
+    Format.printf "::%s title=%s::%s@."
+      (command_of_severity severity)
+      (Message.short_code msg)
+      (single_line_of_text text)
+
+  let print_with_loc severity msg loc text =
     match Span.source loc with
     | `String _ ->
-      Format.printf "::%s title=%s::%s@."
-        (command_of_severity severity)
-        (Code.to_string code)
-        (single_line_of_text msg)
+      print_without_loc severity msg text
     | `File file_path ->
       Format.printf "::%s file=%s,line=%i,endLine=%i,title=%s::%s@."
         (command_of_severity severity)
         file_path
         (Span.begin_line_num loc)
         (Span.end_line_num loc)
-        (Code.to_string code)
-        (single_line_of_text msg)
+        (Message.short_code msg)
+        (single_line_of_text text)
 
-  let print_without_loc severity code msg =
-    Format.printf "::%s title=%s::%s@."
-      (command_of_severity severity)
-      (Code.to_string code)
-      (single_line_of_text msg)
-
-  let print Diagnostic.{severity; code; message = {loc; value = msg};_} =
+  let print Diagnostic.{severity; message; explanation = {loc; value = text}; _} =
     match loc with
-    | Some loc -> print_with_loc severity code loc msg
-    | None -> print_without_loc severity code msg
+    | Some loc -> print_with_loc severity message loc text
+    | None -> print_without_loc severity message text
 end
