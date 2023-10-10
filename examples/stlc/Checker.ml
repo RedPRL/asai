@@ -1,9 +1,9 @@
 open Bwd
 open Syntax
 
-module Terminal = Asai.Tty.Make(Reporter.Code)
-module GitHub = Asai.GitHub.Make(Reporter.Code)
-module Server = Asai.Lsp.Make(Reporter.Code)
+module Terminal = Asai.Tty.Make(Reporter.Message)
+module GitHub = Asai.GitHub.Make(Reporter.Message)
+module Server = Asai.Lsp.Make(Reporter.Message)
 
 module Elab =
 struct
@@ -119,7 +119,7 @@ struct
     Elab.chk tm tp
 
   let load mode filepath =
-    let display : Reporter.Code.t Asai.Diagnostic.t -> unit =
+    let display : Reporter.Message.t Asai.Diagnostic.t -> unit =
       match mode with
       | `Debug -> fun d -> Terminal.display ~show_backtrace:true d
       | `Normal -> fun d -> Terminal.display ~show_backtrace:false d

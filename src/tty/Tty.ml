@@ -20,7 +20,7 @@ end
 
 module E = Explicator.Make(Style)
 
-module Make (Code : Reporter.Code) =
+module Make (Message : Reporter.Message) =
 struct
 (*
  ╭
@@ -178,10 +178,10 @@ struct
       show_backtrace : bool;
       line_breaking : [`Unicode | `Traditional];
       block_splitting_threshold : int;
-      line_number_width : int;
       tab_size : int;
       severity : Diagnostic.severity;
-      code : Code.t
+      message : Message.t;
+      line_number_width : int;
     }
 
   (* [ ╒══ examples/stlc/source.lambda] *)
@@ -252,7 +252,7 @@ struct
     let attr = message_style param.severity in
     I.pad ~l:1 begin
       (if show_code
-       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Code.to_string param.code)
+       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Message.short_code param.message)
        else I.empty)
       <->
       I.strf ~attr "%t" text
@@ -263,20 +263,20 @@ struct
     <->
     render_text ~param ~show_code text
 
-  let display_message ~param ~show_code (msg : Diagnostic.message) ~additional_messages =
+  let display_message ~param ~show_code (loctext : Diagnostic.loctext) ~extra_remarks =
     let explication =
       let style s x = Explication.{value = x; style = s} in
-      let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) msg.loc in
-      let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) additional_messages in
+      let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) loctext.loc in
+      let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) extra_remarks in
       E.explicate ~block_splitting_threshold:param.block_splitting_threshold (main_span @ additional_spans)
     in
     let line_number_width = Int.max param.line_number_width (line_number_width explication) in
-    render_message ~param:{param with line_number_width} ~show_code explication msg.value
+    render_message ~param:{param with line_number_width} ~show_code explication loctext.value
 
   let display_backtrace ~param backtrace =
     let indentation_style = A.fg @@ A.gray 8 in
     let backtrace =
-      Bwd.to_list @@ Bwd.map (display_message ~param ~show_code:false ~additional_messages:[]) backtrace
+      Bwd.to_list @@ Bwd.map (display_message ~param ~show_code:false ~extra_remarks:[]) backtrace
     in
     let backtrace =
       I.vcat @@
@@ -290,27 +290,27 @@ struct
       ; I.string indentation_style " ╯"
       ]
 
-  let display_diagnostic ~param ~message ~backtrace ~additional_messages =
+  let display_diagnostic ~param ~explanation ~backtrace ~extra_remarks =
     SourceReader.run @@ fun () ->
     (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
     <->
-    display_message ~param ~show_code:true message ~additional_messages
+    display_message ~param ~show_code:true explanation ~extra_remarks
     <->
     I.void 0 1 (* new line *)
 
   let display ?(output=Stdlib.stdout) ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
-      Diagnostic.{severity; code; message; backtrace; additional_messages} =
-    let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
-    Notty_unix.output_image ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~message ~backtrace ~additional_messages
+      Diagnostic.{severity; message; explanation; backtrace; extra_remarks} =
+    let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 2} in
+    Notty_unix.output_image ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~explanation ~backtrace ~extra_remarks
 
   let interactive_trace ?(input=Unix.stdin) ?(output=Unix.stdout) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
-      Diagnostic.{code; severity; message; additional_messages; backtrace} =
-    let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; code; line_number_width = 2} in
+      Diagnostic.{severity; message; explanation; extra_remarks; backtrace} =
+    let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 2} in
     let traces =
       SourceReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun msg -> display_message ~param ~show_code:true msg ~additional_messages:[]))
-        (display_message ~param ~show_code:true message ~additional_messages)
+        (backtrace |> Bwd.map (fun msg -> display_message ~param ~show_code:true msg ~extra_remarks:[]))
+        (display_message ~param ~show_code:true explanation ~extra_remarks)
       |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in

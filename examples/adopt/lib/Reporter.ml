@@ -1,4 +1,4 @@
-module Code =
+module Message =
 struct
   type t = FileError | ChiError | EmojiError
 
@@ -6,11 +6,11 @@ struct
     function
     | _ -> Error
 
-  let to_string =
+  let short_code =
     function
     | FileError -> "C000"
     | ChiError -> "C001"
     | EmojiError -> "C002"
 end
 
-include Asai.Reporter.Make(Code)
+include Asai.Reporter.Make(Message)

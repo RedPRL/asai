@@ -5,7 +5,7 @@
 (** {1 Display} *)
 
 (** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
-module Make (Code : Reporter.Code) : sig
+module Make (Message : Reporter.Message) : sig
 
   (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this:
 
@@ -39,7 +39,7 @@ module Make (Code : Reporter.Code) : sig
 
       @raise Invalid_argument if [tab_size < 0].
   *)
-  val display : ?output:out_channel -> ?show_backtrace:bool -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Code.t Diagnostic.t -> unit
+  val display : ?output:out_channel -> ?show_backtrace:bool -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Message.t Diagnostic.t -> unit
 
   (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace.
 
@@ -51,5 +51,5 @@ module Make (Code : Reporter.Code) : sig
 
       @raise Invalid_argument if [tab_size < 0].
   *)
-  val interactive_trace : ?input:Unix.file_descr -> ?output:Unix.file_descr -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Code.t Diagnostic.t -> unit
+  val interactive_trace : ?input:Unix.file_descr -> ?output:Unix.file_descr -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Message.t Diagnostic.t -> unit
 end

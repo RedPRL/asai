@@ -3,7 +3,7 @@ open Bwd.Infix
 
 include ReporterSigs
 
-module Make (Code : Code) : S with module Code := Code =
+module Make (Message : Message) : S with module Message := Message =
 struct
 
   (* Backtraces *)
@@ -27,31 +27,31 @@ struct
     let loc = match loc with None -> l | Some _ -> loc in
     loc, bt <: {loc; value = text}
 
-  let trace_message (msg : Diagnostic.message) =
-    trace_text ?loc:msg.loc msg.value
+  let trace_loctext (t : Diagnostic.loctext) =
+    trace_text ?loc:t.loc t.value
 
   let trace ?loc str = trace_text ?loc @@ Diagnostic.text str
 
-  let tracef ?loc = Diagnostic.kmessagef trace_message ?loc
+  let tracef ?loc = Diagnostic.kloctextf trace_loctext ?loc
 
-  (* Sending messages *)
+  (* Constructing diagnostics *)
 
-  let get_severity code = function None -> Code.default_severity code | Some severity -> severity
+  let get_severity message = function None -> Message.default_severity message | Some severity -> severity
   let get_merged_loc = function None -> get_loc() | loc -> loc
 
-  let diagnostic ?severity ?loc ?(backtrace=get_backtrace()) ?additional_messages code str =
-    Diagnostic.make ?loc:(get_merged_loc loc) ~backtrace ?additional_messages (get_severity code severity) code str
+  let diagnostic ?severity ?loc ?(backtrace=get_backtrace()) ?extra_remarks message explanation =
+    Diagnostic.make ?loc:(get_merged_loc loc) ~backtrace ?extra_remarks (get_severity message severity) message explanation
 
-  let kdiagnosticf ?severity ?loc ?(backtrace=get_backtrace()) ?additional_messages k code =
-    Diagnostic.kmakef ?loc:(get_merged_loc loc) ~backtrace ?additional_messages k (get_severity code severity) code
+  let kdiagnosticf ?severity ?loc ?(backtrace=get_backtrace()) ?extra_remarks k message =
+    Diagnostic.kmakef ?loc:(get_merged_loc loc) ~backtrace ?extra_remarks k (get_severity message severity) message
 
-  let diagnosticf ?severity ?loc ?backtrace ?additional_messages code =
-    kdiagnosticf Fun.id ?severity ?loc ?backtrace ?additional_messages code
+  let diagnosticf ?severity ?loc ?backtrace ?extra_remarks message =
+    kdiagnosticf Fun.id ?severity ?loc ?backtrace ?extra_remarks message
 
-  (* Emitting messages *)
+  (* Sending diagnostics *)
 
-  type _ Effect.t += Emit : Code.t Diagnostic.t -> unit Effect.t
-  exception Fatal of Code.t Diagnostic.t
+  type _ Effect.t += Emit : Message.t Diagnostic.t -> unit Effect.t
+  exception Fatal of Message.t Diagnostic.t
 
   let emit_diagnostic d = Effect.perform @@ Emit d
   let fatal_diagnostic d = raise @@ Fatal d
@@ -76,17 +76,17 @@ struct
 
   (* Convenience functions *)
 
-  let emit ?severity ?loc ?backtrace ?additional_messages code str =
-    emit_diagnostic @@ diagnostic ?severity ?loc ?backtrace ?additional_messages code str
+  let emit ?severity ?loc ?backtrace ?extra_remarks message explanation =
+    emit_diagnostic @@ diagnostic ?severity ?loc ?backtrace ?extra_remarks message explanation
 
-  let emitf ?severity ?loc ?backtrace ?additional_messages code =
-    kdiagnosticf emit_diagnostic ?severity ?loc ?backtrace ?additional_messages code
+  let emitf ?severity ?loc ?backtrace ?extra_remarks message =
+    kdiagnosticf emit_diagnostic ?severity ?loc ?backtrace ?extra_remarks message
 
-  let fatal ?severity ?loc ?backtrace ?additional_messages code str =
-    fatal_diagnostic @@ diagnostic ?severity ?loc ?backtrace ?additional_messages code str
+  let fatal ?severity ?loc ?backtrace ?extra_remarks message explanation =
+    fatal_diagnostic @@ diagnostic ?severity ?loc ?backtrace ?extra_remarks message explanation
 
-  let fatalf ?severity ?loc ?backtrace ?additional_messages code =
-    kdiagnosticf fatal_diagnostic ?severity ?loc ?backtrace ?additional_messages code
+  let fatalf ?severity ?loc ?backtrace ?extra_remarks message =
+    kdiagnosticf fatal_diagnostic ?severity ?loc ?backtrace ?extra_remarks message
 
   let adopt m (run : ?init_loc:_ -> ?init_backtrace:_ -> emit:_ -> fatal:_ -> _) f =
     run f

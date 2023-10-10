@@ -21,22 +21,22 @@ type severity =
 *)
 type text = Format.formatter -> unit
 
-(** A message is a located {!type:text}. *)
-type message = text Span.located
+(** A loctext is a {!type:text} with location information. "loctext" is a portmanteau of "locate" and "text". *)
+type loctext = text Span.located
 
-(** A backtrace is a (backward) list of messages. *)
-type backtrace = message bwd
+(** A backtrace is a (backward) list of loctexts. *)
+type backtrace = loctext bwd
 
 (** The type of diagnostics. *)
-type 'code t = {
+type 'message t = {
   severity : severity;
   (** Severity of the diagnostic. *)
-  code : 'code;
-  (** The message code. *)
-  message : message;
-  (** The main message. *)
+  message : 'message;
+  (** The (structured) message. *)
+  explanation : loctext;
+  (** The free-form explanation. *)
   backtrace : backtrace;
   (** The backtrace leading to this diagnostic. *)
-  additional_messages : message list;
-  (** Additional messages relevant to the main message that are not part of the backtrace. *)
+  extra_remarks : loctext list;
+  (** Additional remarks that are relevant to the main message but not part of the backtrace. *)
 }

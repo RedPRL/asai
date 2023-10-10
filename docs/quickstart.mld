@@ -4,49 +4,53 @@ This tutorial is for an implementer (you!) to adopt this library as quickly as p
 
 {i This tutorial is for the (unreleased) version 0.2.0.} If you are using an older version, some code might not work.
 
-{1 Define Error Codes}
+{1 Define the Message Type}
 
 The first step is to create a file [Reporter.ml] with the following template:
 
 {[
-module Code =
+module Message =
 struct
-  (** All message codes used in your application. *)
-  type t = (* ... *)
+  (** The type of all messages used in your application. *)
+  type t =
+    | (* ... *)
+    | (* ... *)
+    | (* ... *)
 
-  (** The default severity of messages with a particular message code. *)
+  (** The default severity level of diagnostics with a particular message. *)
   let default_severity : t -> Asai.Diagnostic.severity =
     function
     | (* ... *) -> Bug
     | (* ... *) -> Error
     | (* ... *) -> Warning
 
-  (** A short, concise, ideally Google-able string representation for each message code. *)
-  let to_string : t -> string =
+  (** A short, concise, ideally Google-able string representation for each message. *)
+  let short_code : t -> string =
     function
     | (* ... *) -> "E0001"
     | (* ... *) -> "E0002"
+    | (* ... *) -> "E0003"
 end
 
 (** Include all the goodies from the asai library. *)
-include Asai.Reporter.Make(Code)
+include Asai.Reporter.Make(Message)
 ]}
 
-The most important step is to decide the {i message codes}. It should be a meaningful classification of all the messages that could be sent to the end users. For example, [UndefinedSymbol] could be a reasonable code for a message about failing to find the definition of a symbol. Once you define the type of all message codes, you will have to define two functions [default_severity] and [to_string]:
+The most important step is to define the {i type of messages}. It should be a meaningful classification of all the diagnostics you want to send to the end user. For example, [UndefinedSymbol] could be a reasonable message about failing to find the definition of a symbol. [TypeError] could be another reasonable message about ill-typed terms. Don't worry about missing details in the message type---you can attach free-form text, location information, and additional remarks to a message. Once you have defined the type of all messages, you will have to define two functions [default_severity] and [short_code]:
 
-+ [default_severity]: {i Severity} means how serious an end user should take your message (is it an error or a warning?), and this can be overwritten when a message is sent. It seems messages with the same message code usually come with the same severity, so we want you to define a default severity value for each message code. You can then save some typing later when sending a message.
-+ [to_string]: This function is to show the message code to the user. Ideally, it should give a short, Google-able string representation. Please do not use long descriptions such as "scope-error: undefined symbols." The library will give you plenty of opportunities to add as many details as you want to a message, but not here. The message code should be unambiguous, easily recognizable, and "machine-readable without ChatGPT."
++ [default_severity]: {i Severity levels} describe how serious the end user should take your message (is it an error or a warning?), and this can be overwritten when a message is sent. It seems diagnostics with the same message usually come with the same severity level, so we want you to define a default severity level for each message. You can then save some typing later when sending a diagnostic.
++ [short_code]: This function is to show a message as short code to the end user. Ideally, the short code should be a Google-able string representation for the end user to find more explanations. Please do not use long descriptions such as "scope-error: undefined symbols." The library will give you plenty of opportunities to add as many details as you want to a message, but not here. The short code should be unambiguous, easily recognizable, and "machine-readable without ChatGPT."
 
 Once you have filled out the template, run [dune build] or other tools to check that everything compiles. If so, you are ready for the next step.
 
-{1 Start Sending Messages}
+{1 Start Sending Diagnostics}
 
-Now, go to the places where you want to send a message to end users, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Reporter.S.emit}emit} a string:
+Now, go to the places where you want to send a message to the end user, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Reporter.S.emit}emit} a string:
 {[
 Reporter.emit Greeting "Hello!";
 (* continue doing other things *)
 ]}
-where [Greeting] is the message code of this message. The fancier version is {{!val:Asai.Reporter.S.emitf}emitf}, which formats a message like [printf] and sends it:
+where [Greeting] is the message and ["Hello!"] is the free-form text that explains the message. The fancier version is {{!val:Asai.Reporter.S.emitf}emitf}, which formats the text like [printf] and sends it:
 {[
 Reporter.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term;
 (* continue doing other things *)
@@ -57,13 +61,13 @@ If you wish to terminate your program after sending a message instead of continu
 
 {1 Choose a Diagnostic Handler}
 
-Now your program is generating lots of messages, and you have to choose a {i handler} to handle them. We will show how to display those messages in a terminal. Suppose your entry point module looks like this:
+Now your program is generating lots of messages, and you have to choose a {i handler} to deal with them. We will show how to display those messages in a terminal. Suppose your entry point module looks like this:
 {[
 let () = (* your application code *)
 ]}
 You can use the {{!module:Asai.Tty}terminal} handler as follows:
 {[
-module Term = Asai.Tty.Make (Reporter.Code)
+module Term = Asai.Tty.Make(Reporter.Message)
 
 let () =
   Reporter.run ~emit:Term.display ~fatal:Term.display @@ fun () ->
@@ -83,7 +87,7 @@ let f x y =
   Reporter.trace "When calling f" @@ fun () ->
   (* very important code *)
 ]}
-Similar to {{!val:Asai.Reporter.S.emitf}emitf}, there is also {{!val:Asai.Reporter.S.tracef}tracef} which allows you to format messages:
+Similar to {{!val:Asai.Reporter.S.emitf}emitf}, there is also {{!val:Asai.Reporter.S.tracef}tracef} which allows you to format texts:
 {[
 let f x y =
   Reporter.tracef "When calling f on %d and %d" x y @@ fun () ->
@@ -92,7 +96,7 @@ let f x y =
 
 Note that, by default, the terminal handler will not show backtraces. You have to enable it as follows in your entry-point module:
 {[
-module Term = Asai.Tty.Make (Reporter.Code)
+module Term = Asai.Tty.Make(Reporter.Message)
 
 let () =
   Reporter.run
@@ -101,11 +105,13 @@ let () =
   (* your application code *)
 ]}
 
-We do not recommend adding {{!val:Asai.Reporter.S.trace}trace} to every single function. Remember that they have to make sense to end users!
+We do not recommend adding {{!val:Asai.Reporter.S.trace}trace} to every single function. Remember they should make sense to the end user!
+
+PS: We have a {{:https://github.com/RedPRL/asai/issues/38} GitHub issue on spewing debugging information} for developers (you!), not the end user. Your comments will help us complete the design.
 
 {1 Add Location Information}
 
-Good messages also help end users locate the issues in their program or proof. Here, a {i location} is a range of text from a file, which we call {i span.} Many functions in your [Reporter] take an optional location argument [loc], including {{!val:Asai.Reporter.S.trace}trace}, which should be a span highlighting the most relevant text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
+Good diagnostics also help the end user locate the issues in their program or proof. Here, a {i location} is a range of text from a file or a string, which we call {i span.} Many functions in your [Reporter] take an optional location argument [loc], including {{!val:Asai.Reporter.S.trace}trace}, which should be a span highlighting the most relevant part of the text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
 {[
 Reporter.emit ~loc Greeting "Hello again!";
 (* continue doing other things *)
@@ -153,11 +159,11 @@ Reporter.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
 
 {1 Wrapping Errors}
 
-It is common to wrap an error message to give a more intuitive explanation. For example, when using a file I/O library to read a configuration file, the library might send out a fatal message saying:
+It is common to wrap the free-form text of an error to give a more intuitive explanation. For example, when using a file I/O library to read a configuration file, the library might send out a fatal error saying:
 {v
 File '/path/config.json' does not exist
 v}
-We would like to turn it into a more readable message such as
+We would like to turn it into a more readable explanation such as
 {v
 Failed to load settings:
   File '/path/config.json' does not exist
@@ -171,7 +177,7 @@ by writing
 {[
 Reporter.trace "When loading settings..." @@ fun () -> ...
 ]}
-However, if you agree with us that the wrapped error message reads better, do the following instead:
+However, if you agree with us that the wrapped text reads better, do the following instead:
 {[
 Reporter.map_text
   (fun t -> Asai.Diagnostic.textf
@@ -180,7 +186,7 @@ Reporter.map_text
   @@ fun () ->
 (* using the file I/O library *)
 ]}
-The {{!val:Asai.Reporter.S.map_text}map_text} will map the {{!type:Asai.Diagnostic.text}text} in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Reporter.S.emitf}emitf} and {{!val:Asai.Reporter.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
+The {{!val:Asai.Reporter.S.map_text}map_text} will map the main text in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Reporter.S.emitf}emitf} and {{!val:Asai.Reporter.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
 {[
 Reporter.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@]") @@ fun () ->
 (* using the file I/O library *)
@@ -188,32 +194,34 @@ Reporter.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@
 
 {1 Use a Library that Uses asai}
 
-Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the messages from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Reporter]. You want to painlessly incorporate the library.
+Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the diagnostics from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Reporter]. You want to painlessly incorporate the library.
 
 {2 Extend Your [Code] Module}
 
-The first step is to extend your message code type so that it can embed all message codes from the library. Open up your [Reporter.ml] and update the type and functions as follows. It is recommended to add a helper function (such as [cool]) to save typing, and this tutorial will assume you have done that.
+The first step is to extend your message type so that it can embed all messages from the library. Open up your [Reporter.ml] and update the type and functions as follows.
 
 {[
-module Code =
+module Message =
 struct
-  (** All message codes used in your application. *)
-  type t = (* ... *)
-    | Cool of CoolLibrary.Reporter.t (* Embed all message codes from [CoolLibrary]. *)
+  (** The type of all messages used in your application. *)
+  type t =
+    (* ... *)
+    | Cool of CoolLibrary.Reporter.t (** Embedding all messages from [CoolLibrary]. *)
 
-  (** The default severity of messages with a particular message code. *)
+  (** The default severity level of diagnostics with a particular message. *)
   let default_severity : t -> Asai.Diagnostic.severity =
     function
     (* ... *)
     | Cool c -> CoolLibrary.Reporter.default_severity c
 
-  (** A short, concise, ideally Google-able string representation for each message code. *)
+  (** A short, concise, ideally Google-able string representation for each message. *)
   let to_string : t -> Asai.Diagnostic.severity =
     function
     (* ... *)
     | Cool c -> CoolLibrary.Reporter.to_string c
 
-  (** It is recommended to add a helper function to save typing. *)
+  (** It is recommended to add a helper function (such as [cool]) to save typing,
+      and this tutorial will assume you have done that. *)
   let cool c = Cool c
 end
 ]}
@@ -221,58 +229,59 @@ end
 After updating the module, move to the end of the [Reporter.ml] and add the following line:
 
 {[
-let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Reporter.run f
+let lift_cool f = adopt (Asai.Diagnostic.map Message.cool) CoolLibrary.Reporter.run f
 ]}
 
 Remember to run [dune build] or your development tool to check that everything still compiles. Now you are ready to call any function in the cool library!
 
-PS: If you know Haskell, yes, the name [lift] is inspired by the monadic lifting from Haskell.
+PS: If you know Haskell, yes, the name [lift] was inspired by the monadic lifting from Haskell.
 
 {2 Use the Lifting}
 
 Whenever you want to use the cool library, wrap the code under [Reporter.lift_cool]---it will take care of backtraces, locations, effects, etc.
 {[
-Reporter.lift_cool @@ fun () -> CoolLibrary.cool_function "argument" 123
+Reporter.lift_cool @@ fun () ->
+CoolLibrary.cool_function "argument" 123
 ]}
 That's it!
 
 {2 Customize the Lifting}
 
-Suppose you want to modify the messages from the cool library before sending them to end users. Open your [Reporter.ml] again and replace [(Asai.Diagnostic.map Code.cool)] within [lift_cool]
+Suppose you want to decorate the diagnostics from the cool library before sending them to the end user. Open your [Reporter.ml] again and replace [(Asai.Diagnostic.map Code.cool)] within [lift_cool]
 {[
-let lift_cool f = adopt (Asai.Diagnostic.map Code.cool) CoolLibrary.Reporter.run f
+let lift_cool f = adopt (Asai.Diagnostic.map Message.cool) CoolLibrary.Reporter.run f
 ]}
-with any function of type [CoolLibrary.Code.t Asai.Diagnostic.t -> Code.t Asai.Diagnostic.t]. Say you have defined your own message transformation as function [embed_cool]. The new lifting is:
+with any function of type [CoolLibrary.Code.t Asai.Diagnostic.t -> Code.t Asai.Diagnostic.t]. Say, you have defined your own transformer as function [embed_cool]. The new lifting is:
 {[
 let lift_cool f = adopt embed_cool CoolLibrary.Reporter.run f
 ]}
 
-{1 Treat All Messages as Errors}
+{1 Treat All Diagnostics as Errors}
 
 If you want to turn everything into an error, add the following lines to the end of your [Reporter.ml]:
 {[
 let all_as_errors f = map_diagnostic (fun d -> {d with severity = Error}) f
 ]}
-And then use [Reporter.all_as_errors] to turn all messages into errors:
+And then use [Reporter.all_as_errors] to turn all diagnostics into errors:
 {[
-Reporter.all_as_errors @@ fun () -> (* any message sent here will be an error *)
+Reporter.all_as_errors @@ fun () -> (* any diagnostic sent here will be an error *)
 ]}
-{b Note that turning a message into an error does not abort the computation.} [all_as_errors] only makes the message look scarier and it will not affect the control flow. If you wish to also abort the program the moment {i any} message is sent, replace {{!val:Asai.Reporter.S.emit_diagnostic}emit_diagnostic} with {{!val:Asai.Reporter.S.fatal_diagnostic}fatal_diagnostic}:
+{b Note that turning a diagnostic into an error does not abort the computation.} [all_as_errors] only makes diagnostics look scarier and it will not affect the control flow. If you instead wish to abort the program the moment {i any} diagnostic is sent, no matter whether it is a warning or an error, do this:
 {[
 let abort_at_any f = map_diagnostic fatal_diagnostic f
 ]}
-Within [abort_at_any], every message will become {i fatal}:
+Within [abort_at_any], every diagnostic will become {i fatal}:
 {[
-Reporter.abort_at_any @@ fun () -> (* any message will abort the program *)
+Reporter.abort_at_any @@ fun () -> (* any diagnostic will abort the program *)
 ]}
 
-{1 Recover from Fatal Messages}
+{1 Recover from Fatal Diagnostics}
 
-Just like the usual [try ... with] in OCaml, you can use [Reporter.try_with] to intercept fatal messages. However, unlike messages sent via {{!val:Asai.Reporter.S.emit}emit}, there is no way to resume the aborted computation (as what you can do with an OCaml exception). Therefore, you have to provide a new value as a replacement. For example, the code:
+Just like the usual [try ... with] in OCaml, you can use [Reporter.try_with] to intercept fatal diagnostics. However, unlike diagnostics sent via {{!val:Asai.Reporter.S.emit}emit}, there is no way to resume the aborted computation (as what you can expect from OCaml exceptions). Therefore, you have to provide a new value as a replacement. For example,
 {[
 Reporter.try_with ~fatal:(fun _ -> 42) @@ fun () -> Reporter.fatal "abort!"
 ]}
-will give you the number [42] in the end. It intercepts the fatal message and gives [42] instead.
+will give you the number [42] in the end. It intercepts the fatal diagnostic and gives [42] instead.
 
 {1 There are More!}
 

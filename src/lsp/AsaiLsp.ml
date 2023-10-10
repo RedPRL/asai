@@ -1,9 +1,9 @@
 module L = Lsp.Types
 module RPC = Jsonrpc
 
-module Make (Code : Reporter.Code) =
+module Make (Message : Reporter.Message) =
 struct
-  module Server = LspServer.Make(Code)
+  module Server = LspServer.Make(Message)
   open Server
 
   let unwrap opt err =
