@@ -3,7 +3,7 @@
 (** The string source of a position or a span. *)
 type string_source = {
   title: string option;
-  (** The title of a string source, which can be [Some "<stdio>"]. *)
+  (** The title of a string source. A diagnostic handler can use the title of a string source in lieu of a file path. *)
 
   content: string;
   (** The content of a string source *)
