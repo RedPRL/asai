@@ -37,6 +37,6 @@ type 'message t = {
   (** The free-form explanation. *)
   backtrace : backtrace;
   (** The backtrace leading to this diagnostic. *)
-  extra_remarks : loctext list;
-  (** Additional remarks that are relevant to the main message but not part of the backtrace. *)
+  extra_remarks : loctext bwd;
+  (** Additional remarks that are relevant to the main message but not part of the backtrace. It is a backward list so that new remarks can be added to its end easily. *)
 }

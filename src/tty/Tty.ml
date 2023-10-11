@@ -267,8 +267,8 @@ struct
     let explication =
       let style s x = Explication.{value = x; style = s} in
       let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) loctext.loc in
-      let additional_spans = List.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) extra_remarks in
-      E.explicate ~block_splitting_threshold:param.block_splitting_threshold (main_span @ additional_spans)
+      let additional_spans = Bwd.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) extra_remarks in
+      E.explicate ~block_splitting_threshold:param.block_splitting_threshold (main_span @ Bwd.to_list additional_spans)
     in
     let line_number_width = Int.max param.line_number_width (line_number_width explication) in
     render_message ~param:{param with line_number_width} ~show_code explication loctext.value
@@ -276,7 +276,7 @@ struct
   let display_backtrace ~param backtrace =
     let indentation_style = A.fg @@ A.gray 8 in
     let backtrace =
-      Bwd.to_list @@ Bwd.map (display_message ~param ~show_code:false ~extra_remarks:[]) backtrace
+      Bwd.to_list @@ Bwd.map (display_message ~param ~show_code:false ~extra_remarks:Emp) backtrace
     in
     let backtrace =
       I.vcat @@
@@ -309,7 +309,7 @@ struct
     let traces =
       SourceReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun msg -> display_message ~param ~show_code:true msg ~extra_remarks:[]))
+        (backtrace |> Bwd.map (fun msg -> display_message ~param ~show_code:true msg ~extra_remarks:Emp))
         (display_message ~param ~show_code:true explanation ~extra_remarks)
       |> Bwd.to_list |> Array.of_list
     in

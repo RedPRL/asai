@@ -1,3 +1,5 @@
+open Bwd
+
 include DiagnosticData
 
 let text s fmt =
@@ -23,7 +25,7 @@ let of_loctext ?(backtrace=Bwd.Emp) ?(extra_remarks=[]) severity message explana
   ; message
   ; explanation
   ; backtrace
-  ; extra_remarks
+  ; extra_remarks = Bwd.of_list extra_remarks
   }
 
 let of_text ?loc ?backtrace ?extra_remarks severity message text : _ t =

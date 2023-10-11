@@ -1,3 +1,5 @@
+open Bwd
+
 module L = Lsp.Types
 module RPC = Jsonrpc
 module Broadcast = Lsp.Server_notification
@@ -66,7 +68,7 @@ struct
     let code = `String (Message.short_code diag.message) in
     let source = (State.get ()).source in
     let message = Diagnostic.string_of_text diag.explanation.value in
-    let relatedInformation = List.map (render_lsp_related_info uri) diag.extra_remarks in
+    let relatedInformation = Bwd.to_list @@ Bwd.map (render_lsp_related_info uri) diag.extra_remarks in
     Lsp_Diagnostic.create
       ~range
       ~severity
