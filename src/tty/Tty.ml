@@ -186,18 +186,18 @@ struct
 
   (* [ ╒══ examples/stlc/source.lambda] *)
   (* [ │ ] *)
-  let render_source_header ~param =
+  let render_source_header ~param : Span.source -> I.t =
     function
-    | `String _ ->
+    | `String {title=None; _} ->
       hcat_with_pad ~pad:1
         [ I.void param.line_number_width 0
         ; I.string fringe_style "┯"
         ]
-    | `File file_path ->
+    | `File title | `String {title=Some title; _} ->
       hcat_with_pad ~pad:1
         [ I.void param.line_number_width 0
         ; I.string fringe_style "╒══" <-> I.string fringe_style "│"
-        ; I.string A.empty file_path
+        ; I.string A.empty title
         ]
 
   let show_code_segment ~param Explication.{style; value = seg} =
