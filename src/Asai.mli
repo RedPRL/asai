@@ -25,9 +25,6 @@ module StructuredReporter = StructuredReporter
 (** Diagnostic display for UNIX terminals. *)
 module Tty = Tty
 
-(** An LSP (Language Service Protocol) server for asai *)
-module Lsp = AsaiLsp
-
 (** GitHub Actions workflow commands. *)
 module GitHub = GitHub
 

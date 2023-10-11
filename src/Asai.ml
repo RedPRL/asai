@@ -5,7 +5,6 @@ module Logger = Reporter (* backward compatibility *)
 module StructuredReporter = StructuredReporter
 
 module Tty = Tty
-module Lsp = AsaiLsp
 module GitHub = GitHub
 
 module Explication = Explication
