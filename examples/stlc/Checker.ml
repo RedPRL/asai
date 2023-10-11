@@ -3,7 +3,7 @@ open Syntax
 
 module Terminal = Asai.Tty.Make(Reporter.Message)
 module GitHub = Asai.GitHub.Make(Reporter.Message)
-module Server = Asai.Lsp.Make(Reporter.Message)
+module Server = Asai_lsp.Make(Reporter.Message)
 
 module Elab =
 struct

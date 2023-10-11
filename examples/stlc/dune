@@ -2,7 +2,7 @@
  (name Checker)
  (package asai-examples)
  (public_name asai-examples.stlc)
- (libraries algaeff menhirLib asai)
+ (libraries algaeff menhirLib asai asai-lsp)
  (optional))
 
 (menhir

@@ -2,15 +2,15 @@ module L = Lsp.Types
 
 module Loc =
 struct
-  let lsp_pos_of_pos (pos : Span.position) =
+  let lsp_pos_of_pos (pos : Asai.Span.position) =
     L.Position.create
       ~line:(pos.line_num - 1)
       ~character:(pos.offset - pos.start_of_line)
 
-  let lsp_range_of_span (sp : Span.t option) =
+  let lsp_range_of_span (sp : Asai.Span.t option) =
     match sp with
     | Some sp ->
-      let (start , stop) = Span.split sp in
+      let (start , stop) = Asai.Span.split sp in
       L.Range.create
         ~start:(lsp_pos_of_pos start)
         ~end_:(lsp_pos_of_pos stop)
@@ -24,11 +24,11 @@ end
 
 module Diagnostic =
 struct
-  let lsp_severity_of_severity =
+  let lsp_severity_of_severity : Asai.Diagnostic.severity -> L.DiagnosticSeverity.t =
     function
-    | Diagnostic.Hint -> L.DiagnosticSeverity.Hint
-    | Diagnostic.Info -> L.DiagnosticSeverity.Information
-    | Diagnostic.Warning -> L.DiagnosticSeverity.Warning
-    | Diagnostic.Error -> L.DiagnosticSeverity.Error
-    | Diagnostic.Bug -> L.DiagnosticSeverity.Error
+    | Hint -> Hint
+    | Info -> Information
+    | Warning -> Warning
+    | Error -> Error
+    | Bug -> Error
 end

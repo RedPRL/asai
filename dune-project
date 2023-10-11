@@ -15,18 +15,25 @@
 (package
  (name asai)
  (synopsis "A library for constructing and printing compiler diagnostics")
- (description "This package offers an implementation of compiler diagnostics and supports multiple handlers for displaying diagnostics to the end user. Currently, the package comes with three handlers GitHub Actions workflow commands, UNIX terminals, and LSP (Language Server Protocol).")
+ (description "This package offers an implementation of compiler diagnostics and supports multiple handlers for displaying diagnostics to the end user. Currently, the package comes with built-in handlers for GitHub Actions workflow commands and UNIX terminals.")
  (depends
    (ocaml (>= 5.0))
    (algaeff (>= 1.0))
    (bwd (>= 2.2))
+   (notty (>= 0.2.3))
+   ;; Tests
+   (alcotest (and :with-test (>= 1.5)))))
+(package
+ (name asai-lsp)
+ (synopsis "LSP handler for the package asai")
+ (description "This package offers an language server protocol (LSP) handler that can turn an application using the asai package into a LSP server. This is an experimental prototype and very likely its design will significantly change in future versions.")
+ (depends
+   (ocaml (>= 5.0))
+   (bwd (>= 2.2))
    (eio (>= 0.12))
    (eio_main (>= 0.12))
    (lsp (>= 1.15))
-   (notty (>= 0.2.3))
-   ;; Tests
-   (alcotest (and :with-test (>= 1.5)))
-   ))
+   (asai (= :version))))
 (package
  (name asai-examples)
  (synopsis "Examples of the package asai")
@@ -36,5 +43,4 @@
    (algaeff (>= 1.0))
    (bwd (>= 2.2))
    (menhir (>= 20220210))
-   (asai (= :version))
-   ))
+   (asai (= :version))))
