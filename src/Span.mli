@@ -1,9 +1,18 @@
 (** {1 Types} *)
 
+(** The string source of a position or a span. *)
+type string_source = {
+  title: string option;
+  (** The title of a string source, which can be [Some "<stdio>"]. *)
+
+  content: string;
+  (** The content of a string source *)
+}
+
 (** The source of a position or a span. The [`String] source can be used for REPL. *)
 type source =
   [ `File of string (** File path of the source file. *)
-  | `String of string (** The content of an in-memory source. *)
+  | `String of string_source (** The content of an in-memory source. *)
   ]
 
 (** The type of positions; this is isomorphic to {!type:Lexing.position}, but with arguably better field names. *)

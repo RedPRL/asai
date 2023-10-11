@@ -33,7 +33,7 @@ type source = File of bigstring | String of string
 let load : Span.source -> _ =
   function
   | `File file_path -> File (snd @@ FileInternal.load file_path)
-  | `String str -> String str
+  | `String {content; _} -> String content
 
 let length =
   function

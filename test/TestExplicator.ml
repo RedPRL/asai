@@ -17,7 +17,7 @@ module E = Explicator.Make(IntStyle)
 let test_explication = Alcotest.of_pp (Explication.dump IntStyle.dump)
 
 let single_line mode eol () =
-  let source = `String ("aaabbbcccdddeee" ^ eol) in
+  let source = `String {Span.title = None; content = "aaabbbcccdddeee" ^ eol} in
   let start_of_line1 : Span.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let span1 = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 3}, {start_of_line1 with offset = 9}) in
   let span2 = Explication.style 2 @@ Span.make ({start_of_line1 with offset = 6}, {start_of_line1 with offset = 12}) in
@@ -38,7 +38,7 @@ let single_line mode eol () =
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines_with_ls () =
-  let source = `String "aabbbbb\u{2028}bbbbccc" in
+  let source = `String {Span.title = None; content = "aabbbbb\u{2028}bbbbccc"} in
   let start_of_line1 : Span.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let start_of_line2 : Span.position = {source; offset = 10; start_of_line = 10; line_num = 2} in
   let span = Explication.style 1 @@ Span.make ({start_of_line1 with offset = 2}, {start_of_line2 with offset = 14}) in
@@ -60,8 +60,11 @@ let multi_lines_with_ls () =
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines () =
-  let source = `String
-      {|
+  let source =
+    `String
+      {Span.title = None;
+       content =
+         {|
 aabbbbb
 bbbbbbb
 b*ccddd
@@ -76,7 +79,7 @@ ee++fff
 4
 5
 ggggghh
-|}
+|}}
   in
   let start_of_line2 : Span.position = {source; offset = 1; start_of_line = 1; line_num = 2} in
   let start_of_line4 : Span.position = {source; offset = 17; start_of_line = 17; line_num = 4} in
