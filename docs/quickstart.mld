@@ -216,7 +216,7 @@ When the file does not exist, the cool library might output the message that the
  ╯
 File `/path/to/some/file.json' does not exist
 v}
-This message is {e not bad,} but suboptimal. There's a disconnection between "settings" and ['/path/to/some/file.json']---how exactly is this file relevant? It is tempting to directly edit the text in the diagnostic to include such information, that is, {i wrapping the error.} However, we suggest improving the trace instead:
+This message is {e not bad,} but suboptimal. There's a disconnection between "settings" and [/path/to/some/file.json]---how exactly is this file relevant? It is tempting to directly edit the text in the diagnostic to include such information, that is, {i wrapping the error.} However, we suggest improving the trace instead:
 {[
 let file_path = "/path/to/some/file.json" in
 Reporter.trace "When loading settings from file `%s'" file_path @@ fun () ->
