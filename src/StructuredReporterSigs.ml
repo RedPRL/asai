@@ -171,15 +171,6 @@ sig
   *)
   val map_diagnostic : (Message.t Diagnostic.t -> Message.t Diagnostic.t) -> (unit -> 'a) -> 'a
 
-  (** [map_text m f] runs the thunk [f] and applies [m] to the main text of any diagnostic sent by [f]. It is a convenience function that can be implemented as follows:
-      {[
-        let map_text m f = map_diagnostic (Diagnostic.map_text m) f
-      ]}
-
-      @since 0.2.0
-  *)
-  val map_text : (Diagnostic.text -> Diagnostic.text) -> (unit -> 'a) -> 'a
-
   (** {2 Debugging} *)
 
   val register_printer : ([ `Trace | `Emit of Message.t Diagnostic.t | `Fatal of Message.t Diagnostic.t ] -> string option) -> unit

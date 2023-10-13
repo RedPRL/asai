@@ -43,8 +43,6 @@ let makef ?loc ?backtrace ?extra_remarks severity message =
 
 let map f d = {d with message = f d.message}
 
-let map_text f d = {d with explanation = {d.explanation with value = f d.explanation.value}}
-
 let string_of_severity =
   function
   | Hint -> "Hint"
