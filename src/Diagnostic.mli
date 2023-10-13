@@ -97,15 +97,6 @@ val kmakef : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list 
 (** A convenience function that maps the message of a diagnostic. This is helpful when using {!val:Reporter.S.adopt}. *)
 val map : ('message1 -> 'message2) -> 'message1 t -> 'message2 t
 
-(** A convenience function that maps the free-form explanation text of a diagnostic. For example, the following code prefixes the explanation with ["Pluto is no longer a planet"]:
-    {[
-      let d = map_text (textf "@[<2>Pluto is no longer a planet:@ %t@]") detail
-    ]}
-
-    @since 0.2.0
-*)
-val map_text : (text -> text) -> 'message t -> 'message t
-
 (** A convenience function that converts a {!type:severity} into its constructor name. For example, {!constructor:Warning} will be converted into the string ["Warning"]. *)
 val string_of_severity : severity -> string
 

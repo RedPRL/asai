@@ -298,7 +298,7 @@ struct
     <->
     I.void 0 1 (* new line *)
 
-  let display ?(output=Stdlib.stdout) ?(show_backtrace = false) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
+  let display ?(output=Stdlib.stdout) ?(show_backtrace=true) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; message; explanation; backtrace; extra_remarks} =
     let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 2} in
     Notty_unix.output_image ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~explanation ~backtrace ~extra_remarks

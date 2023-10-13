@@ -101,8 +101,6 @@ struct
       ~fatal:(fun d -> fatal_diagnostic (m d))
       f
 
-  let map_text m f = map_diagnostic (Diagnostic.map_text m) f
-
   (* Debugging *)
 
   let register_printer f =

@@ -94,17 +94,6 @@ let f x y =
   (* very important code *)
 ]}
 
-Note that, by default, the terminal handler will not show backtraces. You have to enable it as follows in your entry-point module:
-{[
-module Term = Asai.Tty.Make(Reporter.Message)
-
-let () =
-  Reporter.run
-    ~emit:(Term.display ~show_backtrace:true)
-    ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->
-  (* your application code *)
-]}
-
 We do not recommend adding {{!val:Asai.Reporter.S.trace}trace} to every single function. Remember they should make sense to the end user!
 
 PS: We have a {{:https://github.com/RedPRL/asai/issues/38} GitHub issue on spewing debugging information} for developers (you!), not the end user. Your comments will help us complete the design.
@@ -157,46 +146,11 @@ Reporter.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
 (* ... *)
 ]}
 
-{1 Wrapping Errors}
-
-It is common to wrap the free-form text of an error to give a more intuitive explanation. For example, when using a file I/O library to read a configuration file, the library might send out a fatal error saying:
-{v
-File '/path/config.json' does not exist
-v}
-We would like to turn it into a more readable explanation such as
-{v
-Failed to load settings:
-  File '/path/config.json' does not exist
-v}
-Arguably, this can be achieved via the backtrace API mentioned before:
-{v
-When loading settings...
-File '/path/config.json' does not exist
-v}
-by writing
-{[
-Reporter.trace "When loading settings..." @@ fun () -> ...
-]}
-However, if you agree with us that the wrapped text reads better, do the following instead:
-{[
-Reporter.map_text
-  (fun t -> Asai.Diagnostic.textf
-    "@[<2>Failed to load settings:@ @[%t@]@]"
-    t)
-  @@ fun () ->
-(* using the file I/O library *)
-]}
-The {{!val:Asai.Reporter.S.map_text}map_text} will map the main text in a diagnostic. The {{!val:Asai.Diagnostic.textf}Diagnostic.textf} constructs a new text using fancy format strings as {{!val:Asai.Reporter.S.emitf}emitf} and {{!val:Asai.Reporter.S.fatalf}fatalf} do. The [%t] is the OCaml conversion specification to format a {{!type:Asai.Diagnostic.text}text}. Putting all these together, we prefix the text in the diagnostic with ["Failed to load settings:"]. The above code can also be written in a more concise style:
-{[
-Reporter.map_text (Asai.Diagnostic.textf "@[<2>Failed to load settings:@ @[%t@]@]") @@ fun () ->
-(* using the file I/O library *)
-]}
-
 {1 Use a Library that Uses asai}
 
 Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the diagnostics from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Reporter]. You want to painlessly incorporate the library.
 
-{2 Extend Your [Code] Module}
+{2 Extend Your Reporter}
 
 The first step is to extend your message type so that it can embed all messages from the library. Open up your [Reporter.ml] and update the type and functions as follows.
 
@@ -245,16 +199,40 @@ CoolLibrary.cool_function "argument" 123
 ]}
 That's it!
 
-{2 Customize the Lifting}
+{2 No Need to Wrap Errors}
 
-Suppose you want to decorate the diagnostics from the cool library before sending them to the end user. Open your [Reporter.ml] again and replace [(Asai.Diagnostic.map Code.cool)] within [lift_cool]
+It is tempting to consider wrapping errors (e.g., {{: https://go.dev/blog/go1.13-errors}advocated in Go}). However, it seems {b good backtraces make error wrapping obsolete.} To see why one might wish to wrap errors, consider the following code:
 {[
-let lift_cool f = adopt (Asai.Diagnostic.map Message.cool) CoolLibrary.Reporter.run f
+Reporter.trace "When loading settings" @@ fun () ->
+let content = Reporter.lift_cool @@ fun () ->
+  CoolLibrary.read "/path/to/some/file.json"
+in
+(* ... *)
 ]}
-with any function of type [CoolLibrary.Code.t Asai.Diagnostic.t -> Code.t Asai.Diagnostic.t]. Say, you have defined your own transformer as function [embed_cool]. The new lifting is:
+When the file does not exist, the cool library might output the message that the file does not exist. Together with the trace, the terminal handler will output
+{v
+ ╭
+ │ When loading settings
+ ╯
+File `/path/to/some/file.json' does not exist
+v}
+This message is {e not bad,} but suboptimal. There's a disconnection between "settings" and ['/path/to/some/file.json']---how exactly is this file relevant? It is tempting to directly edit the text in the diagnostic to include such information, that is, {i wrapping the error.} However, we suggest improving the trace instead:
 {[
-let lift_cool f = adopt embed_cool CoolLibrary.Reporter.run f
+let file_path = "/path/to/some/file.json" in
+Reporter.trace "When loading settings from file `%s'" file_path @@ fun () ->
+let content = Reporter.lift_cool @@ fun () ->
+  CoolLibrary.read file_path
+in
+(* ... *)
 ]}
+so that the output is
+{v
+ ╭
+ │ When loading settings from file `/path/to/some/file.json'
+ ╯
+File `/path/to/some/file.json' does not exist
+v}
+There's no conceptual gap in the message anymore!
 
 {1 Treat All Diagnostics as Errors}
 
