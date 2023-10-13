@@ -7,7 +7,7 @@ sig
   (** The default severity level of a message. Severity levels classify diagnostics into errors, warnings, etc. It is about how serious the {i end user} should take the diagnostic, not whether the program should stop or continue. The severity may be overwritten at the time of issuing a diagnostic. *)
   val default_severity : t -> Diagnostic.severity
 
-  (** The default text of the message. The text may be overwritten at the time of issuing a diagnostic to the end user. *)
+  (** The default text of the message. This is the long explanation of the message that the end user would see. You might find helper functions {!val:Diagnostic.text} and {!val:Diagnostic.textf} useful. The text may be overwritten at the time of issuing a diagnostic. *)
   val default_text : t -> Diagnostic.text
 
   (** A concise, ideally Google-able string representation of each message. Detailed or long descriptions should be avoided---the shorter, the better. For example, [E001] works better than [type-checking error]. It will be assumed that the string representation has no control characters (such as newline characters). *)

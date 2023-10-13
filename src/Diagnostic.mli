@@ -8,7 +8,7 @@ include module type of DiagnosticData
 (** [text str] converts the string [str] into a text, converting each ['\n'] into a call to {!val:Format.pp_force_newline}. *)
 val text : string -> text
 
-(** [textf format ...] constructs a text. It is an alias of {!val:Format.dprintf}. Note that there should not be any literal control characters (e.g., literal newline characters). *)
+(** [textf format ...] formats a text. It is an alias of {!val:Format.dprintf}. Note that there should not be any literal control characters (e.g., literal newline characters). *)
 val textf : ('a, Format.formatter, unit, text) format4 -> 'a
 
 (** [ktextf kont format ...] is [kont (textf format ...)]. It is an alias of {!val:Format.kdprintf}. *)
