@@ -292,7 +292,7 @@ struct
 
   let display_diagnostic ~param ~explanation ~backtrace ~extra_remarks =
     SourceReader.run @@ fun () ->
-    (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
+    (if param.show_backtrace && backtrace <> Emp then display_backtrace ~param backtrace else I.empty)
     <->
     display_message ~param ~show_code:true explanation ~extra_remarks
     <->
