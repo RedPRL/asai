@@ -1,125 +1,168 @@
-open ExplicationData
+open Bwd
+open Bwd.Infix
+
 open ExplicatorSigs
 
-type 'style block = (Span.position, 'style) styled list
-type 'style part = Span.source * 'style block list
-
-module File (Style : Style) :
-sig
-  type t
-  val empty : t [@@warning "-32"]
-  val singleton : (Span.t, Style.t) styled -> t
-  val add : (Span.t, Style.t) styled -> t -> t
-  val render : t -> Style.t block
-end
-=
+module Make (Tag : Tag) =
 struct
-  type t = (Span.position, Style.t) styled list
 
-  let empty : t = []
+  type nonrec 'a opt_tagged = Tag.t option * 'a
+  type nonrec 'a tagged = Tag.t * 'a
+  type unflattened_block =
+    { begin_line_num : int
+    ; end_line_num : int
+    ; spans : Span.t tagged list}
+  type block =
+    { begin_line_num : int
+    ; end_line_num : int
+    ; tagged_positions : Span.position opt_tagged list
+    ; tagged_lines : int tagged list}
 
-  let (<) x y = x.Span.offset < y.Span.offset
-  let (<=) x y = x.Span.offset <= y.Span.offset
-  let (=) x y = x.Span.offset = y.Span.offset [@@warning "-32"]
+  module Splitter :
+  sig
+    val partition : block_splitting_threshold:int -> Span.t tagged list -> unflattened_block list
+  end
+  =
+  struct
+    let compare_span (s1 : Span.t) (s2 : Span.t) =
+      Utils.compare_pair Int.compare Int.compare
+        (Span.end_offset s1, Span.begin_offset s1)
+        (Span.end_offset s2, Span.begin_offset s2)
 
-  (* precondition: x1 < x2 and there are already points at x1 and x2 *)
-  let impose {value = x1, x2; style = xst} : _ list -> _ list =
-    List.map
-      (fun y ->
-         if x1 <= y.value && y.value < x2
-         then {y with style = Style.compose y.style xst}
-         else y)
+    let compare_span_tagged (t1, sp1) (t2, sp2) =
+      Utils.compare_pair compare_span Int.compare
+        (sp1, Tag.priority t1)
+        (sp2, Tag.priority t2)
 
-  let add_point x =
-    let[@tail_mod_cons] rec go last =
+    let sort_tagged = List.stable_sort compare_span_tagged
+
+    let block_of_span s : unflattened_block =
+      { begin_line_num = Span.begin_line_num (snd s)
+      ; end_line_num = Span.end_line_num (snd s)
+      ; spans = [s]}
+
+    let partition_sorted ~block_splitting_threshold : _ list -> unflattened_block list =
+      let rec go block (blocks : unflattened_block list) =
+        function
+        | Emp -> block :: blocks
+        | Snoc (ss, s) ->
+          if block.begin_line_num - Span.end_line_num (snd s) > block_splitting_threshold then
+            go (block_of_span s) (block :: blocks) ss
+          else
+            go {block with spans = s :: block.spans} blocks ss
+      in
       function
-      | [] -> [{value = x; style = last}]
-      | y :: ys when y.value < x ->
-        y :: (go[@tailcall]) y.style ys
-      | y :: ys when x < y.value ->
-        {value = x; style = last} :: y :: ys
-      | l -> l
-    in
-    go Style.default
+      | [] -> []
+      | s :: ss ->
+        go (block_of_span s) [] (Bwd.of_list ss)
 
-  let add {value; style} l =
-    let x1, x2 = Span.split value in
-    impose {value = x1, x2; style} @@ add_point x1 @@ add_point x2 l
+    let partition ~block_splitting_threshold l =
+      partition_sorted ~block_splitting_threshold (sort_tagged l)
+  end
 
-  let singleton data = add data empty
+  module BlockFlattener :
+  sig
+    val flatten : blend:(Tag.t -> Tag.t -> Tag.t) -> Span.t tagged list -> Span.position opt_tagged list
+  end
+  =
+  struct
+    type t = Span.position opt_tagged bwd
 
-  let render l =
-    l
-    |> Utils.drop_while (fun x -> Style.is_default x.style)
-    |> Utils.keep_first_in_groups (fun x y -> Style.equal x.style y.style)
-end
+    (* precondition: x1 < x2 and there are already points at x1 and x2 *)
+    let impose ~blend xtag (x1 : Span.position) (x2 : Span.position) : t -> t =
+      let blend_opt =
+        function
+        | None -> Some xtag
+        | Some t -> Some (blend t xtag)
+      in
+      let[@tail_mod_cons] rec go2 : t -> t =
+        function
+        | Snoc (ps, (ptag, p)) when p.offset >= x1.offset ->
+          Snoc (go2 ps, (blend_opt ptag, p))
+        | ps -> ps
+      in
+      let[@tail_mod_cons] rec go1 : t -> t =
+        function
+        | Snoc (ps, p) when (snd p).offset >= x2.offset ->
+          Snoc (go1 ps, p)
+        | ps -> go2 ps
+      in
+      go1
 
-module Files (Style : ExplicatorSigs.Style) :
-sig
-  type t
-  val empty : t
-  val add : (Span.t, Style.t) styled -> t -> t
-  val render : t -> (Span.source * Style.t block) list
-end
-=
-struct
-  module FileMap = Map.Make(struct
-      type t = Span.source
-      let compare : t -> t -> int = Stdlib.compare
-    end)
-  module F = File(Style)
-  type t = F.t FileMap.t
+    let ensure_point (x : Span.position) =
+      let[@tail_mod_cons] rec go : t -> t =
+        function
+        | Snoc (ps, p) when (snd p).offset > x.offset ->
+          Snoc (go ps, p)
+        | Emp -> Emp <: (None, x)
+        | Snoc (_, (ptag, p)) as ps ->
+          if p.offset = x.offset then
+            ps
+          else
+            ps <: (ptag, x)
+      in
+      go
 
-  let empty : t = FileMap.empty
+    let add ~blend l (tag, value) =
+      let x1, x2 = Span.split value in
+      impose ~blend tag x1 x2 @@ ensure_point x2 @@ ensure_point x1 l
 
-  let add data =
-    FileMap.update (Span.source data.value) @@ function
-    | None -> Some (F.singleton data)
-    | Some m -> Some (F.add data m)
+    let flatten ~blend l =
+      List.fold_left (add ~blend) Emp l
+      |> Bwd.to_list
+      |> Utils.keep_first_in_groups (fun (xtag, _) (ytag, _) -> Option.equal Tag.equal xtag ytag)
+  end
 
-  let max_style l : Style.t = List.fold_left (fun s x -> Style.max s x.style) Style.default l
+  module File :
+  sig
+    val flatten : block_splitting_threshold:int -> blend:(Tag.t -> Tag.t -> Tag.t) -> Span.t tagged list -> block list
+  end
+  =
+  struct
+    let flatten_block ~blend ({begin_line_num; end_line_num; spans} : unflattened_block) =
+      { begin_line_num
+      ; end_line_num
+      ; tagged_positions = BlockFlattener.flatten ~blend spans
+      ; tagged_lines = List.map (fun (tag, value) -> tag, Span.end_line_num value) spans
+      }
 
-  (**
-     Compare parts based on the importance
-     1. Strings are more important than files.
-     2. The ones with the more important highlighting are more important.
-  *)
-  let compare_annotated_part part1 part2 : int =
-    match part1, part2 with
-    | (`String _, _), (`File _, _) -> 1
-    | (`File _, _), (`String _, _) -> -1
-    | (`String _, (st1, _)), (`String _, (st2, _)) | (`File _, (st1, _)), (`File _, (st2, _)) ->
-      Style.compare st1 st2
+    let flatten ~block_splitting_threshold ~blend sps =
+      List.map (flatten_block ~blend) @@ Splitter.partition ~block_splitting_threshold sps
+  end
 
-  let render m : (Span.source * Style.t block) list =
-    FileMap.bindings m
-    |> List.map (fun (src, x) -> src, F.render x)
-    |> List.filter (fun (_, l) -> l <> []) (* filter out sources with only empty spans *)
-    |> List.map (fun (src, l) -> src, (max_style l, l)) (* calculate the importance *)
-    |> List.stable_sort compare_annotated_part
-    |> List.map (fun (src, (_, block)) -> src, block)
-end
+  module Files :
+  sig
+    val flatten : block_splitting_threshold:int -> blend:(Tag.t -> Tag.t -> Tag.t) -> Span.t tagged list -> (Span.source * block list) list
+  end
+  =
+  struct
+    module FileMap = Map.Make(struct
+        type t = Span.source
+        let compare : t -> t -> int = Stdlib.compare
+      end)
 
-module Splitter (Style : Style) :
-sig
-  val split : block_splitting_threshold:int -> Style.t block -> Style.t block list
-end
-=
-struct
-  let split ~block_splitting_threshold =
-    Utils.group @@ fun p q ->
-    not (Style.is_default p.style) ||
-    q.value.Span.line_num - p.value.line_num <= block_splitting_threshold
-end
+    let add m data =
+      m |>
+      FileMap.update (Span.source (snd data)) @@ function
+      | None -> Some (Emp <: data)
+      | Some sps -> Some (sps <: data)
 
-module Make (Style : Style) = struct
-  module F = Files(Style)
-  module S = Splitter(Style)
+    let priority l : int = List.fold_left (fun p (tag, _) -> Int.min p (Tag.priority tag)) Int.max_int l
 
-  (* Currently, this can take \tilde{O}(n^2) time where n is the number of styled spans. *)
-  let flatten ~block_splitting_threshold spans : Style.t part list =
-    spans
-    |> List.fold_left (fun f data -> F.add data f) F.empty
-    |> F.render
-    |> List.map (fun (src, block) -> src, S.split ~block_splitting_threshold block)
+    let compare_part (p1 : Span.source * int * block list) (p2 : Span.source * int * block list) =
+      match p1, p2 with
+      | (_, pri1, _), (_, pri2, _) when pri1 <> pri2 -> Int.compare pri1 pri2
+      | (s1, _, _), (s2, _, _) -> Option.compare String.compare (Span.title s1) (Span.title s2)
+
+    let flatten ~block_splitting_threshold ~blend sps =
+      sps
+      |> List.fold_left add FileMap.empty
+      |> FileMap.bindings
+      |> List.map (fun (src, sps) -> let sps = Bwd.to_list sps in src, priority sps, File.flatten ~block_splitting_threshold ~blend sps)
+      |> List.filter (fun (_, _, l) -> l <> []) (* filter out sources with only empty spans *)
+      |> List.stable_sort compare_part
+      |> List.map (fun (src, _, part) -> src, part)
+  end
+
+  let flatten = Files.flatten
 end

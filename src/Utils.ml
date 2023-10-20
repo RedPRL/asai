@@ -1,10 +1,27 @@
 open Bwd
 open Bwd.Infix
 
-let rec drop_while p =
+let dump_string fmt s = Format.fprintf fmt "%S" s [@@inline]
+
+let dump_option dump fmt =
   function
-  | x :: xs when p x -> (drop_while[@tailcall]) p xs
-  | l -> l
+  | None -> Format.pp_print_string fmt "None"
+  | Some v -> Format.fprintf fmt "@[<2>Some@ (%a)@]" dump v
+
+let pp_list p fmt l =
+  Format.fprintf fmt "@[<hv1>[%a]@]"
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@,") p)
+    l
+
+(* Currently note used
+
+   {[
+     let rec drop_while p =
+       function
+       | x :: xs when p x -> (drop_while[@tailcall]) p xs
+       | l -> l
+   ]}
+*)
 
 let keep_first_in_groups p =
   function
@@ -18,16 +35,33 @@ let keep_first_in_groups p =
     in
     go x xs
 
-let group p =
-  function
-  | [] -> []
-  | x :: xs ->
-    let[@tail_mod_cons] rec go acc x =
-      function
-      | [] -> [acc @> [x]]
-      | y :: ys when p x y -> (go[@tailcall]) (acc <: x) y ys
-      | y :: ys -> (acc @> [x]) :: (go[@tailcall]) Emp y ys
-    in
-    go Emp x xs
+(* Currently note used
+
+   {[
+     let group p =
+       function
+       | [] -> []
+       | x :: xs ->
+         let[@tail_mod_cons] rec go acc x =
+           function
+           | [] -> [acc @> [x]]
+           | y :: ys when p x y -> (go[@tailcall]) (acc <: x) y ys
+           | y :: ys -> (acc @> [x]) :: (go[@tailcall]) Emp y ys
+         in
+         go Emp x xs
+   ]}
+*)
 
 let maximum = List.fold_left Int.max Int.min_int
+
+let compare_pair c1 c2 (x1, y1) (x2, y2) : int =
+  let r = c1 x1 x2 in
+  if r <> 0 then r else c2 y1 y2
+
+let span p =
+  let rec go acc =
+    function
+    | x :: xs when p x -> (go[@tailcall]) (acc <: x) xs
+    | l -> Bwd.to_list acc, l
+  in
+  go Emp

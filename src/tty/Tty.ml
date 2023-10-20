@@ -2,23 +2,21 @@ open Bwd
 open Notty
 open Notty.Infix
 
-module Style = struct
-  type t = HighlightedPrimary | Additional | None
-  let default = None
-  let is_default x = x = None
-  let equal (x : t) y = x = y
-  let compare (x : t) (y : t) = - Stdlib.compare x y
-  let max x y = Stdlib.min x y
-  let compose x y = max x y
-  let to_string =
+module Tag = struct
+  type index = Main | Extra of int
+  type t = index * Diagnostic.text
+  let equal (x : t) y = fst x = fst y
+  let priority =
     function
-    | HighlightedPrimary -> "HighlightedPrimary"
-    | Additional -> "Additional"
-    | None -> "None"
-  let dump fmt x = Format.pp_print_string fmt (to_string x)
+    | Main, _ -> -1
+    | Extra i, _ -> i
+  let dump fmt =
+    function
+    | Main, _ -> Format.pp_print_string fmt "Main"
+    | Extra i, _ -> Format.fprintf fmt "Extra %d" i
 end
 
-module E = Explicator.Make(Style)
+module E = Explicator.Make(Tag)
 
 module Make (Message : Reporter.Message) =
 struct
@@ -77,30 +75,44 @@ struct
 
 (*
  ╭
- │    ┯
- │  1 │ (check (λ ä (λ 123
- │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
- │    ┊
- │ 20 │ ahhhhhhhhhhhhhhhhhh
- │ 21 │ noooooooooooooooooo
- │    ┷
- │ When blah blah blah
- │
- │    ┯
- │  1 │ (check (λ ä (λ 123
- │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
- │    ┊
- │ 20 │ ahhhhhhhhhhhhhhhhhh
- │ 21 │ noooooooooooooooooo
- │    ┷
- │ When blah blah blah
+ ┆    ┯
+ ┆  1 │ (check (λ ä (λ 123
+ ┆  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+ ┆    ┊
+ ┆ 20 │ ahhhhhhhhhhhhhhhhhh
+ ┆ 21 │ noooooooooooooooooo
+ ┆    ┊
+ ┆ When blah blah blah
+ ┆    ┊
+ ┆    ┷
+ ┆
+ ┆    ┯
+ ┆  1 │ (check (λ ä (λ 123
+ ┆  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
+ ┆    ┊
+ ┆ When blah blah blah
+ ┆    ┊
+ ┆ 20 │ ahhhhhhhhhhhhhhhhhh
+ ┆ 21 │ noooooooooooooooooo
+ ┆    ┷
  ╯
     ┯
   1 │ (check (λ ä (λ 123
   2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
     ┊
+ Error[E002]:
+ Why am I checking the term (→ ℕ (→ ℕ ℕ))
+ which looks amazing!!
+    ┊
+ Why am I checking the term (→ ℕ (→ ℕ ℕ))
+ which looks amazing!!
+    ┊
  20 │ ahhhhhhhhhhhhhhhhhh
  21 │ noooooooooooooooooo
+    ┊
+ Why am I checking the term (→ ℕ (→ ℕ ℕ))
+ which looks amazing!!
+    ┊
     ┷
     ┯
   3 │ let x = 1
@@ -109,21 +121,18 @@ struct
     ┯
   8 │ assert (asai is cool)
     ┷
- Error[E002]:
- Why am I checking the term (→ ℕ (→ ℕ ℕ))
- which looks amazing!!
 
 *)
 
 (*
  ╭
- │ When checking against (→ ℕ (→ ℕ ℕ))
- │
- │ When checking against (→ ℕ ℕ)
- │
- │ When checking against ℕ
- │
- │ When synthesizing
+ ┊ When checking against (→ ℕ (→ ℕ ℕ))
+ ┊
+ ┊ When checking against (→ ℕ ℕ)
+ ┊
+ ┊ When checking against ℕ
+ ┊
+ ┊ When synthesizing
  ╯
  Error[E002]:
  Variable 'sdaf' is not in scope
@@ -146,31 +155,15 @@ struct
     | Error -> fg red
     | Bug -> bg red ++ fg black
 
-  let highlight_style (severity : Diagnostic.severity) (style : Style.t) =
+  let highlight_style (severity : Diagnostic.severity) : Tag.t option -> attr =
     let open A in
-    match style with
+    function
     | None -> empty
-    | Additional -> st underline
-    | HighlightedPrimary ->
+    | Some (Extra _, _) -> st underline
+    | Some (Main, _) ->
       st underline ++ message_style severity
 
   let fringe_style = A.fg @@ A.gray 8
-
-  (* calculating the width of line numbers *)
-
-  let line_number_width explication : int =
-    let max_line_number_block Explication.{start_line_num; lines} =
-      start_line_num + List.length lines - 1
-    in
-    let max_line_number_part Explication.{blocks; _} =
-      Utils.maximum @@ List.map max_line_number_block blocks
-    in
-    let max_line_number (parts : _ Explication.t) =
-      Utils.maximum @@ List.map max_line_number_part parts
-    in
-    String.length @@ Int.to_string @@ max_line_number explication
-
-  (* different parts of the display *)
 
   (* parameters *)
   type param =
@@ -183,6 +176,32 @@ struct
       message : Message.t;
       line_number_width : int;
     }
+
+  (* text *)
+
+  let render_tag ~param ~show_code (index, text) =
+    let attr = message_style param.severity in
+    I.pad ~l:1 begin
+      (if show_code && index = Tag.Main
+       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Message.short_code param.message)
+       else I.empty)
+      <->
+      I.strf ~attr "%t" text
+    end
+
+  (* calculating the width of line numbers *)
+
+  let line_number_width explication : int =
+    let max_line_number_block Explication.{end_line_num; _} = end_line_num in
+    let max_line_number_part Explication.{blocks; _} =
+      Utils.maximum @@ List.map max_line_number_block blocks
+    in
+    let max_line_number (parts : _ Explication.t) =
+      Utils.maximum @@ List.map max_line_number_part parts
+    in
+    String.length @@ Int.to_string @@ max_line_number explication
+
+  (* different parts of the display *)
 
   (* [ ╒══ examples/stlc/source.lambda] *)
   (* [ │ ] *)
@@ -200,30 +219,38 @@ struct
         ; I.string A.empty title
         ]
 
-  let show_code_segment ~param Explication.{style; value = seg} =
-    I.string (highlight_style param.severity style) (UserContent.replace_control ~tab_size:param.tab_size seg)
-
-  let show_code_line ~param (segs : _ Explication.line) =
-    I.hcat @@ List.map (show_code_segment ~param) segs
-
-  (* [3 ⇃ no, it is not my fault!!!] *)
-  let render_block ~param Explication.{start_line_num; lines} =
-    I.vcat @@
-    List.mapi (fun i line ->
-        let line_num = start_line_num + i in
-        hcat_with_pad ~pad:1
-          [ I.hsnap ~align:`Right param.line_number_width (I.string fringe_style (Int.to_string line_num))
-          ; I.string fringe_style "│"
-          ; show_code_line ~param line
-          ]
-      ) lines
+  let show_code_segment ~param (tag, seg) =
+    I.string (highlight_style param.severity tag) (UserContent.replace_control ~tab_size:param.tab_size seg)
 
   (* [ ┊ ] *)
-  let render_code_block_sep ~param =
+  let render_block_sep ~param =
     hcat_with_pad ~pad:1
       [ I.void param.line_number_width 0
       ; I.string fringe_style "┊"
       ]
+
+  let render_line_tags ~param ~show_code tags =
+    I.vcat begin
+      tags |> List.mapi @@ fun i b ->
+      (if i = 0 then render_block_sep ~param else I.empty)
+      <->
+      render_tag ~param ~show_code b
+      <->
+      render_block_sep ~param
+    end
+
+  let show_line ~line_num ~param ~show_code Explication.{segments; tags} =
+    hcat_with_pad ~pad:1
+      [ I.hsnap ~align:`Right param.line_number_width (I.string fringe_style (Int.to_string line_num))
+      ; I.string fringe_style "│"
+      ; I.hcat @@ List.map (show_code_segment ~param) segments
+      ]
+    <->
+    render_line_tags ~param ~show_code tags
+
+  (* [3 ⇃ no, it is not my fault!!!] *)
+  let render_block ~param ~show_code Explication.{begin_line_num; end_line_num=_; lines} =
+    I.vcat @@ List.mapi (fun i line -> show_line ~line_num:(begin_line_num + i) ~param ~show_code line) lines
 
   (* [ ┷ ] *)
   let render_code_part_end ~param =
@@ -232,46 +259,41 @@ struct
       ; I.string fringe_style "┷"
       ]
 
-  let render_part ~param Explication.{source; blocks} =
-    I.vcat @@ List.concat @@
-    [ [ render_source_header ~param source ]
-    ; begin
-      blocks |> List.mapi @@ fun i b ->
-      (if i > 0 then render_code_block_sep ~param else I.empty)
-      <->
-      render_block ~param b
-    end
-    ; [ render_code_part_end ~param ]
-    ]
-
-  let render_explication ~param parts =
-    I.vcat @@ List.map (render_part ~param) parts
-
-  (* message *)
-  let render_text ~param ~show_code text =
-    let attr = message_style param.severity in
-    I.pad ~l:1 begin
-      (if show_code
-       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Message.short_code param.message)
-       else I.empty)
-      <->
-      I.strf ~attr "%t" text
-    end
-
-  let render_message ~param ~show_code explication text =
-    render_explication ~param explication
+  let render_part ~param ~show_code Explication.{source; blocks} =
+    render_source_header ~param source
     <->
-    render_text ~param ~show_code text
+    I.vcat begin
+      blocks |> List.mapi @@ fun i b ->
+      (if i > 0 then render_block_sep ~param else I.empty)
+      <->
+      render_block ~param ~show_code b
+    end
+    <->
+    render_code_part_end ~param
 
-  let display_message ~param ~show_code (loctext : Diagnostic.loctext) ~extra_remarks =
+  let render_explication ~param ~show_code parts =
+    I.vcat @@ List.map (render_part ~param ~show_code) parts
+
+  let render_message ~param ~show_code explication tags =
+    render_explication ~param ~show_code explication
+    <->
+    I.vcat (List.map (fun t -> render_tag ~param ~show_code t <-> I.void 0 1) tags)
+
+  let display_message ~param ~show_code (explanation : Diagnostic.loctext) ~extra_remarks =
+    let located_tags, unlocated_tags =
+      let explanation = Tag.Main, explanation in
+      let extra_remarks = List.mapi (fun i r -> Tag.Extra i, r) (Bwd.to_list extra_remarks) in
+      List.partition_map
+        (function
+          | (tag, Span.{loc = None; value = text}) -> Either.Right (tag, text)
+          | (tag, Span.{loc = Some sp; value = text}) -> Either.Left ((tag, text), sp))
+        (explanation :: extra_remarks)
+    in
     let explication =
-      let style s x = Explication.{value = x; style = s} in
-      let main_span = Option.to_list @@ Option.map (style Style.HighlightedPrimary) loctext.loc in
-      let additional_spans = Bwd.filter_map (fun x -> Option.map (style Style.Additional) x.Span.loc) extra_remarks in
-      E.explicate ~block_splitting_threshold:param.block_splitting_threshold (main_span @ Bwd.to_list additional_spans)
+      E.explicate ~block_splitting_threshold:param.block_splitting_threshold located_tags
     in
     let line_number_width = Int.max param.line_number_width (line_number_width explication) in
-    render_message ~param:{param with line_number_width} ~show_code explication loctext.value
+    render_message ~param:{param with line_number_width} ~show_code explication unlocated_tags
 
   let display_backtrace ~param backtrace =
     let indentation_style = A.fg @@ A.gray 8 in
@@ -286,7 +308,7 @@ struct
     in
     I.vcat
       [ I.string indentation_style " ╭"
-      ; I.tabulate 1 (I.height backtrace) (fun _ _ -> I.string indentation_style " │") <|> backtrace
+      ; I.tabulate 1 (I.height backtrace) (fun _ _ -> I.string indentation_style " ┆") <|> backtrace
       ; I.string indentation_style " ╯"
       ]
 

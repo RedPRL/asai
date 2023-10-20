@@ -68,6 +68,11 @@ val locate_opt : t option -> 'a -> 'a located
 (** [locate sp v] is [{loc = Some sp; value = v}]. *)
 val locate : t -> 'a -> 'a located
 
+(** {1 Other Helper Functions} *)
+
+(** [title src] gets the title of the source. The title of a [`File] source is its file path. *)
+val title : source -> string option
+
 (** {1 Support of Lexing} *)
 
 (** [of_lex_position pos] converts an OCaml lexer position [pos] of type {!type:Lexing.position} into a {!type:position}. The input [pos] must be byte-indexed. (Therefore, the OCaml tool [ocamllex] is compatible, but the OCaml library [sedlex] is not because it uses Unicode code points.) *)

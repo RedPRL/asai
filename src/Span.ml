@@ -16,23 +16,21 @@ type t = position * position
 
 type 'a located = { loc : t option; value : 'a }
 
-let dump_string fmt s = Format.fprintf fmt "%S" s [@@inline]
-
-let dump_option dump fmt =
-  function
-  | None -> Format.pp_print_string fmt "None"
-  | Some v -> Format.fprintf fmt "Some %a" dump v
-
 let dump_string_source fmt {title; content} =
   Format.fprintf fmt "@[{title=%a;@ content=%a}@]"
-    (dump_option dump_string) title dump_string content
+    (Utils.dump_option Utils.dump_string) title Utils.dump_string content
 
 let dump_source fmt : source -> unit =
   function
-  | `File s -> Format.fprintf fmt "(`File %a)" dump_string s
+  | `File s -> Format.fprintf fmt "(`File %a)" Utils.dump_string s
   | `String str_src ->
     Format.fprintf fmt "@[<3>(`String@ @[%a@])@]"
       dump_string_source str_src
+
+let title : source -> string option =
+  function
+  | `String {title; _} -> title
+  | `File p -> Some p
 
 let make (begin_ , end_ : position * position) : t =
   if begin_.source <> end_.source then

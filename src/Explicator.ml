@@ -6,7 +6,7 @@ include ExplicatorSigs
 
 let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
 
-module Make (Style : Style) = struct
+module Make (Tag : Tag) = struct
   type position = Span.position
 
   (** [find_eol_traditional pos] finds the position of the next ['\n']. If the end of source is reached before ['\n'], then the position of the end of the source is returned. *)
@@ -65,11 +65,14 @@ module Make (Style : Style) = struct
     SourceReader.unsafe_get source (begin_ + i)
 
   type explicator_state =
-    { lines : (string, Style.t) styled list bwd
-    ; segments : (string, Style.t) styled bwd
-    ; current : (Span.position, Style.t) styled
+    { lines : Tag.t line bwd
+    ; segments : Tag.t segment bwd
+    ; remaining_tagged_lines : (Tag.t * int) list
+    ; current_tag : Tag.t option
+    ; cursor : Span.position
     ; eol : int
     ; eol_shift : int
+    ; line_num : int
     }
 
   exception Unexpected_end_of_source of Span.position
@@ -77,68 +80,85 @@ module Make (Style : Style) = struct
   exception Unexpected_newline of Span.position
   exception Unexpected_position_in_newline of Span.position
 
-  let explicate_block ~line_breaking : (Span.position, Style.t) styled list -> Style.t block =
+  module F = Flattener.Make(Tag)
+
+  let explicate_block ~line_breaking (b : F.block) : Tag.t block =
     let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
-    function
+    match b.tagged_positions with
     | [] -> invalid_arg "explicate_block: empty block"
-    | (p :: _) as ps ->
-      let source = SourceReader.load p.value.source in
+    | ((_, ploc) :: _) as ps ->
+      let source = SourceReader.load ploc.source in
       let eof = SourceReader.length source in
-      let[@tailcall] rec go state : (Span.position, Style.t) styled list -> _ =
+      let[@tailcall] rec go state : (Tag.t option * Span.position) list -> _ =
         function
-        | p::ps when state.current.value.line_num = p.value.line_num ->
-          if p.value.offset > eof then raise @@ Unexpected_end_of_source p.value;
-          if p.value.offset > state.eol then raise @@ Unexpected_newline p.value;
-          if p.value.offset = state.current.value.offset then
-            go {state with current = p} ps
+        | (ptag,ploc)::ps when state.cursor.line_num = ploc.line_num ->
+          if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
+          if ploc.offset > state.eol then raise @@ Unexpected_newline ploc;
+          if ploc.offset = state.cursor.offset then
+            go {state with cursor = ploc; current_tag = ptag} ps
           else
             (* Still on the same line *)
             let segments =
               state.segments <:
-              style state.current.style (read_between ~source state.current.value.offset p.value.offset)
+              (state.current_tag, read_between ~source state.cursor.offset ploc.offset)
             in
-            go { state with segments; current = p } ps
+            go { state with segments; cursor = ploc; current_tag = ptag } ps
         | ps ->
           (* Shifting to the next line *)
-          let lines =
+          let lines, remaining_tagged_lines =
             let segments =
-              if state.current.value.offset < state.eol then
+              if state.cursor.offset < state.eol then
                 state.segments <:
-                style state.current.style (read_between ~source state.current.value.offset state.eol)
+                (state.current_tag, read_between ~source state.cursor.offset state.eol)
               else
                 state.segments
             in
-            state.lines <: Bwd.to_list segments
+            let tagged_lines, remaining_tagged_lines = Utils.span (fun (_, i) -> i = state.line_num) state.remaining_tagged_lines in
+            (state.lines <: {segments = Bwd.to_list segments; tags = List.map fst tagged_lines}), remaining_tagged_lines
           in
           (* Continue the process if [ps] is not empty. *)
           match ps with
           | [] ->
-            assert (Style.is_default state.current.style); lines
-          | p :: _ ->
-            if p.value.offset > eof then raise @@ Unexpected_end_of_source p.value;
-            if p.value.offset <= state.eol then raise @@ Unexpected_line_num_increment p.value;
-            if p.value.offset < state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline p.value;
+            assert (Option.is_none state.current_tag); lines
+          | (_, ploc) :: _ ->
+            if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
+            if ploc.offset <= state.eol then raise @@ Unexpected_line_num_increment ploc;
+            if ploc.offset < state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline ploc;
             (* Okay, p is really on the next line *)
-            let current = style state.current.style @@
-              eol_to_next_line state.eol_shift {state.current.value with offset = state.eol}
+            let cursor =
+              eol_to_next_line state.eol_shift {state.cursor with offset = state.eol}
             in
             let eol, eol_shift = find_eol ~source ~eof (state.eol + state.eol_shift) in
-            go {lines; segments=Emp; current; eol; eol_shift} ps
+            go {lines; segments=Emp; current_tag = state.current_tag; cursor; eol; eol_shift; remaining_tagged_lines; line_num = state.line_num + 1} ps
       in
-      let start_pos = to_start_of_line p.value in
-      { start_line_num = start_pos.line_num
-      ; lines = Bwd.to_list @@
-          let eol, eol_shift = find_eol ~source ~eof p.value.offset in
-          go {lines = Emp; segments = Emp; current = style Style.default start_pos; eol; eol_shift} ps
+      let begin_pos = to_start_of_line ploc in
+      let eol, eol_shift = find_eol ~source ~eof ploc.offset in
+      let lines =
+        go
+          { lines = Emp
+          ; segments = Emp
+          ; remaining_tagged_lines = b.tagged_lines
+          ; current_tag = None
+          ; cursor = begin_pos
+          ; eol
+          ; eol_shift
+          ; line_num = b.begin_line_num
+          }
+          ps
+      in
+      { begin_line_num = b.end_line_num
+      ; end_line_num = b.end_line_num
+      ; lines = Bwd.to_list @@ lines
       }
 
   let[@inline] explicate_blocks ~line_breaking = List.map (explicate_block ~line_breaking)
 
-  let[@inline] explicate_part ~line_breaking (source, bs) : Style.t part =
+  let[@inline] explicate_part ~line_breaking (source, bs) : Tag.t part =
     { source; blocks = explicate_blocks ~line_breaking bs }
 
-  module F = Flattener.Make(Style)
+  let default_blend t1 t2 =
+    if Tag.priority t2 <= Tag.priority t1 then t2 else t1
 
-  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=0) spans =
-    List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold spans
+  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=0) ?(blend=default_blend) spans =
+    List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold ~blend spans
 end
