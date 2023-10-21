@@ -82,7 +82,7 @@ module Make (Tag : Tag) = struct
 
   module F = Flattener.Make(Tag)
 
-  let explicate_block ~line_breaking (b : F.block) : Tag.t block =
+  let explicate_block ~line_breaking (b : Tag.t Flattener.block) : Tag.t block =
     let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     match b.tagged_positions with
     | [] -> invalid_arg "explicate_block: empty block"
@@ -119,7 +119,9 @@ module Make (Tag : Tag) = struct
           (* Continue the process if [ps] is not empty. *)
           match ps with
           | [] ->
-            assert (Option.is_none state.current_tag); lines
+            assert (Option.is_none state.current_tag);
+            assert (state.line_num = b.end_line_num);
+            lines
           | (_, ploc) :: _ ->
             if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
             if ploc.offset <= state.eol then raise @@ Unexpected_line_num_increment ploc;
@@ -146,7 +148,7 @@ module Make (Tag : Tag) = struct
           }
           ps
       in
-      { begin_line_num = b.end_line_num
+      { begin_line_num = b.begin_line_num
       ; end_line_num = b.end_line_num
       ; lines = Bwd.to_list @@ lines
       }

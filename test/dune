@@ -4,6 +4,11 @@
  (libraries asai algaeff alcotest))
 
 (test
+ (name TestFlattener)
+ (modules TestFlattener)
+ (libraries asai algaeff alcotest))
+
+(test
  (name TestUserContent)
  (modules TestUserContent)
  (libraries asai algaeff alcotest))

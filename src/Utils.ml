@@ -8,7 +8,10 @@ let dump_option dump fmt =
   | None -> Format.pp_print_string fmt "None"
   | Some v -> Format.fprintf fmt "@[<2>Some@ (%a)@]" dump v
 
-let pp_list p fmt l =
+let dump_pair dump_x dump_y fmt (x, y) =
+  Format.fprintf fmt {|@[<1>(%a,@ %a)@]|} dump_x x dump_y y
+
+let dump_list p fmt l =
   Format.fprintf fmt "@[<hv1>[%a]@]"
     (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@,") p)
     l
@@ -55,8 +58,9 @@ let keep_first_in_groups p =
 let maximum = List.fold_left Int.max Int.min_int
 
 let compare_pair c1 c2 (x1, y1) (x2, y2) : int =
-  let r = c1 x1 x2 in
-  if r <> 0 then r else c2 y1 y2
+  match c1 x1 x2 with
+  | 0 -> c2 y1 y2
+  | r -> r
 
 let span p =
   let rec go acc =

@@ -3,24 +3,33 @@ open Bwd.Infix
 
 open ExplicatorSigs
 
+type 'tag block =
+  { begin_line_num : int
+  ; end_line_num : int
+  ; tagged_positions : ('tag option * Span.position) list
+  ; tagged_lines : ('tag * int) list}
+
+type 'tag t = (Span.source * 'tag block list) list
+
+let dump_block dump_tag fmt {begin_line_num; end_line_num; tagged_positions; tagged_lines} =
+  Format.fprintf fmt {|@[<1>{begin_line_num=%d;@ end_line_num=%d;@ @[<2>tagged_positions=@ @[%a@]@];@ @[<2>tagged_lines=@,@[%a@]@]}@]|}
+    begin_line_num end_line_num
+    (Utils.dump_list (Utils.dump_pair (Utils.dump_option dump_tag) Span.dump_position)) tagged_positions
+    (Utils.dump_list (Utils.dump_pair dump_tag Format.pp_print_int)) tagged_lines
+
+let dump dump_tag =
+  Utils.dump_list @@ Utils.dump_pair Span.dump_source (Utils.dump_list (dump_block dump_tag))
+
 module Make (Tag : Tag) =
 struct
-
-  type nonrec 'a opt_tagged = Tag.t option * 'a
-  type nonrec 'a tagged = Tag.t * 'a
   type unflattened_block =
     { begin_line_num : int
     ; end_line_num : int
-    ; spans : Span.t tagged list}
-  type block =
-    { begin_line_num : int
-    ; end_line_num : int
-    ; tagged_positions : Span.position opt_tagged list
-    ; tagged_lines : int tagged list}
+    ; spans : (Tag.t * Span.t) list}
 
   module Splitter :
   sig
-    val partition : block_splitting_threshold:int -> Span.t tagged list -> unflattened_block list
+    val partition : block_splitting_threshold:int -> (Tag.t * Span.t) list -> unflattened_block list
   end
   =
   struct
@@ -36,25 +45,26 @@ struct
 
     let sort_tagged = List.stable_sort compare_span_tagged
 
-    let block_of_span s : unflattened_block =
-      { begin_line_num = Span.begin_line_num (snd s)
-      ; end_line_num = Span.end_line_num (snd s)
+    let block_of_span ((_, sloc) as s) : unflattened_block =
+      { begin_line_num = Span.begin_line_num sloc
+      ; end_line_num = Span.end_line_num sloc
       ; spans = [s]}
 
-    let partition_sorted ~block_splitting_threshold : _ list -> unflattened_block list =
-      let rec go block (blocks : unflattened_block list) =
-        function
+    let partition_sorted ~block_splitting_threshold l : unflattened_block list =
+      let rec go ss block (blocks : unflattened_block list) =
+        match ss with
         | Emp -> block :: blocks
-        | Snoc (ss, s) ->
-          if block.begin_line_num - Span.end_line_num (snd s) > block_splitting_threshold then
-            go (block_of_span s) (block :: blocks) ss
+        | Snoc (ss, ((_, sloc) as s)) ->
+          if block.begin_line_num - Span.end_line_num sloc > block_splitting_threshold then
+            go ss (block_of_span s) (block :: blocks)
           else
-            go {block with spans = s :: block.spans} blocks ss
+            let begin_line_num = Int.min block.begin_line_num (Span.begin_line_num sloc) in
+            go ss {block with begin_line_num; spans = s :: block.spans} blocks
       in
-      function
-      | [] -> []
-      | s :: ss ->
-        go (block_of_span s) [] (Bwd.of_list ss)
+      match Bwd.of_list l with
+      | Emp -> []
+      | Snoc (ss, s) ->
+        go ss (block_of_span s) []
 
     let partition ~block_splitting_threshold l =
       partition_sorted ~block_splitting_threshold (sort_tagged l)
@@ -62,11 +72,11 @@ struct
 
   module BlockFlattener :
   sig
-    val flatten : blend:(Tag.t -> Tag.t -> Tag.t) -> Span.t tagged list -> Span.position opt_tagged list
+    val flatten : blend:(Tag.t -> Tag.t -> Tag.t) -> (Tag.t * Span.t) list -> (Tag.t option * Span.position) list
   end
   =
   struct
-    type t = Span.position opt_tagged bwd
+    type t = (Tag.t option * Span.position) bwd
 
     (* precondition: x1 < x2 and there are already points at x1 and x2 *)
     let impose ~blend xtag (x1 : Span.position) (x2 : Span.position) : t -> t =
@@ -77,13 +87,13 @@ struct
       in
       let[@tail_mod_cons] rec go2 : t -> t =
         function
-        | Snoc (ps, (ptag, p)) when p.offset >= x1.offset ->
-          Snoc (go2 ps, (blend_opt ptag, p))
+        | Snoc (ps, (ptag, ploc)) when ploc.offset >= x1.offset ->
+          Snoc (go2 ps, (blend_opt ptag, ploc))
         | ps -> ps
       in
       let[@tail_mod_cons] rec go1 : t -> t =
         function
-        | Snoc (ps, p) when (snd p).offset >= x2.offset ->
+        | Snoc (ps, ((_, ploc) as p)) when ploc.offset >= x2.offset ->
           Snoc (go1 ps, p)
         | ps -> go2 ps
       in
@@ -92,7 +102,7 @@ struct
     let ensure_point (x : Span.position) =
       let[@tail_mod_cons] rec go : t -> t =
         function
-        | Snoc (ps, p) when (snd p).offset > x.offset ->
+        | Snoc (ps, ((_, ploc) as p)) when ploc.offset > x.offset ->
           Snoc (go ps, p)
         | Emp -> Emp <: (None, x)
         | Snoc (_, (ptag, p)) as ps ->
@@ -115,7 +125,7 @@ struct
 
   module File :
   sig
-    val flatten : block_splitting_threshold:int -> blend:(Tag.t -> Tag.t -> Tag.t) -> Span.t tagged list -> block list
+    val flatten : block_splitting_threshold:int -> blend:(Tag.t -> Tag.t -> Tag.t) -> (Tag.t * Span.t) list -> Tag.t block list
   end
   =
   struct
@@ -132,7 +142,7 @@ struct
 
   module Files :
   sig
-    val flatten : block_splitting_threshold:int -> blend:(Tag.t -> Tag.t -> Tag.t) -> Span.t tagged list -> (Span.source * block list) list
+    val flatten : block_splitting_threshold:int -> blend:(Tag.t -> Tag.t -> Tag.t) -> (Tag.t * Span.t) list -> (Span.source * Tag.t block list) list
   end
   =
   struct
@@ -149,7 +159,7 @@ struct
 
     let priority l : int = List.fold_left (fun p (tag, _) -> Int.min p (Tag.priority tag)) Int.max_int l
 
-    let compare_part (p1 : Span.source * int * block list) (p2 : Span.source * int * block list) =
+    let compare_part (p1 : Span.source * int * Tag.t block list) (p2 : Span.source * int * Tag.t block list) =
       match p1, p2 with
       | (_, pri1, _), (_, pri2, _) when pri1 <> pri2 -> Int.compare pri1 pri2
       | (s1, _, _), (s2, _, _) -> Option.compare String.compare (Span.title s1) (Span.title s2)

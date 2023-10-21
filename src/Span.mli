@@ -98,4 +98,9 @@ val locate_lex : Lexing.position * Lexing.position -> 'a -> 'a located
 (** {1 Debugging} *)
 
 (** Ugly printer for debugging *)
+
 val dump_source : Format.formatter -> source -> unit
+
+val dump_position : Format.formatter -> position -> unit
+
+val dump : Format.formatter -> t -> unit

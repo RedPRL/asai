@@ -48,5 +48,8 @@ module SourceReader = SourceReader
 (** Backward compatibility *)
 module Logger = Reporter [@@ocaml.alert deprecated "Use Reporter instead"]
 
-(** Helper functions for handling user content. *)
+(** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
 module UserContent = UserContent
+
+(** The internal flattener that is tightly coupled with {!module:Explication}. This is exposed for internal testing. Absolutely no stability guarantees. *)
+module Flattener = Flattener
