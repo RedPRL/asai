@@ -159,6 +159,6 @@ module Make (Tag : Tag) = struct
   let[@inline] explicate_part ~line_breaking (source, bs) : Tag.t part =
     { source; blocks = explicate_blocks ~line_breaking bs }
 
-  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=0) ?(blend=default_blend ~priority:Tag.priority) spans =
+  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(blend=default_blend ~priority:Tag.priority) spans =
     List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold ~blend spans
 end

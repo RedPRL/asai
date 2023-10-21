@@ -123,7 +123,7 @@ struct
       match mode with
       | `Debug -> fun d -> Terminal.display ~show_backtrace:true d
       | `Normal -> fun d -> Terminal.display ~show_backtrace:false d
-      | `Interactive -> fun d -> Terminal.interactive_trace d
+      | `Interactive -> fun d -> Terminal.interact d
       | `GitHub -> GitHub.print
     in
     Reporter.run ~emit:display ~fatal:display @@ fun () ->

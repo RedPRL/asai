@@ -33,7 +33,7 @@ module Make (Message : Reporter.Message) : sig
   *)
   val display : ?terminal_capacity:Notty.Cap.t -> ?output:out_channel -> ?show_backtrace:bool -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Message.t Diagnostic.t -> unit
 
-  (** [interactive_trace d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace.
+  (** [interact d] drops the user in a small interactive terminal app where they can cycle through the message provided in [d] and its backtrace.
 
       @param input The input of the interactive app. By default, it is {!val:Unix.stdin}, the standard input.
       @param output The output of the interactive app, By default, it is {!val:Unix.stdout}, the standard output.
@@ -43,5 +43,5 @@ module Make (Message : Reporter.Message) : sig
 
       @raise Invalid_argument if [tab_size < 0].
   *)
-  val interactive_trace : ?input:Unix.file_descr -> ?output:Unix.file_descr -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Message.t Diagnostic.t -> unit
+  val interact : ?input:Unix.file_descr -> ?output:Unix.file_descr -> ?line_breaking:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> Message.t Diagnostic.t -> unit
 end

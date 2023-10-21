@@ -1,14 +1,19 @@
 (tests
  (names TestExplicator TestFlattener)
  (modules TestExplicator TestFlattener IntTag)
- (libraries asai algaeff alcotest))
+ (libraries asai alcotest))
 
 (test
  (name TestUserContent)
  (modules TestUserContent)
- (libraries asai algaeff alcotest))
+ (libraries asai alcotest))
 
 (test
  (name TestTty)
  (modules TestTty)
- (libraries asai algaeff alcotest))
+ (libraries asai))
+
+(executable
+ (name TestTtyInteract)
+ (modules TestTtyInteract)
+ (libraries asai))
