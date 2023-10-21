@@ -4,8 +4,8 @@
 
 (** {1 Core API} *)
 
-(** Locations and spans. *)
-module Span = Span
+(** Locations and ranges. *)
+module Range = Range
 
 (** The definition of diagnostics and some utility functions. *)
 module Diagnostic = Diagnostic
@@ -46,7 +46,10 @@ module SourceReader = SourceReader
 (**/**)
 
 (** Backward compatibility *)
-module Logger = Reporter [@@ocaml.alert deprecated "Use Reporter instead"]
+module Span = Range [@@ocaml.alert deprecated "Use Asai.Range instead"]
+
+(** Backward compatibility *)
+module Logger = Reporter [@@ocaml.alert deprecated "Use Asai.Reporter instead"]
 
 (** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
 module UserContent = UserContent

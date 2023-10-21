@@ -4,11 +4,11 @@ open Bwd.Infix
 open Explication
 include ExplicatorSigs
 
-let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
+let to_start_of_line (pos : Range.position) = {pos with offset = pos.start_of_line}
 let default_blend ~(priority : _ -> int) t1 t2 = if priority t2 <= priority t1 then t2 else t1
 
 module Make (Tag : Tag) = struct
-  type position = Span.position
+  type position = Range.position
 
   (** [find_eol_traditional pos] finds the position of the next ['\n']. If the end of source is reached before ['\n'], then the position of the end of the source is returned. *)
   let find_eol_traditional ~source ~eof next =
@@ -70,16 +70,16 @@ module Make (Tag : Tag) = struct
     ; segments : Tag.t segment bwd
     ; remaining_tagged_lines : (Tag.t * int) list
     ; current_tag : Tag.t option
-    ; cursor : Span.position
+    ; cursor : Range.position
     ; eol : int
     ; eol_shift : int
     ; line_num : int
     }
 
-  exception Unexpected_end_of_source of Span.position
-  exception Unexpected_line_num_increment of Span.position
-  exception Unexpected_newline of Span.position
-  exception Unexpected_position_in_newline of Span.position
+  exception Unexpected_end_of_source of Range.position
+  exception Unexpected_line_num_increment of Range.position
+  exception Unexpected_newline of Range.position
+  exception Unexpected_position_in_newline of Range.position
 
   module F = Flattener.Make(Tag)
 
@@ -90,7 +90,7 @@ module Make (Tag : Tag) = struct
     | ((_, ploc) :: _) as ps ->
       let source = SourceReader.load ploc.source in
       let eof = SourceReader.length source in
-      let[@tailcall] rec go state : (Tag.t option * Span.position) list -> _ =
+      let[@tailcall] rec go state : (Tag.t option * Range.position) list -> _ =
         function
         | (ptag,ploc)::ps when state.cursor.line_num = ploc.line_num ->
           if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
@@ -159,6 +159,6 @@ module Make (Tag : Tag) = struct
   let[@inline] explicate_part ~line_breaking (source, bs) : Tag.t part =
     { source; blocks = explicate_blocks ~line_breaking bs }
 
-  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(blend=default_blend ~priority:Tag.priority) spans =
-    List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold ~blend spans
+  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(blend=default_blend ~priority:Tag.priority) ranges =
+    List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold ~blend ranges
 end

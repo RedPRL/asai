@@ -8,7 +8,7 @@ struct
 
   (* Backtraces *)
 
-  module Traces = Algaeff.Reader.Make (struct type nonrec env = Span.t option * Diagnostic.backtrace end)
+  module Traces = Algaeff.Reader.Make (struct type nonrec env = Range.t option * Diagnostic.backtrace end)
 
   let get_loc() = fst @@ Traces.read()
 

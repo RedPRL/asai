@@ -23,15 +23,15 @@ module Make (Message : Reporter.Message) = struct
       (single_line_of_text text)
 
   let print_with_loc severity msg loc text =
-    match Span.source loc with
+    match Range.source loc with
     | `String _ ->
       print_without_loc severity msg text
     | `File file_path ->
       Format.printf "::%s file=%s,line=%i,endLine=%i,title=%s::%s@."
         (command_of_severity severity)
         file_path
-        (Span.begin_line_num loc)
-        (Span.end_line_num loc)
+        (Range.begin_line_num loc)
+        (Range.end_line_num loc)
         (Message.short_code msg)
         (single_line_of_text text)
 

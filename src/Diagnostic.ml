@@ -14,9 +14,9 @@ let textf = Format.dprintf
 
 let ktextf = Format.kdprintf
 
-let loctext ?loc s = Span.{ loc; value = text s }
+let loctext ?loc s = Range.{ loc; value = text s }
 
-let kloctextf ?loc k = ktextf @@ fun loctext -> k Span.{ loc; value = loctext }
+let kloctextf ?loc k = ktextf @@ fun loctext -> k Range.{ loc; value = loctext }
 
 let loctextf ?loc = kloctextf Fun.id ?loc
 

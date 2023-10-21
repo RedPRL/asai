@@ -14,7 +14,7 @@ let dump_block dump_tag fmt {begin_line_num; end_line_num; lines} =
 
 let dump_part dump_tag fmt {source; blocks} =
   Format.fprintf fmt {|@[<1>{@[<2>source=@ %a@];@,@[<2>blocks=@ %a@]}@]|}
-    Span.dump_source source
+    Range.dump_source source
     (Utils.dump_list (dump_block dump_tag)) blocks
 
 let dump dump_tag = Utils.dump_list (dump_part dump_tag)

@@ -17,7 +17,7 @@ open Syntax
 %inline
 locate(X):
   | e = X
-    { Asai.Span.locate_lex $loc e }
+    { Asai.Range.locate_lex $loc e }
 
 defn:
   | LPR; CHECK; tm = term; tp = typ; RPR

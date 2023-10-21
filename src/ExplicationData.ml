@@ -16,9 +16,9 @@ type 'tag block =
 
 (** A part consists of multiple blocks from the same file. These blocks should be non-overlapping and sorted by importance or the textual order. *)
 type 'tag part =
-  { source : Span.source (** The source of a part. *)
+  { source : Range.source (** The source of a part. *)
   ; blocks : 'tag block list (** The blocks within a part. *)
   }
 
-(** Highlighted texts instead of spans. *)
+(** Highlighted texts. *)
 type 'tag t = 'tag part list

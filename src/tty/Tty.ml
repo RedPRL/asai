@@ -88,7 +88,7 @@ struct
 
   (* [ ╒══ examples/stlc/source.lambda] *)
   (* [ │ ] *)
-  let render_source_header ~param : Span.source -> I.t =
+  let render_source_header ~param : Range.source -> I.t =
     function
     | `String {title=None; _} ->
       hcat_with_pad ~pad:1
@@ -173,8 +173,8 @@ struct
       let extra_remarks = List.mapi (fun i r -> Tag.Extra i, r) (Bwd.to_list extra_remarks) in
       List.partition_map
         (function
-          | (tag, Span.{loc = None; value = text}) -> Either.Right (tag, text)
-          | (tag, Span.{loc = Some sp; value = text}) -> Either.Left ((tag, text), sp))
+          | (tag, Range.{loc = None; value = text}) -> Either.Right (tag, text)
+          | (tag, Range.{loc = Some sp; value = text}) -> Either.Left ((tag, text), sp))
         (explanation :: extra_remarks)
     in
     let explication =

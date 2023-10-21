@@ -100,29 +100,29 @@ PS: We have a {{:https://github.com/RedPRL/asai/issues/38} GitHub issue on spewi
 
 {1 Add Location Information}
 
-Good diagnostics also help the end user locate the issues in their program or proof. Here, a {i location} is a range of text from a file or a string, which we call {i span.} Many functions in your [Reporter] take an optional location argument [loc], including {{!val:Asai.Reporter.S.trace}trace}, which should be a span highlighting the most relevant part of the text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
+Good diagnostics also help the end user locate the issues in their program or proof. Here, a location is a {i range} of text from a file or a string. Many functions in your [Reporter] take an optional location argument [loc], including {{!val:Asai.Reporter.S.trace}trace}, which should be a range highlighting the most relevant part of the text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
 {[
 Reporter.emit ~loc Greeting "Hello again!";
 (* continue doing other things *)
 ]}
-You can use {{!val:Asai.Span.make}Span.make} to create such a span manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Span.make}Span.locate}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
+You can use {{!val:Asai.Range.make}Range.make} to create such a range manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Range.make}Range.locate}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
 {v
 %inline
 locate(X):
   | e = X
-    { Asai.Span.locate_lex $loc e }
+    { Asai.Range.locate_lex $loc e }
 v}
-The annotated node will have type {{!type:Asai.Span.located}[data] Span.located} where [data] is the output type of [X]. Another one is {{!val:Asai.Span.of_lexbuf}Span.of_lexbuf}, which comes in handy when reporting a parsing error:
+The annotated node will have type {{!type:Asai.Range.located}[data] Range.located} where [data] is the output type of [X]. Another one is {{!val:Asai.Range.of_lexbuf}Range.of_lexbuf}, which comes in handy when reporting a parsing error:
 {[
 try Grammar.start Lex.token lexbuf with
 | Lex.SyntaxError token ->
-  Reporter.fatalf ~loc:(Span.of_lexbuf lexbuf) ParsingError
+  Reporter.fatalf ~loc:(Range.of_lexbuf lexbuf) ParsingError
     {|Unrecognized token `%s'|} (String.escaped token)
 | Grammar.Error ->
-  Reporter.fatal ~loc:(Span.of_lexbuf lexbuf) ParsingError
+  Reporter.fatal ~loc:(Range.of_lexbuf lexbuf) ParsingError
     "Failed to parse the code"
 ]}
-Please take a look at {!module:Asai.Span} to learn all kinds of ways to create a span!
+Please take a look at {!module:Asai.Range} to learn all kinds of ways to create a range!
 
 Note that [Reporter] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[

@@ -1,6 +1,6 @@
 open Asai
 
-type tm = tm_ Span.located
+type tm = tm_ Range.located
 and tm_ =
   | Var of string
   | Lam of string * tm
