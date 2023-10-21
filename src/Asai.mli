@@ -22,6 +22,8 @@ module StructuredReporter = StructuredReporter
 
 (** {1 Experimental Diagnostic Handlers} *)
 
+(** These handlers are subject to changes, but we will minimize incompatible changes between minor versions. *)
+
 (** Diagnostic display for UNIX terminals. *)
 module Tty = Tty
 
@@ -29,6 +31,8 @@ module Tty = Tty
 module GitHub = GitHub
 
 (** {1 Internals} *)
+
+(** The internals are exposed for convenience, but they are subject to changes between minor versions. *)
 
 (** The definition of highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
 module Explication = Explication
@@ -44,5 +48,8 @@ module SourceReader = SourceReader
 (** Backward compatibility *)
 module Logger = Reporter [@@ocaml.alert deprecated "Use Reporter instead"]
 
-(** Helper functions for handling user content. *)
+(** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
 module UserContent = UserContent
+
+(** The internal flattener that is tightly coupled with {!module:Explication}. This is exposed for internal testing. Absolutely no stability guarantees. *)
+module Flattener = Flattener

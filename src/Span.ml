@@ -16,23 +16,27 @@ type t = position * position
 
 type 'a located = { loc : t option; value : 'a }
 
-let dump_string fmt s = Format.fprintf fmt "%S" s [@@inline]
-
-let dump_option dump fmt =
-  function
-  | None -> Format.pp_print_string fmt "None"
-  | Some v -> Format.fprintf fmt "Some %a" dump v
-
 let dump_string_source fmt {title; content} =
   Format.fprintf fmt "@[{title=%a;@ content=%a}@]"
-    (dump_option dump_string) title dump_string content
+    (Utils.dump_option Utils.dump_string) title Utils.dump_string content
 
 let dump_source fmt : source -> unit =
   function
-  | `File s -> Format.fprintf fmt "(`File %a)" dump_string s
+  | `File s -> Format.fprintf fmt "(`File %a)" Utils.dump_string s
   | `String str_src ->
     Format.fprintf fmt "@[<3>(`String@ @[%a@])@]"
       dump_string_source str_src
+
+let dump_position fmt {source; offset; start_of_line; line_num} =
+  Format.fprintf fmt {|@[<1>{@[<2>source=@[%a@]@];@ offset=%d;@ start_of_line=%d;@ line_num=%d}@]|}
+    dump_source source offset start_of_line line_num
+
+let dump = Utils.dump_pair dump_position dump_position
+
+let title : source -> string option =
+  function
+  | `String {title; _} -> title
+  | `File p -> Some p
 
 let make (begin_ , end_ : position * position) : t =
   if begin_.source <> end_.source then
@@ -48,11 +52,11 @@ let make (begin_ , end_ : position * position) : t =
 
 let split (sp : t) : position * position = sp
 
-let source (beginning,_) = beginning.source
-let begin_line_num (beginning, _) = beginning.line_num
-let end_line_num (_,ending) = ending.line_num
-let begin_offset (beginning,_) = beginning.offset
-let end_offset (_,ending) = ending.offset
+let source ((begin_,_) : t) = begin_.source
+let begin_line_num ((begin_, _) : t) = begin_.line_num
+let begin_offset ((begin_, _) : t) = begin_.offset
+let end_line_num ((_, end_) : t) = end_.line_num
+let end_offset ((_, end_) : t) = end_.offset
 
 let locate_opt loc value = {loc; value}
 let locate loc value = {loc = Some loc; value}

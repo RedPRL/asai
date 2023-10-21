@@ -4,7 +4,7 @@ let lift_syslib f =
 module Term = Asai.Tty.Make(Reporter.Message)
 
 let () =
-  Reporter.run ~emit:Term.interactive_trace ~fatal:(Term.display ~show_backtrace:true) @@ fun () ->
+  Reporter.run ~emit:Term.interact ~fatal:Term.display @@ fun () ->
   (lift_syslib @@ fun () -> Syslib.Operations.operation1 "op1");
   (lift_syslib @@ fun () -> Syslib.Operations.operation2 "op2");
   lift_syslib @@ fun () -> Syslib.Operations.operation3 "op3"
