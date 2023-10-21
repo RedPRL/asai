@@ -20,125 +20,6 @@ module E = Explicator.Make(Tag)
 
 module Make (Message : Reporter.Message) =
 struct
-(*
- ╭
- │    ╒══ examples/stlc/example.lambda
- │    │
- │  1 │ (check (λ ä (λ 123
- │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
- │    ┊
- │ 20 │ ahhhhhhhhhhhhhhhhhh
- │ 21 │ noooooooooooooooooo
- │    ┷
- │ When blah blah blah
- │
- │    ╒══ examples/stlc/example.lambda
- │    │
- │  1 │ (check (λ ä (λ 123
- │  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
- │    ┊
- │ 20 │ ahhhhhhhhhhhhhhhhhh
- │ 21 │ noooooooooooooooooo
- │    ┷
- │ When blah blah blah
- ╯
-    ╒══ examples/stlc/example.lambda
-    │
-  1 │ (check (λ ä (λ 123
-  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
-    ┊
- 20 │ ahhhhhhhhhhhhhhhhhh
- 21 │ noooooooooooooooooo
-    ┷
-    ╒══ examples/stlc/example2.lambda
-    │
-  3 │ let x = 1
-  4 │ let y = 1
-    ┷
-    ╒══ examples/stlc/example3.lambda
-    │
-  8 │ assert (asai is cool)
-    ┷
- Error[E002]:
- Why am I checking the term against (→ ℕ (→ ℕ ℕ)),
- when it looks amazing?
-
-    ╒══ examples/stlc/example4.lambda
-    │
-  8 │ assert (asai is cool)
-    ┷
- Error[E002]:
- Why am I checking the term against (→ ℕ (→ ℕ ℕ)),
- when it looks amazing?
-
-*)
-
-(*
- ╭
- ┆    ┯
- ┆  1 │ (check (λ ä (λ 123
- ┆  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
- ┆    ┊
- ┆ 20 │ ahhhhhhhhhhhhhhhhhh
- ┆ 21 │ noooooooooooooooooo
- ┆    ┊
- ┆ When blah blah blah
- ┆    ┊
- ┆    ┷
- ┆
- ┆    ┯
- ┆  1 │ (check (λ ä (λ 123
- ┆  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
- ┆    ┊
- ┆ When blah blah blah
- ┆    ┊
- ┆ 20 │ ahhhhhhhhhhhhhhhhhh
- ┆ 21 │ noooooooooooooooooo
- ┆    ┷
- ╯
-    ┯
-  1 │ (check (λ ä (λ 123
-  2 │   sdaf)) (→ ℕ (→ ℕ ℕ)))
-    ┊
- Error[E002]:
- Why am I checking the term (→ ℕ (→ ℕ ℕ))
- which looks amazing!!
-    ┊
- Why am I checking the term (→ ℕ (→ ℕ ℕ))
- which looks amazing!!
-    ┊
- 20 │ ahhhhhhhhhhhhhhhhhh
- 21 │ noooooooooooooooooo
-    ┊
- Why am I checking the term (→ ℕ (→ ℕ ℕ))
- which looks amazing!!
-    ┊
-    ┷
-    ┯
-  3 │ let x = 1
-  4 │ let y = 1
-    ┷
-    ┯
-  8 │ assert (asai is cool)
-    ┷
-
-*)
-
-(*
- ╭
- ┊ When checking against (→ ℕ (→ ℕ ℕ))
- ┊
- ┊ When checking against (→ ℕ ℕ)
- ┊
- ┊ When checking against ℕ
- ┊
- ┊ When synthesizing
- ╯
- Error[E002]:
- Variable 'sdaf' is not in scope
-
-*)
-
   (* helper functions *)
 
   let hcat_with_pad ~pad l =
@@ -146,22 +27,21 @@ struct
 
   (* styles *)
 
-  let message_style (severity : Diagnostic.severity) =
-    let open A in
-    match severity with
-    | Hint -> fg blue
-    | Info -> fg green
-    | Warning -> fg yellow
-    | Error -> fg red
-    | Bug -> bg red ++ fg black
+  let message_style (severity : Diagnostic.severity) (tag : Tag.t) : attr =
+    match tag with
+    | Extra _, _ -> A.empty
+    | Main, _ ->
+      match severity with
+      | Hint -> A.fg A.blue
+      | Info -> A.fg A.green
+      | Warning -> A.fg A.yellow
+      | Error -> A.fg A.red
+      | Bug -> A.bg A.red ++ A.fg A.black
 
   let highlight_style (severity : Diagnostic.severity) : Tag.t option -> attr =
-    let open A in
     function
-    | None -> empty
-    | Some (Extra _, _) -> st underline
-    | Some (Main, _) ->
-      st underline ++ message_style severity
+    | None -> A.empty
+    | Some tag -> A.st A.underline ++ message_style severity tag
 
   let fringe_style = A.fg @@ A.gray 8
 
@@ -179,11 +59,14 @@ struct
 
   (* text *)
 
-  let render_tag ~param ~show_code (index, text) =
-    let attr = message_style param.severity in
+  let render_tag ~param ~show_code ((index, text) as tag) =
+    let attr = message_style param.severity tag in
     I.pad ~l:1 begin
       (if show_code && index = Tag.Main
-       then I.strf ~attr "%s[%s]:" (Diagnostic.string_of_severity param.severity) (Message.short_code param.message)
+       then
+         I.strf ~attr "%s[%s]:"
+           (Diagnostic.string_of_severity param.severity)
+           (Message.short_code param.message)
        else I.empty)
       <->
       I.strf ~attr "%t" text
@@ -277,7 +160,7 @@ struct
   let render_message ~param ~show_code explication tags =
     render_explication ~param ~show_code explication
     <->
-    I.vcat (List.map (fun t -> render_tag ~param ~show_code t <-> I.void 0 1) tags)
+    I.vcat (List.map (fun t -> render_tag ~param ~show_code t) tags)
 
   let display_message ~param ~show_code (explanation : Diagnostic.loctext) ~extra_remarks =
     let located_tags, unlocated_tags =

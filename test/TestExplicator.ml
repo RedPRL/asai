@@ -1,13 +1,5 @@
 open Asai
 
-module IntTag : Explicator.Tag with type t = int =
-struct
-  type t = int
-  let equal = Int.equal
-  let priority i = -i
-  let dump = Format.pp_print_int
-end
-
 module E = Explicator.Make(IntTag)
 
 let test_explication = Alcotest.of_pp (Explication.dump IntTag.dump)
