@@ -104,3 +104,7 @@ val dump_source : Format.formatter -> source -> unit
 val dump_position : Format.formatter -> position -> unit
 
 val dump : Format.formatter -> t -> unit
+
+(**/**)
+
+val of_lex_span : Lexing.position * Lexing.position -> t [@@ocaml.alert deprecated "Use Asai.Range.of_lex_range instead"]

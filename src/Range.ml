@@ -69,8 +69,10 @@ let of_lex_position (pos : Lexing.position) : position =
     line_num = pos.pos_lnum;
   }
 
-let of_lex_range (start, stop) =
-  make (of_lex_position start, of_lex_position stop)
+let of_lex_range (begin_, end_) =
+  make (of_lex_position begin_, of_lex_position end_)
+
+let of_lex_span = of_lex_range
 
 let of_lexbuf lexbuf =
   of_lex_range (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
