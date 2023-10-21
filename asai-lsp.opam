@@ -16,7 +16,7 @@ depends: [
   "eio_main" {>= "0.12"}
   "lsp" {>= "1.15"}
   "asai" {= version}
-  "odoc" {with-doc}
+  "odoc" {with-doc & >= "2.0"}
 ]
 build: [
   ["dune" "subst"] {dev}

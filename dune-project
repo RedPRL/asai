@@ -21,8 +21,8 @@
    (algaeff (>= 1.0))
    (bwd (>= 2.2))
    (notty (>= 0.2.3))
-   ;; Tests
-   (alcotest (and :with-test (>= 1.5)))))
+   (alcotest (and :with-test (>= 1.5)))
+   (odoc (and :with-doc (>= 2.0)))))
 (package
  (name asai-lsp)
  (synopsis "LSP handler for the package asai")
@@ -33,7 +33,8 @@
    (eio (>= 0.12))
    (eio_main (>= 0.12))
    (lsp (>= 1.15))
-   (asai (= :version))))
+   (asai (= :version))
+   (odoc (and :with-doc (>= 2.0)))))
 (package
  (name asai-examples)
  (synopsis "Examples of the package asai")
@@ -43,4 +44,5 @@
    (algaeff (>= 1.0))
    (bwd (>= 2.2))
    (menhir (>= 20220210))
-   (asai (= :version))))
+   (asai (= :version))
+   (odoc (and :with-doc (>= 2.0)))))
