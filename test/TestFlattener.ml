@@ -20,7 +20,7 @@ let single_line_flatten () =
     [(source,
       [{begin_line_num=1;
         end_line_num=1;
-        tagged_positions=[(Some 1, pt1);(Some 2, pt2);(None, pt4)];
+        tagged_positions=[(Some 1, pt1);(Some 2, pt2);(Some 2, pt3);(None, pt4)];
         tagged_lines=[(1,1);(2,1)]}])]
   in
   let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) [span1; span2] in

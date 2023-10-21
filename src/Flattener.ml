@@ -118,9 +118,7 @@ struct
       impose ~blend tag x1 x2 @@ ensure_point x2 @@ ensure_point x1 l
 
     let flatten ~blend l =
-      List.fold_left (add ~blend) Emp l
-      |> Bwd.to_list
-      |> Utils.keep_first_in_groups (fun (xtag, _) (ytag, _) -> Option.equal Tag.equal xtag ytag)
+      Bwd.to_list @@ List.fold_left (add ~blend) Emp l
   end
 
   module File :

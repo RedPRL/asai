@@ -1,11 +1,16 @@
 open Asai
 
+
 let width = 10
+let template = "abcdefghijklmnopqrstuvw"
 
 let s title : Span.source =
   `String
     { title = title
-    ; content = String.concat "\n" (List.map (String.make width) ['a';'b';'c';'d';'e'])
+    ; content =
+        String.concat "\n" @@
+        List.init  (String.length template) @@ fun i ->
+        String.make width template.[i]
     }
 
 let s1 = s None
@@ -80,4 +85,5 @@ let () =
       Diagnostic.loctext ~loc:(Span.make (~@ s1 2 8, ~@ s1 2 9)) "Message 5";
       Diagnostic.loctext ~loc:(Span.make (~@ s1 1 3, ~@ s1 2 1)) "Message 6";
       Diagnostic.loctext ~loc:(Span.make (~@ s2 1 3, ~@ s2 2 1)) "Message 7";
+      Diagnostic.loctext ~loc:(Span.make (~@ s2 10 0, ~@ s2 10 0)) "Message 8";
     ];

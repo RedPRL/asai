@@ -157,10 +157,15 @@ struct
   let render_explication ~param ~show_code parts =
     I.vcat @@ List.map (render_part ~param ~show_code) parts
 
-  let render_message ~param ~show_code explication tags =
+  let render_message ~param ~show_code explication unlocated_tags =
     render_explication ~param ~show_code explication
     <->
-    I.vcat (List.map (fun t -> render_tag ~param ~show_code t) tags)
+    I.vcat begin
+      unlocated_tags |> List.mapi @@ fun i t ->
+      (if i > 0 then I.void 0 1 else I.empty)
+      <->
+      render_tag ~param ~show_code t
+    end
 
   let display_message ~param ~show_code (explanation : Diagnostic.loctext) ~extra_remarks =
     let located_tags, unlocated_tags =

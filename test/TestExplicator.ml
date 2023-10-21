@@ -19,7 +19,8 @@ let single_line mode eol () =
               segments =
                 [(None, "aaa");
                  (Some 1, "bbb");
-                 (Some 2, "cccddd");
+                 (Some 2, "ccc");
+                 (Some 2, "ddd");
                  (None, "eee");
                 ]}]}
         ]}
