@@ -5,10 +5,10 @@ module E = Explicator.Make(IntTag)
 let test_explication = Alcotest.of_pp (Explication.dump IntTag.dump)
 
 let single_line mode eol () =
-  let source = `String {Span.title = None; content = "aaabbbcccdddeee" ^ eol} in
-  let begin_of_line1 : Span.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
-  let span1 = 1, Span.make ({begin_of_line1 with offset = 3}, {begin_of_line1 with offset = 9}) in
-  let span2 = 2, Span.make ({begin_of_line1 with offset = 6}, {begin_of_line1 with offset = 12}) in
+  let source = `String {Range.title = None; content = "aaabbbcccdddeee" ^ eol} in
+  let begin_of_line1 : Range.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
+  let range1 = 1, Range.make ({begin_of_line1 with offset = 3}, {begin_of_line1 with offset = 9}) in
+  let range2 = 2, Range.make ({begin_of_line1 with offset = 6}, {begin_of_line1 with offset = 12}) in
   let expected : _ Explication.t =
     [{source;
       blocks =
@@ -25,14 +25,14 @@ let single_line mode eol () =
                 ]}]}
         ]}
     ] in
-  let actual = E.explicate ~line_breaking:mode [span1; span2] in
+  let actual = E.explicate ~line_breaking:mode [range1; range2] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines_with_ls () =
-  let source = `String {Span.title = None; content = "aabbbbb\u{2028}bbbbccc"} in
-  let begin_of_line1 : Span.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
-  let begin_of_line2 : Span.position = {source; offset = 10; start_of_line = 10; line_num = 2} in
-  let span = 1, Span.make ({begin_of_line1 with offset = 2}, {begin_of_line2 with offset = 14}) in
+  let source = `String {Range.title = None; content = "aabbbbb\u{2028}bbbbccc"} in
+  let begin_of_line1 : Range.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
+  let begin_of_line2 : Range.position = {source; offset = 10; start_of_line = 10; line_num = 2} in
+  let range = 1, Range.make ({begin_of_line1 with offset = 2}, {begin_of_line2 with offset = 14}) in
   let expected : _ Explication.t =
     [{source;
       blocks =
@@ -52,13 +52,13 @@ let multi_lines_with_ls () =
         ]}
     ]
   in
-  let actual = E.explicate ~line_breaking:`Unicode [span] in
+  let actual = E.explicate ~line_breaking:`Unicode [range] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines () =
   let source =
     `String
-      {Span.title = None;
+      {Range.title = None;
        content =
          {|
 aabbbbb
@@ -77,17 +77,17 @@ ee++fff
 ggggghh
 |}}
   in
-  let begin_of_line2 : Span.position = {source; offset = 1; start_of_line = 1; line_num = 2} in
-  let begin_of_line4 : Span.position = {source; offset = 17; start_of_line = 17; line_num = 4} in
-  let begin_of_line9 : Span.position = {source; offset = 33; start_of_line = 33; line_num = 9} in
-  let begin_of_line15 : Span.position = {source; offset = 51; start_of_line = 51; line_num = 15} in
-  let spans =
+  let begin_of_line2 : Range.position = {source; offset = 1; start_of_line = 1; line_num = 2} in
+  let begin_of_line4 : Range.position = {source; offset = 17; start_of_line = 17; line_num = 4} in
+  let begin_of_line9 : Range.position = {source; offset = 33; start_of_line = 33; line_num = 9} in
+  let begin_of_line15 : Range.position = {source; offset = 51; start_of_line = 51; line_num = 15} in
+  let ranges =
     [
-      2, Span.make ({begin_of_line4 with offset = 17+1}, {begin_of_line4 with offset = 17+4});
-      1, Span.make ({begin_of_line2 with offset = 1+2}, {begin_of_line4 with offset = 17+4});
-      4, Span.make ({begin_of_line9 with offset = 33+2}, {begin_of_line9 with offset = 33+7});
-      8, Span.make ({begin_of_line9 with offset = 33+4}, {begin_of_line9 with offset = 33+7});
-      16, Span.make (begin_of_line15, {begin_of_line15 with offset = 51+5});
+      2, Range.make ({begin_of_line4 with offset = 17+1}, {begin_of_line4 with offset = 17+4});
+      1, Range.make ({begin_of_line2 with offset = 1+2}, {begin_of_line4 with offset = 17+4});
+      4, Range.make ({begin_of_line9 with offset = 33+2}, {begin_of_line9 with offset = 33+7});
+      8, Range.make ({begin_of_line9 with offset = 33+4}, {begin_of_line9 with offset = 33+7});
+      16, Range.make (begin_of_line15, {begin_of_line15 with offset = 51+5});
     ]
   in
   let expected : _ Explication.t =
@@ -133,7 +133,7 @@ ggggghh
                 [(Some 16, "ggggg");
                  (None, "hh")]}]}]}]
   in
-  let actual = E.explicate ~line_breaking:`Traditional ~block_splitting_threshold:5 spans in
+  let actual = E.explicate ~line_breaking:`Traditional ~block_splitting_threshold:5 ranges in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let () =
@@ -157,7 +157,7 @@ let () =
     ];
     "multi-line",
     [
-      test_case "multi-line span with LS" `Quick multi_lines_with_ls;
-      test_case "multi-line span with CRLF" `Quick multi_lines;
+      test_case "multi-line range with LS" `Quick multi_lines_with_ls;
+      test_case "multi-line range with CRLF" `Quick multi_lines;
     ]
   ]

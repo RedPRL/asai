@@ -2,15 +2,15 @@ module L = Lsp.Types
 
 module Loc =
 struct
-  let lsp_pos_of_pos (pos : Asai.Span.position) =
+  let lsp_pos_of_pos (pos : Asai.Range.position) =
     L.Position.create
       ~line:(pos.line_num - 1)
       ~character:(pos.offset - pos.start_of_line)
 
-  let lsp_range_of_span (sp : Asai.Span.t option) =
+  let lsp_range_of_range (sp : Asai.Range.t option) =
     match sp with
     | Some sp ->
-      let (start , stop) = Asai.Span.split sp in
+      let (start , stop) = Asai.Range.split sp in
       L.Range.create
         ~start:(lsp_pos_of_pos start)
         ~end_:(lsp_pos_of_pos stop)

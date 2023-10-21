@@ -33,19 +33,19 @@ struct
   end
   =
   struct
-    let compare_span (s1 : Range.t) (s2 : Range.t) =
+    let compare_range (s1 : Range.t) (s2 : Range.t) =
       Utils.compare_pair Int.compare Int.compare
         (Range.end_offset s1, Range.begin_offset s1)
         (Range.end_offset s2, Range.begin_offset s2)
 
-    let compare_span_tagged (t1, sp1) (t2, sp2) =
-      Utils.compare_pair compare_span Int.compare
+    let compare_range_tagged (t1, sp1) (t2, sp2) =
+      Utils.compare_pair compare_range Int.compare
         (sp1, Tag.priority t1)
         (sp2, Tag.priority t2)
 
-    let sort_tagged = List.stable_sort compare_span_tagged
+    let sort_tagged = List.stable_sort compare_range_tagged
 
-    let block_of_span ((_, sloc) as s) : unflattened_block =
+    let block_of_range ((_, sloc) as s) : unflattened_block =
       { begin_line_num = Range.begin_line_num sloc
       ; end_line_num = Range.end_line_num sloc
       ; ranges = [s]}
@@ -56,7 +56,7 @@ struct
         | Emp -> block :: blocks
         | Snoc (ss, ((_, sloc) as s)) ->
           if block.begin_line_num - Range.end_line_num sloc > block_splitting_threshold then
-            go ss (block_of_span s) (block :: blocks)
+            go ss (block_of_range s) (block :: blocks)
           else
             let begin_line_num = Int.min block.begin_line_num (Range.begin_line_num sloc) in
             go ss {block with begin_line_num; ranges = s :: block.ranges} blocks
@@ -64,7 +64,7 @@ struct
       match Bwd.of_list l with
       | Emp -> []
       | Snoc (ss, s) ->
-        go ss (block_of_span s) []
+        go ss (block_of_range s) []
 
     let partition ~block_splitting_threshold l =
       partition_sorted ~block_splitting_threshold (sort_tagged l)
@@ -134,8 +134,8 @@ struct
       ; tagged_lines = List.map (fun (tag, value) -> tag, Range.end_line_num value) ranges
       }
 
-    let flatten ~block_splitting_threshold ~blend sps =
-      List.map (flatten_block ~blend) @@ Splitter.partition ~block_splitting_threshold sps
+    let flatten ~block_splitting_threshold ~blend rs =
+      List.map (flatten_block ~blend) @@ Splitter.partition ~block_splitting_threshold rs
   end
 
   module Files :
@@ -153,7 +153,7 @@ struct
       m |>
       FileMap.update (Range.source (snd data)) @@ function
       | None -> Some (Emp <: data)
-      | Some sps -> Some (sps <: data)
+      | Some rs -> Some (rs <: data)
 
     let priority l : int = List.fold_left (fun p (tag, _) -> Int.min p (Tag.priority tag)) Int.max_int l
 
@@ -162,11 +162,11 @@ struct
       | (_, pri1, _), (_, pri2, _) when pri1 <> pri2 -> Int.compare pri1 pri2
       | (s1, _, _), (s2, _, _) -> Option.compare String.compare (Range.title s1) (Range.title s2)
 
-    let flatten ~block_splitting_threshold ~blend sps =
-      sps
+    let flatten ~block_splitting_threshold ~blend rs =
+      rs
       |> List.fold_left add FileMap.empty
       |> FileMap.bindings
-      |> List.map (fun (src, sps) -> let sps = Bwd.to_list sps in src, priority sps, File.flatten ~block_splitting_threshold ~blend sps)
+      |> List.map (fun (src, rs) -> let rs = Bwd.to_list rs in src, priority rs, File.flatten ~block_splitting_threshold ~blend rs)
       |> List.filter (fun (_, _, l) -> l <> []) (* filter out sources with only empty ranges *)
       |> List.stable_sort compare_part
       |> List.map (fun (src, _, part) -> src, part)

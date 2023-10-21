@@ -111,9 +111,9 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Reporter.fatalf ~loc:(Asai.Span.of_lexbuf lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
       | Grammar.Error ->
-        Reporter.fatalf ~loc:(Asai.Span.of_lexbuf lexbuf) `LexingError "Failed to parse"
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "Failed to parse"
     in
     Elab.Reader.run ~env:Emp @@ fun () ->
     Elab.chk tm tp

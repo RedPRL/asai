@@ -14,8 +14,8 @@ let single_line_flatten () =
     {begin_of_line1 with offset = 9},
     {begin_of_line1 with offset = 12}
   in
-  let span1 = 1, Range.make (pt1, pt3) in
-  let span2 = 2, Range.make (pt2, pt4) in
+  let range1 = 1, Range.make (pt1, pt3) in
+  let range2 = 2, Range.make (pt2, pt4) in
   let expected : _ Flattener.t =
     [(source,
       [{begin_line_num=1;
@@ -23,7 +23,7 @@ let single_line_flatten () =
         tagged_positions=[(Some 1, pt1);(Some 2, pt2);(Some 2, pt3);(None, pt4)];
         tagged_lines=[(1,1);(2,1)]}])]
   in
-  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) [span1; span2] in
+  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) [range1; range2] in
   Alcotest.(check test_flattened) "Flattener is correct" expected actual
 
 let multi_lines () =
@@ -57,7 +57,7 @@ ggggghh
     {begin_of_line9 with offset = 33+2}, {begin_of_line9 with offset = 33+4}, {begin_of_line9 with offset = 33+7},
     {begin_of_line15 with offset = 51+5}
   in
-  let spans =
+  let ranges =
     [
       2, Range.make (pt18, pt21);
       1, Range.make (pt3, pt21);
@@ -90,7 +90,7 @@ ggggghh
         tagged_lines=
           [(16, 15)]}])]
   in
-  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) spans in
+  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) ranges in
   Alcotest.(check test_flattened) "Flattener is correct" expected actual
 
 let () =
@@ -98,7 +98,7 @@ let () =
   Alcotest.run "Flattener" [
     "flattening",
     [
-      test_case "single-line spans" `Quick single_line_flatten;
-      test_case "multi-line spans" `Quick multi_lines;
+      test_case "single-line ranges" `Quick single_line_flatten;
+      test_case "multi-line ranges" `Quick multi_lines;
     ]
   ]
