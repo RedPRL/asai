@@ -30,7 +30,7 @@ end
 
 type source = File of bigstring | String of string
 
-let load : Span.source -> _ =
+let load : Range.source -> _ =
   function
   | `File file_path -> File (snd @@ FileInternal.load file_path)
   | `String {content; _} -> String content

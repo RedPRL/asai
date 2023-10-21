@@ -17,19 +17,19 @@ val ktextf : (text -> 'b) -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 (** [loctext str] converts the string [str] into a loctext.
 
     @param loc The location of the loctext (usually the code) to highlight. *)
-val loctext : ?loc:Span.t -> string -> loctext
+val loctext : ?loc:Range.t -> string -> loctext
 
 (** [loctextf format ...] constructs a loctext. Note that there should not be any literal control characters (e.g., literal newline characters).
 
     @param loc The location of the loctext (usually the code) to highlight.
 *)
-val loctextf : ?loc:Span.t -> ('a, Format.formatter, unit, loctext) format4 -> 'a
+val loctextf : ?loc:Range.t -> ('a, Format.formatter, unit, loctext) format4 -> 'a
 
 (** [kloctextf kont format ...] is [kont (loctextf format ...)].
 
     @param loc The location of the loctext (usually the code) to highlight.
 *)
-val kloctextf : ?loc:Span.t -> (loctext -> 'b) -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+val kloctextf : ?loc:Range.t -> (loctext -> 'b) -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 (** {1 Constructing Diagnostics} *)
 
@@ -45,7 +45,7 @@ val kloctextf : ?loc:Span.t -> (loctext -> 'b) -> ('a, Format.formatter, unit, '
 
     @since 0.2.0
 *)
-val of_text : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity -> 'message -> text -> 'message t
+val of_text : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity -> 'message -> text -> 'message t
 
 (** [of_loctext severity message loctext] constructs a diagnostic from a {!type:loctext}.
 
@@ -69,7 +69,7 @@ val of_loctext : ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
     @param extra_remarks Additional remarks that are not part of the backtrace.
 *)
-val make : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity -> 'message -> string -> 'message t
+val make : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity -> 'message -> string -> 'message t
 
 (** [makef severity message format ...] is [of_loctext severity message (loctextf format ...)]. It formats the message and constructs a diagnostic out of it.
 
@@ -82,7 +82,7 @@ val make : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list ->
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
     @param extra_remarks Additional remarks that are not part of the backtrace.
 *)
-val makef : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity -> 'message -> ('a, Format.formatter, unit, 'message t) format4 -> 'a
+val makef : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity -> 'message -> ('a, Format.formatter, unit, 'message t) format4 -> 'a
 
 (** [kmakef kont severity message format ...] is [kont (makef severity message format ...)].
 
@@ -90,7 +90,7 @@ val makef : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
     @param extra_remarks Additional remarks that are not part of the backtrace.
 *)
-val kmakef : ?loc:Span.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> ('message t -> 'b) -> severity -> 'message -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+val kmakef : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -> ('message t -> 'b) -> severity -> 'message -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 (** {1 Other Helper Functions} *)
 

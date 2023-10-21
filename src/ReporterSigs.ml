@@ -32,7 +32,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val emit : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> unit
+  val emit : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> unit
 
   (** [emitf message format ...] formats and emits a message, and then continues the computation. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
@@ -46,7 +46,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val emitf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
+  val emitf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
   (** Emit a diagnostic and continue the computation. *)
   val emit_diagnostic : Message.t Diagnostic.t -> unit
@@ -63,7 +63,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val fatal : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> 'a
+  val fatal : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> 'a
 
   (** [fatalf message format ...] constructs a diagnostic and aborts the current computation with the diagnostic. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
@@ -77,7 +77,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val fatalf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  val fatalf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** Abort the computation with a diagnostic. *)
   val fatal_diagnostic: Message.t Diagnostic.t -> 'a
@@ -101,18 +101,18 @@ sig
 
       @param loc The location of the text (usually the code) to highlight.
   *)
-  val trace : ?loc:Span.t -> string -> (unit -> 'a) -> 'a
+  val trace : ?loc:Range.t -> string -> (unit -> 'a) -> 'a
 
   (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
       @param loc The location of the text (usually the code) to highlight.
   *)
-  val tracef : ?loc:Span.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
+  val tracef : ?loc:Range.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
 
   (** [trace_text text f] records the [text] and runs the thunk [f] with the new backtrace.
 
       @param loc The location of the text (usually the code) to highlight. *)
-  val trace_text : ?loc:Span.t -> Diagnostic.text -> (unit -> 'a) -> 'a
+  val trace_text : ?loc:Range.t -> Diagnostic.text -> (unit -> 'a) -> 'a
 
   (** [trace_loctext loctext f] records the [loctext] and runs the thunk [f] with the new backtrace. *)
   val trace_loctext : Diagnostic.loctext -> (unit -> 'a) -> 'a
@@ -120,13 +120,13 @@ sig
   (** {2 Locations} *)
 
   (** [get_loc()] returns the current location. *)
-  val get_loc : unit -> Span.t option
+  val get_loc : unit -> Range.t option
 
   (** [with_loc loc f] runs the thunk [f] with [loc] as the initial location [loc]. Note that [with_loc None] will clear the current location, while [merge_loc None] will keep it. See {!val:merge_loc}. *)
-  val with_loc : Span.t option -> (unit -> 'a) -> 'a
+  val with_loc : Range.t option -> (unit -> 'a) -> 'a
 
   (** [merge_loc loc f] "merges" [loc] into the current location and runs the thunk [f]. By "merge", it means that if [loc] is [None], then the current location is kept; otherwise, it is overwritten. Note that [with_loc None] will clear the current location, while [merge_loc None] will keep it. See {!val:with_loc}. *)
-  val merge_loc : Span.t option -> (unit -> 'a) -> 'a
+  val merge_loc : Range.t option -> (unit -> 'a) -> 'a
 
   (** {2 Constructing Diagnostics} *)
 
@@ -144,7 +144,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> Message.t Diagnostic.t
+  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> Message.t Diagnostic.t
 
   (** [diagnosticf message format ...] constructs a diagnostic along with the backtrace frames recorded via {!val:trace}. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
@@ -158,7 +158,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val diagnosticf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, Message.t Diagnostic.t) format4 -> 'a
+  val diagnosticf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, Message.t Diagnostic.t) format4 -> 'a
 
   (** [kdiagnosticf kont message format ...] is [kont (diagnosticf message format ...)]. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
@@ -167,7 +167,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val kdiagnosticf : ?severity:Diagnostic.severity -> ?loc:Span.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> (Message.t Diagnostic.t -> 'b) -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  val kdiagnosticf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> (Message.t Diagnostic.t -> 'b) -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** {2 Algebraic Effects} *)
 
@@ -176,7 +176,7 @@ sig
       @param init_backtrace The initial backtrace to start with. The default value is the empty backtrace.
       @param emit The handler of non-fatal diagnostics.
       @param fatal The handler of fatal diagnostics. *)
-  val run : ?init_loc:Span.t -> ?init_backtrace:Diagnostic.backtrace -> emit:(Message.t Diagnostic.t -> unit) -> fatal:(Message.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
+  val run : ?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:(Message.t Diagnostic.t -> unit) -> fatal:(Message.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
   (** [adopt m run f] runs the thunk [f] that uses a {i different} [Reporter] instance. It takes the runner [run] from that [Reporter] instance as an argument to handle effects, and will use [m] to transform diagnostics generated by [f] into ones in the current [Reporter] instance. The backtrace within [f] will include the backtrace that leads to [adopt], and the innermost specified location will be carried over, too. The intended use case is to integrate diagnostics from a library into those in the main application.
 
@@ -198,7 +198,7 @@ sig
         let _ = Reporter.adopt (Diagnostic.map message_mapper) LibReporter.run @@ fun () -> ...
       ]}
   *)
-  val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Span.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
+  val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
 
   (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit} and {!val:emitf}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal} and {!val:fatalf}). The default interceptors re-emit or re-raise the intercepted diagnostics.
 

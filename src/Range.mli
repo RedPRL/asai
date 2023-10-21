@@ -36,7 +36,7 @@ type t
 (** An auxiliary type to package data with an optional span. *)
 type 'a located = { loc : t option; value : 'a }
 
-(** {1 Spans} *)
+(** {1 Ranges} *)
 
 (** [make (beginning, ending)] builds the span [\[beginning, ending)] (not including the byte at the ending position) from a pair of positions [beginning] and [ending].
 
@@ -90,7 +90,7 @@ val of_lexbuf : Lexing.lexbuf -> t
 %inline
 locate(X):
   | e = X
-    { Asai.Span.locate_lex $loc e }
+    { Asai.Range.locate_lex $loc e }
 v}
 *)
 val locate_lex : Lexing.position * Lexing.position -> 'a -> 'a located

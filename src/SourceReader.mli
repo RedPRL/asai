@@ -2,7 +2,7 @@
 type source
 
 (** [load source] loads the [source]. *)
-val load : Span.source -> source
+val load : Range.source -> source
 
 (** [length source] gets the size of the source content. *)
 val length : source -> int

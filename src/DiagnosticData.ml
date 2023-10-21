@@ -22,7 +22,7 @@ type severity =
 type text = Format.formatter -> unit
 
 (** A loctext is a {!type:text} with location information. "loctext" is a portmanteau of "locate" and "text". *)
-type loctext = text Span.located
+type loctext = text Range.located
 
 (** A backtrace is a (backward) list of loctexts. *)
 type backtrace = loctext bwd
