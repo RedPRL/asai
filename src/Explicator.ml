@@ -5,6 +5,7 @@ open Explication
 include ExplicatorSigs
 
 let to_start_of_line (pos : Span.position) = {pos with offset = pos.start_of_line}
+let default_blend ~(priority : _ -> int) t1 t2 = if priority t2 <= priority t1 then t2 else t1
 
 module Make (Tag : Tag) = struct
   type position = Span.position
@@ -158,9 +159,6 @@ module Make (Tag : Tag) = struct
   let[@inline] explicate_part ~line_breaking (source, bs) : Tag.t part =
     { source; blocks = explicate_blocks ~line_breaking bs }
 
-  let default_blend t1 t2 =
-    if Tag.priority t2 <= Tag.priority t1 then t2 else t1
-
-  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=0) ?(blend=default_blend) spans =
+  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=0) ?(blend=default_blend ~priority:Tag.priority) spans =
     List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold ~blend spans
 end

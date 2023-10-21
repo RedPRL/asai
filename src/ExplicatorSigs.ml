@@ -43,7 +43,4 @@ module type S = sig
       @raise Unexpected_newline See {!exception:Unexpected_newline}
       @raise Unexpected_position_in_newline See {!Unexpected_position_in_newline}
   *)
-
-  (**/**)
-  val default_blend : Tag.t -> Tag.t -> Tag.t
 end

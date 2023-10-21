@@ -31,7 +31,7 @@ let single_line_flatten () =
         tagged_positions=[(Some 1, pt1);(Some 2, pt2);(None, pt4)];
         tagged_lines=[(1,1);(2,1)]}])]
   in
-  let actual = F.flatten ~block_splitting_threshold:5 ~blend:E.default_blend [span1; span2] in
+  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) [span1; span2] in
   Alcotest.(check test_flattened) "Flattener is correct" expected actual
 
 let multi_lines () =
@@ -98,7 +98,7 @@ ggggghh
         tagged_lines=
           [(16, 15)]}])]
   in
-  let actual = F.flatten ~block_splitting_threshold:5 ~blend:E.default_blend spans in
+  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) spans in
   Alcotest.(check test_flattened) "Flattener is correct" expected actual
 
 let () =
