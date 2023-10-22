@@ -27,10 +27,9 @@ struct
 
   (* styles *)
 
-  let message_style (severity : Diagnostic.severity) (tag : Tag.t) : attr =
-    match tag with
-    | Extra _, _ -> A.empty
-    | Main, _ ->
+  module Style =
+  struct
+    let code (severity : Diagnostic.severity) : attr =
       match severity with
       | Hint -> A.fg A.blue
       | Info -> A.fg A.green
@@ -38,12 +37,20 @@ struct
       | Error -> A.fg A.red
       | Bug -> A.bg A.red ++ A.fg A.black
 
-  let highlight_style (severity : Diagnostic.severity) : Tag.t option -> attr =
-    function
-    | None -> A.empty
-    | Some tag -> A.st A.underline ++ message_style severity tag
+    let message (severity : Diagnostic.severity) (tag : Tag.t) : attr =
+      match tag with
+      | Extra _, _ -> A.empty
+      | Main, _ -> code severity
 
-  let fringe_style = A.fg @@ A.gray 8
+    let highlight (severity : Diagnostic.severity) : Tag.t option -> attr =
+      function
+      | None -> A.empty
+      | Some tag -> A.st A.underline ++ message severity tag
+
+    let fringe = A.fg @@ A.gray 8
+
+    let indentation = A.fg @@ A.gray 8
+  end
 
   (* parameters *)
   type param =
@@ -56,21 +63,6 @@ struct
       message : Message.t;
       line_number_width : int;
     }
-
-  (* text *)
-
-  let render_tag ~param ~show_code ((index, text) as tag) =
-    let attr = message_style param.severity tag in
-    I.pad ~l:1 begin
-      (if show_code && index = Tag.Main
-       then
-         I.strf ~attr "%s[%s]:"
-           (Diagnostic.string_of_severity param.severity)
-           (Message.short_code param.message)
-       else I.empty)
-      <->
-      I.strf ~attr "%t" text
-    end
 
   (* calculating the width of line numbers *)
 
@@ -86,88 +78,87 @@ struct
 
   (* different parts of the display *)
 
-  (* [ ╒══ examples/stlc/source.lambda] *)
-  (* [ │ ] *)
-  let render_source_header ~param : Range.source -> I.t =
-    function
-    | `String {title=None; _} ->
+  (* text *)
+
+  let render_code ~param =
+    let attr = Style.code param.severity in
+    hcat_with_pad ~pad:1
+      [ I.string A.empty "￫"
+      ; I.strf ~attr "%s[%s]:"
+          (Diagnostic.string_of_severity param.severity)
+          (Message.short_code param.message)
+      ]
+
+  (* [ ￭ examples/stlc/source.lambda] *)
+  let render_source_header ~param:_ (s : Range.source) : I.t =
+    match Range.title s with
+    | None -> I.empty
+    | Some title ->
       hcat_with_pad ~pad:1
-        [ I.void param.line_number_width 0
-        ; I.string fringe_style "┯"
-        ]
-    | `File title | `String {title=Some title; _} ->
-      hcat_with_pad ~pad:1
-        [ I.void param.line_number_width 0
-        ; I.string fringe_style "╒══" <-> I.string fringe_style "│"
+        [ I.string A.empty "￭"
         ; I.string A.empty title
         ]
 
-  let show_code_segment ~param (tag, seg) =
-    I.string (highlight_style param.severity tag) (UserContent.replace_control ~tab_size:param.tab_size seg)
+  let show_segment ~param (tag, seg) =
+    I.string (Style.highlight param.severity tag) @@
+    UserContent.replace_control ~tab_size:param.tab_size seg
 
-  (* [ ┊ ] *)
-  let render_block_sep ~param =
+  let render_line_tag ~param ((_, text) as tag) =
+    let attr = Style.message param.severity tag in
     hcat_with_pad ~pad:1
       [ I.void param.line_number_width 0
-      ; I.string fringe_style "┊"
+      ; I.string A.empty "^"
+      ; I.strf ~attr "%t" text
       ]
 
-  let render_line_tags ~param ~show_code tags =
-    I.vcat begin
-      tags |> List.mapi @@ fun i b ->
-      (if i = 0 then render_block_sep ~param else I.empty)
-      <->
-      render_tag ~param ~show_code b
-      <->
-      render_block_sep ~param
-    end
+  let render_line_tags ~param tags =
+    I.vcat @@ List.map (render_line_tag ~param) tags
 
-  let show_line ~line_num ~param ~show_code Explication.{segments; tags} =
+  let show_line ~line_num ~param Explication.{segments; tags} =
     hcat_with_pad ~pad:1
-      [ I.hsnap ~align:`Right param.line_number_width (I.string fringe_style (Int.to_string line_num))
-      ; I.string fringe_style "│"
-      ; I.hcat @@ List.map (show_code_segment ~param) segments
+      [ I.hsnap ~align:`Right param.line_number_width (I.string Style.fringe (Int.to_string line_num))
+      ; I.string Style.fringe "|"
+      ; I.hcat @@ List.map (show_segment ~param) segments
       ]
     <->
-    render_line_tags ~param ~show_code tags
+    render_line_tags ~param tags
 
-  (* [3 ⇃ no, it is not my fault!!!] *)
-  let render_block ~param ~show_code Explication.{begin_line_num; end_line_num=_; lines} =
-    I.vcat @@ List.mapi (fun i line -> show_line ~line_num:(begin_line_num + i) ~param ~show_code line) lines
+  let render_block ~param Explication.{begin_line_num; end_line_num=_; lines} =
+    I.vcat begin
+      lines |> List.mapi @@ fun i line ->
+      show_line ~line_num:(begin_line_num + i) ~param line
+    end
 
-  (* [ ┷ ] *)
-  let render_code_part_end ~param =
-    hcat_with_pad ~pad:1
-      [ I.void param.line_number_width 0
-      ; I.string fringe_style "┷"
-      ]
-
-  let render_part ~param ~show_code Explication.{source; blocks} =
+  let render_part ~param Explication.{source; blocks} =
     render_source_header ~param source
     <->
     I.vcat begin
-      blocks |> List.mapi @@ fun i b ->
-      (if i > 0 then render_block_sep ~param else I.empty)
-      <->
-      render_block ~param ~show_code b
+      blocks |> List.map @@ render_block ~param
     end
-    <->
-    render_code_part_end ~param
 
-  let render_explication ~param ~show_code parts =
-    I.vcat @@ List.map (render_part ~param ~show_code) parts
+  let render_explication ~param parts =
+    I.vcat begin
+      parts |> List.map @@ fun p ->
+      render_part ~param p
+    end
 
-  let render_message ~param ~show_code explication unlocated_tags =
-    render_explication ~param ~show_code explication
+  let render_unlocated_tag ~param ((_, text) as tag) =
+    let attr = Style.message param.severity tag in
+    hcat_with_pad ~pad:1
+      [ I.string A.empty "￮"
+      ; I.strf ~attr "%t" text
+      ]
+
+  let render_message ~param ?(end_padding=true) explication unlocated_tags =
+    render_explication ~param explication
     <->
     I.vcat begin
-      unlocated_tags |> List.mapi @@ fun i t ->
-      (if i > 0 then I.void 0 1 else I.empty)
-      <->
-      render_tag ~param ~show_code t
+      unlocated_tags |> List.map @@ render_unlocated_tag ~param
     end
+    <->
+    if end_padding then I.void 0 1 else I.empty
 
-  let display_message ~param ~show_code (explanation : Diagnostic.loctext) ~extra_remarks =
+  let display_message ~param ?end_padding (explanation : Diagnostic.loctext) ~extra_remarks =
     let located_tags, unlocated_tags =
       let explanation = Tag.Main, explanation in
       let extra_remarks = List.mapi (fun i r -> Tag.Extra i, r) (Bwd.to_list extra_remarks) in
@@ -181,52 +172,52 @@ struct
       E.explicate ~block_splitting_threshold:param.block_splitting_threshold located_tags
     in
     let line_number_width = Int.max param.line_number_width (line_number_width explication) in
-    render_message ~param:{param with line_number_width} ~show_code explication unlocated_tags
+    render_message ~param:{param with line_number_width} ?end_padding explication unlocated_tags
 
   let display_backtrace ~param backtrace =
-    let indentation_style = A.fg @@ A.gray 8 in
     let backtrace =
-      Bwd.to_list @@ Bwd.map (display_message ~param ~show_code:false ~extra_remarks:Emp) backtrace
+      I.vcat @@ Bwd.to_list @@
+      Bwd.map (display_message ~param ~end_padding:false ~extra_remarks:Emp) backtrace
     in
-    let backtrace =
-      I.vcat @@
-      List.mapi
-        (fun i image -> (if i > 0 then I.void 0 1 else I.empty) <-> image)
-        backtrace
-    in
-    I.vcat
-      [ I.string indentation_style " ╭"
-      ; I.tabulate 1 (I.height backtrace) (fun _ _ -> I.string indentation_style " ┆") <|> backtrace
-      ; I.string indentation_style " ╯"
-      ]
+    if I.height backtrace >= 1 then
+      I.vcat
+        [ I.string Style.indentation " ╭"
+        ; I.tabulate 1
+            (Int.max 0 (I.height backtrace - 2))
+            (fun _ _ -> I.string Style.indentation " ┆")
+        ; I.string Style.indentation " ╯"
+        ]
+      <|> backtrace
+    else
+      I.empty
 
   let display_diagnostic ~param ~explanation ~backtrace ~extra_remarks =
+    render_code ~param
+    <->
     SourceReader.run @@ fun () ->
-    (if param.show_backtrace && backtrace <> Emp then display_backtrace ~param backtrace else I.empty)
+    (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
     <->
-    display_message ~param ~show_code:true explanation ~extra_remarks
-    <->
-    I.void 0 1 (* new line *)
+    display_message ~param ~end_padding:true explanation ~extra_remarks
 
   let display ?(terminal_capacity) ?(output=Stdlib.stdout) ?(show_backtrace=true) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; message; explanation; backtrace; extra_remarks} =
-    let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 2} in
+    let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 1} in
     Notty_unix.output_image ?cap:terminal_capacity ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~explanation ~backtrace ~extra_remarks
 
   let interact ?(input=Unix.stdin) ?(output=Unix.stdout) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; message; explanation; extra_remarks; backtrace} =
-    let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 2} in
+    let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 1} in
     let traces =
       SourceReader.run @@ fun () ->
       Bwd.snoc
-        (backtrace |> Bwd.map (fun msg -> display_message ~param ~show_code:true msg ~extra_remarks:Emp))
-        (display_message ~param ~show_code:true explanation ~extra_remarks)
+        (Bwd.map (fun msg -> display_message ~param msg ~extra_remarks:Emp) backtrace)
+        (display_message ~param explanation ~extra_remarks)
       |> Bwd.to_list |> Array.of_list
     in
     let len = Array.length traces in
     let images = traces |> Array.mapi @@ fun i image ->
-      (image <->
-       I.void 0 1 <->
+      (render_code ~param <->
+       image <->
        I.strf "%d/%d" (i + 1) len <->
        I.string A.empty "Use left/right keys to navigate the stack trace" <->
        I.string A.empty "Press ESC to Quit")

@@ -12,8 +12,3 @@
  (name TestTty)
  (modules TestTty)
  (libraries asai))
-
-(executable
- (name TestTtyInteract)
- (modules TestTtyInteract)
- (libraries asai))

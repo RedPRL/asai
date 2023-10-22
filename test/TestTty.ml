@@ -14,7 +14,7 @@ let s title : Range.source =
     }
 
 let s1 = s None
-let s2 = s (Some "test")
+let s2 = s (Some "/path/to/file.cool")
 
 let (~@) source line col : Range.position =
   { source
@@ -43,9 +43,12 @@ end
 module Terminal = Asai.Tty.Make(Reporter.Code)
 
 let () =
-  Reporter.run
-    ~emit:(Terminal.display ~terminal_capacity:Notty.Cap.ansi)
-    ~fatal:(Terminal.display ~terminal_capacity:Notty.Cap.ansi) @@ fun () ->
+  let handler =
+    match Sys.argv with
+    | [| _ ; "--interact" |] -> fun d -> Terminal.interact d
+    | _ -> fun d -> Terminal.display ~terminal_capacity:Notty.Cap.ansi d
+  in
+  Reporter.run ~emit:handler ~fatal:handler @@ fun () ->
   Reporter.emitf Hello "aloha %d" 100;
   Reporter.emitf Bye "aloha %d" 200;
   Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "hello here!";
@@ -61,17 +64,17 @@ let () =
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is an info" ~severity:Info;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is a hint" ~severity:Hint;
 
-  Reporter.trace "I'm a frame" begin fun () ->
+  Reporter.trace "When stepping into the abyss..." begin fun () ->
     Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello again!";
-    Reporter.trace "I'm another frame" @@ fun () ->
+    Reporter.trace "When stepping into the deep abyss..." @@ fun () ->
     begin
       Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello once again!";
     end
   end;
 
-  Reporter.trace ~loc:(Range.make (~@ s2 1 1, ~@ s2 3 4)) "I'm a frame" begin fun () ->
+  Reporter.trace ~loc:(Range.make (~@ s2 1 1, ~@ s2 3 4)) "When stepping into the abyss..." begin fun () ->
     Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello again!";
-    Reporter.trace "I'm another frame" begin fun () ->
+    Reporter.trace "When stepping into the deep abyss..." begin fun () ->
       Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello once again!" ~severity:Info;
     end
   end;
