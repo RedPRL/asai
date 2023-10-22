@@ -2,6 +2,14 @@ open Bwd
 open Notty
 open Notty.Infix
 
+let string_of_severity : Diagnostic.severity -> string =
+  function
+  | Hint -> "hint"
+  | Info -> "info"
+  | Warning -> "warning"
+  | Error -> "error"
+  | Bug -> "bug"
+
 module Tag = struct
   type index = Main | Extra of int
   type t = index * Diagnostic.text
@@ -16,6 +24,31 @@ module Tag = struct
     | Extra i, _ -> Format.fprintf fmt "Extra %d" i
 end
 
+module Style =
+struct
+  let code (severity : Diagnostic.severity) : attr =
+    match severity with
+    | Hint -> A.fg A.blue
+    | Info -> A.fg A.green
+    | Warning -> A.fg A.yellow
+    | Error -> A.fg A.red
+    | Bug -> A.bg A.red ++ A.fg A.black
+
+  let message (severity : Diagnostic.severity) (tag : Tag.t) : attr =
+    match tag with
+    | Extra _, _ -> A.empty
+    | Main, _ -> code severity
+
+  let highlight (severity : Diagnostic.severity) : Tag.t option -> attr =
+    function
+    | None -> A.empty
+    | Some tag -> A.st A.underline ++ message severity tag
+
+  let fringe = A.fg @@ A.gray 8
+
+  let indentation = A.fg @@ A.gray 8
+end
+
 module E = Explicator.Make(Tag)
 
 module Make (Message : Reporter.Message) =
@@ -24,33 +57,6 @@ struct
 
   let hcat_with_pad ~pad l =
     I.hcat @@ List.map (I.pad ~l:pad) l
-
-  (* styles *)
-
-  module Style =
-  struct
-    let code (severity : Diagnostic.severity) : attr =
-      match severity with
-      | Hint -> A.fg A.blue
-      | Info -> A.fg A.green
-      | Warning -> A.fg A.yellow
-      | Error -> A.fg A.red
-      | Bug -> A.bg A.red ++ A.fg A.black
-
-    let message (severity : Diagnostic.severity) (tag : Tag.t) : attr =
-      match tag with
-      | Extra _, _ -> A.empty
-      | Main, _ -> code severity
-
-    let highlight (severity : Diagnostic.severity) : Tag.t option -> attr =
-      function
-      | None -> A.empty
-      | Some tag -> A.st A.underline ++ message severity tag
-
-    let fringe = A.fg @@ A.gray 8
-
-    let indentation = A.fg @@ A.gray 8
-  end
 
   (* parameters *)
   type param =
@@ -84,8 +90,8 @@ struct
     let attr = Style.code param.severity in
     hcat_with_pad ~pad:1
       [ I.string A.empty "￫"
-      ; I.strf ~attr "%s[%s]:"
-          (Diagnostic.string_of_severity param.severity)
+      ; I.strf ~attr "%s[%s]"
+          (string_of_severity param.severity)
           (Message.short_code param.message)
       ]
 

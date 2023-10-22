@@ -43,18 +43,11 @@ let makef ?loc ?backtrace ?extra_remarks severity message =
 
 let map f d = {d with message = f d.message}
 
-let string_of_severity =
-  function
-  | Hint -> "Hint"
-  | Info -> "Info"
-  | Warning -> "Warning"
-  | Error -> "Error"
-  | Bug -> "Bug"
-
 let string_of_text text : string =
-  let buf = Buffer.create 10 in
+  let buf = Buffer.create 20 in
   let fmt = Format.formatter_of_buffer buf in
-  let () = Format.pp_set_geometry fmt ~max_indent:(Int.max_int-1) ~margin:Int.max_int in
+  let () = Format.pp_set_geometry fmt ~max_indent:2 ~margin:Int.max_int in
   text fmt;
   Format.pp_print_flush fmt ();
+  Str.global_replace (Str.regexp "\\([\r\n]+ *\\)+") " " @@
   Buffer.contents buf

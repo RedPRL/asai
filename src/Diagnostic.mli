@@ -97,8 +97,5 @@ val kmakef : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list
 (** A convenience function that maps the message of a diagnostic. This is helpful when using {!val:Reporter.S.adopt}. *)
 val map : ('message1 -> 'message2) -> 'message1 t -> 'message2 t
 
-(** A convenience function that converts a {!type:severity} into its constructor name. For example, {!constructor:Warning} will be converted into the string ["Warning"]. *)
-val string_of_severity : severity -> string
-
-(** A convenience function that converts a {!type:text} into a string by formatting it with the maximum admissible margin. Note that the resulting string may contain newline characters. *)
+(** A convenience function that converts a {!type:text} into a string by formatting it with the maximum admissible margin and then replacing newlines and indentation with a space character. *)
 val string_of_text : text -> string

@@ -3,9 +3,9 @@
  (modules TestExplicator TestFlattener IntTag)
  (libraries asai alcotest))
 
-(test
- (name TestUserContent)
- (modules TestUserContent)
+(tests
+ (names TestUserContent TestDiagnostic)
+ (modules TestUserContent TestDiagnostic)
  (libraries asai alcotest))
 
 (test

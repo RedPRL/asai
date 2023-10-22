@@ -9,18 +9,11 @@ module Make (Message : Reporter.Message) = struct
     | Diagnostic.Error -> "error"
     | Diagnostic.Bug -> "error"
 
-  let single_line_of_text msg =
-    String.map
-      (function
-        | '\r' | '\n' -> ' '
-        | c -> c) @@
-    Diagnostic.string_of_text msg
-
   let print_without_loc severity msg text =
     Format.printf "::%s title=%s::%s@."
       (command_of_severity severity)
       (Message.short_code msg)
-      (single_line_of_text text)
+      (Diagnostic.string_of_text text)
 
   let print_with_loc severity msg loc text =
     match Range.source loc with
@@ -33,7 +26,7 @@ module Make (Message : Reporter.Message) = struct
         (Range.begin_line_num loc)
         (Range.end_line_num loc)
         (Message.short_code msg)
-        (single_line_of_text text)
+        (Diagnostic.string_of_text text)
 
   let print Diagnostic.{severity; message; explanation = {loc; value = text}; _} =
     match loc with
