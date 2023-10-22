@@ -27,25 +27,30 @@ struct
 
   (* styles *)
 
-  let code_style (severity : Diagnostic.severity) : attr =
-    match severity with
-    | Hint -> A.fg A.blue
-    | Info -> A.fg A.green
-    | Warning -> A.fg A.yellow
-    | Error -> A.fg A.red
-    | Bug -> A.bg A.red ++ A.fg A.black
+  module Style =
+  struct
+    let code (severity : Diagnostic.severity) : attr =
+      match severity with
+      | Hint -> A.fg A.blue
+      | Info -> A.fg A.green
+      | Warning -> A.fg A.yellow
+      | Error -> A.fg A.red
+      | Bug -> A.bg A.red ++ A.fg A.black
 
-  let message_style (severity : Diagnostic.severity) (tag : Tag.t) : attr =
-    match tag with
-    | Extra _, _ -> A.empty
-    | Main, _ -> code_style severity
+    let message (severity : Diagnostic.severity) (tag : Tag.t) : attr =
+      match tag with
+      | Extra _, _ -> A.empty
+      | Main, _ -> code severity
 
-  let highlight_style (severity : Diagnostic.severity) : Tag.t option -> attr =
-    function
-    | None -> A.empty
-    | Some tag -> A.st A.underline ++ message_style severity tag
+    let highlight (severity : Diagnostic.severity) : Tag.t option -> attr =
+      function
+      | None -> A.empty
+      | Some tag -> A.st A.underline ++ message severity tag
 
-  let fringe_style = A.fg @@ A.gray 8
+    let fringe = A.fg @@ A.gray 8
+
+    let indentation = A.fg @@ A.gray 8
+  end
 
   (* parameters *)
   type param =
@@ -76,7 +81,7 @@ struct
   (* text *)
 
   let render_code ~param =
-    let attr = code_style param.severity in
+    let attr = Style.code param.severity in
     hcat_with_pad ~pad:1
       [ I.string A.empty "￫"
       ; I.strf ~attr "%s[%s]:"
@@ -95,11 +100,11 @@ struct
         ]
 
   let show_segment ~param (tag, seg) =
-    I.string (highlight_style param.severity tag) @@
+    I.string (Style.highlight param.severity tag) @@
     UserContent.replace_control ~tab_size:param.tab_size seg
 
   let render_line_tag ~param ((_, text) as tag) =
-    let attr = message_style param.severity tag in
+    let attr = Style.message param.severity tag in
     hcat_with_pad ~pad:1
       [ I.void param.line_number_width 0
       ; I.string A.empty "^"
@@ -111,8 +116,8 @@ struct
 
   let show_line ~line_num ~param Explication.{segments; tags} =
     hcat_with_pad ~pad:1
-      [ I.hsnap ~align:`Right param.line_number_width (I.string fringe_style (Int.to_string line_num))
-      ; I.string fringe_style "|"
+      [ I.hsnap ~align:`Right param.line_number_width (I.string Style.fringe (Int.to_string line_num))
+      ; I.string Style.fringe "|"
       ; I.hcat @@ List.map (show_segment ~param) segments
       ]
     <->
@@ -138,7 +143,7 @@ struct
     end
 
   let render_unlocated_tag ~param ((_, text) as tag) =
-    let attr = message_style param.severity tag in
+    let attr = Style.message param.severity tag in
     hcat_with_pad ~pad:1
       [ I.string A.empty "￮"
       ; I.strf ~attr "%t" text
@@ -170,18 +175,17 @@ struct
     render_message ~param:{param with line_number_width} ?end_padding explication unlocated_tags
 
   let display_backtrace ~param backtrace =
-    let indentation_style = A.fg @@ A.gray 8 in
     let backtrace =
       I.vcat @@ Bwd.to_list @@
       Bwd.map (display_message ~param ~end_padding:false ~extra_remarks:Emp) backtrace
     in
     if I.height backtrace >= 1 then
       I.vcat
-        [ I.string indentation_style " ╭"
+        [ I.string Style.indentation " ╭"
         ; I.tabulate 1
             (Int.max 0 (I.height backtrace - 2))
-            (fun _ _ -> I.string indentation_style " ┆")
-        ; I.string indentation_style " ╯"
+            (fun _ _ -> I.string Style.indentation " ┆")
+        ; I.string Style.indentation " ╯"
         ]
       <|> backtrace
     else
