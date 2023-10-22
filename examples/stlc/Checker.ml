@@ -121,10 +121,9 @@ struct
   let load mode filepath =
     let display : Reporter.Message.t Asai.Diagnostic.t -> unit =
       match mode with
-      | `Debug -> fun d -> Terminal.display ~show_backtrace:true d
-      | `Normal -> fun d -> Terminal.display ~show_backtrace:false d
-      | `Interactive -> fun d -> Terminal.interact d
-      | `GitHub -> GitHub.print
+      | `Normal -> fun d -> Terminal.display d
+      | `Interact -> fun d -> Terminal.interact d
+      | `GitHub -> fun d -> GitHub.print d
     in
     Reporter.run ~emit:display ~fatal:display @@ fun () ->
     load_file filepath
@@ -139,7 +138,6 @@ end
 let () =
   match Sys.argv.(1) with
   | "--server" -> Driver.server ()
-  | "--debug" -> Driver.load `Debug Sys.argv.(2)
-  | "--interactive" -> Driver.load `Interactive Sys.argv.(2)
+  | "--interact" -> Driver.load `Interact Sys.argv.(2)
   | "--github" -> Driver.load `GitHub Sys.argv.(2)
   | filepath -> Driver.load `Normal filepath

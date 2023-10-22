@@ -43,9 +43,12 @@ end
 module Terminal = Asai.Tty.Make(Reporter.Code)
 
 let () =
-  Reporter.run
-    ~emit:(Terminal.display ~terminal_capacity:Notty.Cap.ansi)
-    ~fatal:(Terminal.display ~terminal_capacity:Notty.Cap.ansi) @@ fun () ->
+  let handler =
+    match Sys.argv with
+    | [| _ ; "--interact" |] -> fun d -> Terminal.interact d
+    | _ -> fun d -> Terminal.display ~terminal_capacity:Notty.Cap.ansi d
+  in
+  Reporter.run ~emit:handler ~fatal:handler @@ fun () ->
   Reporter.emitf Hello "aloha %d" 100;
   Reporter.emitf Bye "aloha %d" 200;
   Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "hello here!";
