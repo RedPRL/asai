@@ -24,24 +24,24 @@ Thanks to Mike Shulman for many valuable suggestions.
 ### Bug Fixes
 
 - **Diagnostic:** fix and improve `string_of_text`
-  ([#83](https://github.com/RedPRL/asai/issues/83)) ([e32adc5](https://github.com/RedPRL/asai/commit/e32adc5fbbd8cca6c2c0f633afa2ec1beb716f71))
-  ([b00d8cd](https://github.com/RedPRL/asai/commit/b00d8cd2eee9e51ea89fed8d0988d20fb7964e00))
+  - ([#83](https://github.com/RedPRL/asai/issues/83)) ([e32adc5](https://github.com/RedPRL/asai/commit/e32adc5fbbd8cca6c2c0f633afa2ec1beb716f71))
+  - ([b00d8cd](https://github.com/RedPRL/asai/commit/b00d8cd2eee9e51ea89fed8d0988d20fb7964e00))
 
 ### Features
 
-- **Range:** allow string (in-memory) sources
-  ([#90](https://github.com/RedPRL/asai/issues/90)) ([ae62741](https://github.com/RedPRL/asai/commit/ae62741933f6881a1da8f53be45249d347918321))
-  ([#101](https://github.com/RedPRL/asai/issues/101)) ([4b6819a](https://github.com/RedPRL/asai/commit/4b6819a289c514f92f0fbb06bee6ac5bd79a0962))
-  ([a944e66](https://github.com/RedPRL/asai/commit/a944e668ac16532059dff26064712c6300c3b15b))
 - introduce **StructuredReporter** for fully structured messages
-  ([#97](https://github.com/RedPRL/asai/issues/97)) ([add65f8](https://github.com/RedPRL/asai/commit/add65f81ddc6a37734d32c4363d7abf45d96aa3c))
+  - ([#97](https://github.com/RedPRL/asai/issues/97)) ([add65f8](https://github.com/RedPRL/asai/commit/add65f81ddc6a37734d32c4363d7abf45d96aa3c))
+- **Range:** allow string (in-memory) sources
+  - ([#90](https://github.com/RedPRL/asai/issues/90)) ([ae62741](https://github.com/RedPRL/asai/commit/ae62741933f6881a1da8f53be45249d347918321))
+  - ([#101](https://github.com/RedPRL/asai/issues/101)) ([4b6819a](https://github.com/RedPRL/asai/commit/4b6819a289c514f92f0fbb06bee6ac5bd79a0962))
+  - ([a944e66](https://github.com/RedPRL/asai/commit/a944e668ac16532059dff26064712c6300c3b15b))
 - **Tty:** completely redesign the TTY output
-  ([#81](https://github.com/RedPRL/asai/issues/81)) ([9685bc9](https://github.com/RedPRL/asai/commit/9685bc92e0cc1fbff152814d9a7a340f14871be5))
-  ([#91](https://github.com/RedPRL/asai/issues/91)) ([07fe241](https://github.com/RedPRL/asai/commit/07fe24104404a33ea213c1910671d2fa4d14531c))
-  ([#93](https://github.com/RedPRL/asai/issues/93)) ([c3f0747](https://github.com/RedPRL/asai/commit/c3f07479254ad02823500262118de649666e6128))
-  ([39e7154](https://github.com/RedPRL/asai/commit/39e7154b746b5444bc97a24bdbb26e55a83bd2d8))
-  ([a9caca1](https://github.com/RedPRL/asai/commit/a9caca1f2e46e982d8fa56a69528df390dc6f1ef))
-  ([#114](https://github.com/RedPRL/asai/issues/114)) ([5d2066b](https://github.com/RedPRL/asai/commit/5d2066bf530c41e2a920b6258d905cffeeef9229))
+  - ([#81](https://github.com/RedPRL/asai/issues/81)) ([9685bc9](https://github.com/RedPRL/asai/commit/9685bc92e0cc1fbff152814d9a7a340f14871be5))
+  - ([#91](https://github.com/RedPRL/asai/issues/91)) ([07fe241](https://github.com/RedPRL/asai/commit/07fe24104404a33ea213c1910671d2fa4d14531c))
+  - ([#93](https://github.com/RedPRL/asai/issues/93)) ([c3f0747](https://github.com/RedPRL/asai/commit/c3f07479254ad02823500262118de649666e6128))
+  - ([39e7154](https://github.com/RedPRL/asai/commit/39e7154b746b5444bc97a24bdbb26e55a83bd2d8))
+  - ([a9caca1](https://github.com/RedPRL/asai/commit/a9caca1f2e46e982d8fa56a69528df390dc6f1ef))
+  - ([#114](https://github.com/RedPRL/asai/issues/114)) ([5d2066b](https://github.com/RedPRL/asai/commit/5d2066bf530c41e2a920b6258d905cffeeef9229))
 
 # [0.1.1](https://github.com/RedPRL/asai/compare/0.1.0...0.1.1) (2023-10-01)
 
