@@ -15,7 +15,7 @@ depends: [
   "bwd" {>= "2.2"}
   "menhir" {>= "20220210"}
   "asai" {= version}
-  "odoc" {with-doc & >= "2.0"}
+  "odoc" {with-doc}
 ]
 build: [
   ["dune" "subst"] {dev}
