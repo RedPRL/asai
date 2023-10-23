@@ -9,7 +9,7 @@ The most significant change is the introduction of **StructuredReporter**. The l
 
 Both modes share the same type of **diagnostics**, and thus, an application using structured messages can adopt a library using free-form explanations and vice versa. Great care has been taken to make sure the two modes work together. The current tutorial focuses on **Reporter** and free-form explanations because we think that mode is slightly easier to set up.
 
-The second most significant change is that the TTY handler was revamped. The output is now more concise, informational, and beautiful.
+The second most significant change is that the TTY handler got an overhaul. The output is now more concise, informational, and beautiful.
 
 Thanks to Mike Shulman for many valuable suggestions.
 
