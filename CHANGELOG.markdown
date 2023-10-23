@@ -17,22 +17,22 @@ Thanks to Mike Shulman for many valuable suggestions.
 
 - **Span** is renamed to **Range**
 - **Logger** is renamed to **Reporter** and **Reporter.Code** is renamed to **Reporter.Message**
-- **Diagnostic:** change the type of `extra_remarks` to a backward list ([fe0f60f](https://github.com/RedPRL/asai/commit/fe0f60fbb2a7f5c3aefd22c30f11d488ee83e855))
+- **Range:** the type `position` was changed to allow string (in-memory) sources
+- **Diagnostic:** the type `diagnostic` was changed and `message` was renamed to `loctext`
+- The LSP handler is separated out as a new package (not published yet)
 
 ### Bug Fixes
 
 - **Diagnostic:** fix and improve `string_of_text`
   ([#83](https://github.com/RedPRL/asai/issues/83)) ([e32adc5](https://github.com/RedPRL/asai/commit/e32adc5fbbd8cca6c2c0f633afa2ec1beb716f71))
   ([b00d8cd](https://github.com/RedPRL/asai/commit/b00d8cd2eee9e51ea89fed8d0988d20fb7964e00))
-- separate the LSP handler out as a new package
-  ([#105](https://github.com/RedPRL/asai/issues/105)) ([a2b3da8](https://github.com/RedPRL/asai/commit/a2b3da8f233f6475684120129138ee4c7d3cd5a3))
 
 ### Features
 
-- **Range:** allow string sources
+- **Range:** allow string (in-memory) sources
   ([#90](https://github.com/RedPRL/asai/issues/90)) ([ae62741](https://github.com/RedPRL/asai/commit/ae62741933f6881a1da8f53be45249d347918321))
   ([#101](https://github.com/RedPRL/asai/issues/101)) ([4b6819a](https://github.com/RedPRL/asai/commit/4b6819a289c514f92f0fbb06bee6ac5bd79a0962))
-  ([a944e66](a944e668ac16532059dff26064712c6300c3b15b))
+  ([a944e66](https://github.com/RedPRL/asai/commit/a944e668ac16532059dff26064712c6300c3b15b))
 - introduce **StructuredReporter** for fully structured messages
   ([#97](https://github.com/RedPRL/asai/issues/97)) ([add65f8](https://github.com/RedPRL/asai/commit/add65f81ddc6a37734d32c4363d7abf45d96aa3c))
 - **Tty:** completely redesign the TTY output
