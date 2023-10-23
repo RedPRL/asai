@@ -1,6 +1,9 @@
 (** {1 Types} *)
 
-(** The string source of a position or a range. *)
+(** The string source of a position or a range.
+
+    @since 0.2.0
+*)
 type string_source = {
   title: string option;
   (** The title of a string source. A diagnostic handler can use the title of a string source in lieu of a file path. *)
@@ -9,10 +12,13 @@ type string_source = {
   (** The content of a string source *)
 }
 
-(** The source of a position or a range. The [`String] source can be used for REPL. *)
+(** The source of a position or a range. The [`String] source can be used for representing inputs in REPL.
+
+    @since 0.2.0
+*)
 type source =
-  [ `File of string (** File path of the source file. *)
-  | `String of string_source (** The content of an in-memory source. *)
+  [ `File of string (** A file source specified by its file path. *)
+  | `String of string_source (** A string (in-memory) source. *)
   ]
 
 (** The type of positions; this is isomorphic to {!type:Lexing.position}, but with arguably better field names. *)
@@ -70,7 +76,10 @@ val locate : t -> 'a -> 'a located
 
 (** {1 Other Helper Functions} *)
 
-(** [title src] gets the title of the source. The title of a [`File] source is its file path. *)
+(** [title src] gets the title of a string source or the path of a file source, or [None] if it does not exist.
+
+    @since 0.2.0
+*)
 val title : source -> string option
 
 (** {1 Support of Lexing} *)
@@ -78,8 +87,24 @@ val title : source -> string option
 (** [of_lex_position pos] converts an OCaml lexer position [pos] of type {!type:Lexing.position} into a {!type:position}. The input [pos] must be byte-indexed. (Therefore, the OCaml tool [ocamllex] is compatible, but the OCaml library [sedlex] is not because it uses Unicode code points.) *)
 val of_lex_position : Lexing.position -> position
 
+(** [to_lex_position] is the inverse function of {!val:of_lex_position}, converting a {!type:position} back to an OCaml lexer position. If the input position refers to a string source, the title of a string source will be used as the file path.
+
+    @raise Invalid_argument if the position refers to a string source and its title is [None].
+
+    @since 0.2.0
+*)
+val to_lex_position : position -> Lexing.position
+
 (** [of_lex_range (begining, ending)] takes a pair of OCaml lexer positions and creates a range. It is [make (of_lex_position begining, of_lex_position ending)]. *)
 val of_lex_range : Lexing.position * Lexing.position -> t
+
+(** [to_lex_range] is the inverse function of {!val:of_lex_range}, splitting a range into a pair of OCaml lexer positions. If the input range refers to a string source, the title of a string source will be used as the file path.
+
+    @raise Invalid_argument if the range refers to a string source and its title is [None].
+
+    @since 0.2.0
+*)
+val to_lex_range : t -> Lexing.position * Lexing.position
 
 (** [of_lexbuf lexbuf] constructs a range from the current lexeme that [lexbuf] points to. It is [of_lex_range (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)]. *)
 val of_lexbuf : Lexing.lexbuf -> t

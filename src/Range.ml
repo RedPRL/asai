@@ -69,8 +69,32 @@ let of_lex_position (pos : Lexing.position) : position =
     line_num = pos.pos_lnum;
   }
 
+let to_lex_position_aux ~fname (pos : position) : Lexing.position =
+  {
+    Lexing.pos_fname = fname;
+    Lexing.pos_cnum = pos.offset;
+    Lexing.pos_bol = pos.start_of_line;
+    Lexing.pos_lnum = pos.line_num;
+  }
+
+let to_lex_position (pos : position) : Lexing.position =
+  let fname =
+    match title pos.source with
+    | Some fname -> fname
+    | None -> invalid_arg "Range.to_lex_position"
+  in
+  to_lex_position_aux ~fname pos
+
 let of_lex_range (begin_, end_) =
   make (of_lex_position begin_, of_lex_position end_)
+
+let to_lex_range (begin_, end_) : Lexing.position * Lexing.position =
+  let fname =
+    match title begin_.source with
+    | Some fname -> fname
+    | None -> invalid_arg "Range.to_lex_range"
+  in
+  to_lex_position_aux ~fname begin_, to_lex_position_aux ~fname end_
 
 let of_lex_span = of_lex_range
 
