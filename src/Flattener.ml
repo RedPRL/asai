@@ -51,20 +51,20 @@ struct
       ; ranges = [s]}
 
     let partition_sorted ~block_splitting_threshold l : unflattened_block list =
-      let rec go ss block (blocks : unflattened_block list) =
-        match ss with
+      let rec go rs block (blocks : unflattened_block list) =
+        match rs with
         | Emp -> block :: blocks
-        | Snoc (ss, ((_, sloc) as s)) ->
-          if block.begin_line_num - Range.end_line_num sloc > block_splitting_threshold then
-            go ss (block_of_range s) (block :: blocks)
+        | Snoc (rs, ((_, rloc) as r)) ->
+          if block.begin_line_num - Range.end_line_num rloc > block_splitting_threshold then
+            go rs (block_of_range r) (block :: blocks)
           else
-            let begin_line_num = Int.min block.begin_line_num (Range.begin_line_num sloc) in
-            go ss {block with begin_line_num; ranges = s :: block.ranges} blocks
+            let begin_line_num = Int.min block.begin_line_num (Range.begin_line_num rloc) in
+            go rs {block with begin_line_num; ranges = r :: block.ranges} blocks
       in
       match Bwd.of_list l with
       | Emp -> []
-      | Snoc (ss, s) ->
-        go ss (block_of_range s) []
+      | Snoc (rs, r) ->
+        go rs (block_of_range r) []
 
     let partition ~block_splitting_threshold l =
       partition_sorted ~block_splitting_threshold (sort_tagged l)

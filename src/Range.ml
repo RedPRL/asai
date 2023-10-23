@@ -50,7 +50,7 @@ let make (begin_ , end_ : position * position) : t =
   else
     begin_, end_
 
-let split (sp : t) : position * position = sp
+let split (r : t) : position * position = r
 
 let source ((begin_,_) : t) = begin_.source
 let begin_line_num ((begin_, _) : t) = begin_.line_num
@@ -61,44 +61,21 @@ let end_offset ((_, end_) : t) = end_.offset
 let locate_opt loc value = {loc; value}
 let locate loc value = {loc = Some loc; value}
 
-let of_lex_position (pos : Lexing.position) : position =
+let of_lex_position ?source (pos : Lexing.position) : position =
+  let source = Option.value ~default:(`File pos.pos_fname) source in
   {
-    source = `File pos.pos_fname;
+    source;
     offset = pos.pos_cnum;
     start_of_line = pos.pos_bol;
     line_num = pos.pos_lnum;
   }
 
-let to_lex_position_aux ~fname (pos : position) : Lexing.position =
-  {
-    Lexing.pos_fname = fname;
-    Lexing.pos_cnum = pos.offset;
-    Lexing.pos_bol = pos.start_of_line;
-    Lexing.pos_lnum = pos.line_num;
-  }
-
-let to_lex_position (pos : position) : Lexing.position =
-  let fname =
-    match title pos.source with
-    | Some fname -> fname
-    | None -> invalid_arg "Range.to_lex_position"
-  in
-  to_lex_position_aux ~fname pos
-
-let of_lex_range (begin_, end_) =
-  make (of_lex_position begin_, of_lex_position end_)
-
-let to_lex_range (begin_, end_) : Lexing.position * Lexing.position =
-  let fname =
-    match title begin_.source with
-    | Some fname -> fname
-    | None -> invalid_arg "Range.to_lex_range"
-  in
-  to_lex_position_aux ~fname begin_, to_lex_position_aux ~fname end_
+let of_lex_range ?source (begin_, end_) =
+  make (of_lex_position ?source begin_, of_lex_position ?source end_)
 
 let of_lex_span = of_lex_range
 
-let of_lexbuf lexbuf =
-  of_lex_range (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
+let of_lexbuf ?source lexbuf =
+  of_lex_range ?source (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
 
-let locate_lex sp v = locate (of_lex_range sp) v
+let locate_lex ?source r v = locate (of_lex_range ?source r) v

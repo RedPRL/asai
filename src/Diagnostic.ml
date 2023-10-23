@@ -3,11 +3,7 @@ open Bwd
 include DiagnosticData
 
 let text s fmt =
-  List.iteri
-    (fun i s ->
-       if i > 0 then Format.pp_force_newline fmt ();
-       Format.pp_print_string fmt s
-    ) @@
+  Format.(pp_print_list ~pp_sep:pp_force_newline pp_print_string) fmt @@
   String.split_on_char '\n' s
 
 let textf = Format.dprintf

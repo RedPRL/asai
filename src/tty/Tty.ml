@@ -116,7 +116,7 @@ struct
       List.partition_map
         (function
           | (tag, Range.{loc = None; value = text}) -> Either.Right (tag, text)
-          | (tag, Range.{loc = Some sp; value = text}) -> Either.Left ((tag, text), sp))
+          | (tag, Range.{loc = Some r; value = text}) -> Either.Left ((tag, text), r))
         (explanation :: extra_remarks)
     in
     let explication =

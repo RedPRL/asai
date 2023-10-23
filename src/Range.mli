@@ -68,10 +68,10 @@ val begin_offset : t -> int
 (** [end_offset range] returns the 0-indexed offset of the (exclusive) ending position. *)
 val end_offset : t -> int
 
-(** [locate_opt sp v] is [{loc = sp; value = v}]. *)
+(** [locate_opt r v] is [{loc = r; value = v}]. *)
 val locate_opt : t option -> 'a -> 'a located
 
-(** [locate sp v] is [{loc = Some sp; value = v}]. *)
+(** [locate r v] is [{loc = Some r; value = v}]. *)
 val locate : t -> 'a -> 'a located
 
 (** {1 Other Helper Functions} *)
@@ -84,30 +84,23 @@ val title : source -> string option
 
 (** {1 Support of Lexing} *)
 
-(** [of_lex_position pos] converts an OCaml lexer position [pos] of type {!type:Lexing.position} into a {!type:position}. The input [pos] must be byte-indexed. (Therefore, the OCaml tool [ocamllex] is compatible, but the OCaml library [sedlex] is not because it uses Unicode code points.) *)
-val of_lex_position : Lexing.position -> position
+(** [of_lex_position pos] converts an OCaml lexer position [pos] of type {!type:Lexing.position} into a {!type:position}. The input [pos] must be byte-indexed. (Therefore, the OCaml tool [ocamllex] is compatible, but the OCaml library [sedlex] is not because it uses Unicode code points.)
 
-(** [to_lex_position] is the inverse function of {!val:of_lex_position}, converting a {!type:position} back to an OCaml lexer position. If the input position refers to a string source, the title of a string source will be used as the file path.
-
-    @raise Invalid_argument if the position refers to a string source and its title is [None].
-
-    @since 0.2.0
+    @param source The source of the new position. The default source is the file source specified by the file path [pos.pos_fname].
 *)
-val to_lex_position : position -> Lexing.position
+val of_lex_position : ?source:source -> Lexing.position -> position
 
-(** [of_lex_range (begining, ending)] takes a pair of OCaml lexer positions and creates a range. It is [make (of_lex_position begining, of_lex_position ending)]. *)
-val of_lex_range : Lexing.position * Lexing.position -> t
+(** [of_lex_range (begining, ending)] takes a pair of OCaml lexer positions and creates a range. It is [make (of_lex_position begining, of_lex_position ending)].
 
-(** [to_lex_range] is the inverse function of {!val:of_lex_range}, splitting a range into a pair of OCaml lexer positions. If the input range refers to a string source, the title of a string source will be used as the file path.
-
-    @raise Invalid_argument if the range refers to a string source and its title is [None].
-
-    @since 0.2.0
+    @param source The source of the new range. The default source is the file source specified by the file path [begining.pos_fname].
 *)
-val to_lex_range : t -> Lexing.position * Lexing.position
+val of_lex_range : ?source:source -> Lexing.position * Lexing.position -> t
 
-(** [of_lexbuf lexbuf] constructs a range from the current lexeme that [lexbuf] points to. It is [of_lex_range (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)]. *)
-val of_lexbuf : Lexing.lexbuf -> t
+(** [of_lexbuf lexbuf] constructs a range from the current lexeme that [lexbuf] points to. It is [of_lex_range (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)].
+
+    @param source The source of the new range. The default source is the file source specified by the file path [(Lexing.lexeme_start_p lexbuf).pos_fname].
+*)
+val of_lexbuf : ?source:source -> Lexing.lexbuf -> t
 
 (** [locate_lex ps v] is a helper function to create a value annotated with a range. It is [locate (Some (of_lex_range ps)) v] and is designed to work with the OCaml parser generator Menhir. You can add the following code to your Menhir grammar to generate annotated data:
 
@@ -117,8 +110,10 @@ locate(X):
   | e = X
     { Asai.Range.locate_lex $loc e }
 v}
+
+    @param source The source of the range. The default source is the file source specified by the file path [(Lexing.lexeme_start_p lexbuf).pos_fname].
 *)
-val locate_lex : Lexing.position * Lexing.position -> 'a -> 'a located
+val locate_lex : ?source:source -> Lexing.position * Lexing.position -> 'a -> 'a located
 
 (** {1 Debugging} *)
 
@@ -132,4 +127,4 @@ val dump : Format.formatter -> t -> unit
 
 (**/**)
 
-val of_lex_span : Lexing.position * Lexing.position -> t [@@ocaml.alert deprecated "Use Asai.Range.of_lex_range instead"]
+val of_lex_span : ?source:source -> Lexing.position * Lexing.position -> t [@@ocaml.alert deprecated "Use Asai.Range.of_lex_range instead"]
