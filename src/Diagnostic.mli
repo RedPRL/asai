@@ -37,7 +37,7 @@ val kloctextf : ?loc:Range.t -> (loctext -> 'b) -> ('a, Format.formatter, unit, 
 
     Example:
     {[
-      of_text Warning ChiError @@ text "Your Ch'i is critically low"
+      of_text Warning ChiError @@ text "your Ch'i is critically low"
     ]}
 
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
@@ -51,7 +51,7 @@ val of_text : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext lis
 
     Example:
     {[
-      of_loctext Warning ChiError @@ loctext "Your Ch'i is critically low"
+      of_loctext Warning ChiError @@ loctext "your Ch'i is critically low"
     ]}
 
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
@@ -63,7 +63,7 @@ val of_loctext : ?backtrace:backtrace -> ?extra_remarks:loctext list -> severity
 
     Example:
     {[
-      make Warning ChiError "Your Ch'i is critically low"
+      make Warning ChiError "your Ch'i is critically low"
     ]}
 
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
@@ -75,7 +75,7 @@ val make : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:loctext list -
 
     Example:
     {[
-      makef Warning ChiError "Your %s is critically low" "Ch'i"
+      makef Warning ChiError "your %s is critically low" "Ch'i"
     ]}
 
     @param loc The location of the text (usually the code) to highlight.

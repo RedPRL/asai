@@ -16,7 +16,7 @@ type severity =
 
     {i Pro-tip:} to format a text in another text, use [%t]:
     {[
-      let t = textf "@[<2>The network doesn't work:@ %t@]" inner_text
+      let t = textf "@[<2>this is what the master said:@ @[%t@]@]" inner_text
     ]}
 *)
 type text = Format.formatter -> unit
