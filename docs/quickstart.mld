@@ -117,7 +117,7 @@ The annotated node will have type {{!type:Asai.Range.located}[data] Range.locate
 try Grammar.start Lex.token lexbuf with
 | Lex.SyntaxError token ->
   Reporter.fatalf ~loc:(Range.of_lexbuf lexbuf) ParsingError
-    {|Unrecognized token `%s'|} (String.escaped token)
+    "unrecognized token `%s'" (String.escaped token)
 | Grammar.Error ->
   Reporter.fatal ~loc:(Range.of_lexbuf lexbuf) ParsingError
     "failed to parse the code"

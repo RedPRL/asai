@@ -12,7 +12,7 @@
 (setenv "OCAMLRUNPARAM" "b")
 
 (defun lsp-asai--create-connection ()
-  (lsp-stdio-connection '("dune" "exec" "asai_stlc" "--" "--server")))
+  (lsp-stdio-connection '("dune" "exec" "--" "asai-examples.stlc" "--server")))
 
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-asai--create-connection)
