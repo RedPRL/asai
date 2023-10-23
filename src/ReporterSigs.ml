@@ -24,7 +24,7 @@ sig
 
       Example:
       {[
-        Reporter.emit TypeError "This type is extremely unnatural:\nNat"
+        Reporter.emit TypeError "the type `nat' is extremely unnatural"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
@@ -38,7 +38,7 @@ sig
 
       Example:
       {[
-        Reporter.emitf TypeError "Type %a is too ugly" Syntax.pp tp
+        Reporter.emitf TypeError "type %a is too ugly" Syntax.pp tp
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
@@ -55,7 +55,7 @@ sig
 
       Example:
       {[
-        Reporter.fatal CatError "Forgot to feed the cat"
+        Reporter.fatal CatError "forgot to feed the cat"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
@@ -69,7 +69,7 @@ sig
 
       Example:
       {[
-        Reporter.fatalf FileError "Failed to write the password %s on the screen" file_path
+        Reporter.fatalf FileError "failed to write the password %s on the screen" file_path
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
@@ -136,7 +136,7 @@ sig
 
       Example:
       {[
-        Reporter.diagnostic SyntaxError "Too many emojis."
+        Reporter.diagnostic SyntaxError "too many emojis"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
@@ -150,7 +150,7 @@ sig
 
       Example:
       {[
-        Reporter.diagnosticf TypeError "Term %a does not type check, or does it?" Syntax.pp tm
+        Reporter.diagnosticf TypeError "term %a does not type check, maybe" Syntax.pp tm
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).

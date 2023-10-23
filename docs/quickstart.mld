@@ -39,7 +39,7 @@ include Asai.Reporter.Make(Message)
 The most important step is to define the {i type of messages}. It should be a meaningful classification of all the diagnostics you want to send to the end user. For example, [UndefinedSymbol] could be a reasonable message about failing to find the definition of a symbol. [TypeError] could be another reasonable message about ill-typed terms. Don't worry about missing details in the message type---you can attach free-form text, location information, and additional remarks to a message. Once you have defined the type of all messages, you will have to define two functions [default_severity] and [short_code]:
 
 + [default_severity]: {i Severity levels} describe how serious the end user should take your message (is it an error or a warning?). It seems diagnostics with the same message usually come with the same severity level, so we want you to define a default severity level for each message. You can then save some typing later when sending a diagnostic.
-+ [short_code]: This function is to show a message as short code to the end user. Ideally, the short code should be a Google-able string representation for the end user to find more explanations. Please do not use long descriptions such as "scope-error: undefined symbols." The library will give you plenty of opportunities to add as many details as you want to a message, but not here. The short code should be unambiguous, easily recognizable, and "machine-readable without ChatGPT."
++ [short_code]: This function is to show a message as short code to the end user. Ideally, the short code should be a Google-able string representation for the end user to find more explanations. Please do not use long descriptions such as "scope-error: undefined symbols" The library will give you plenty of opportunities to add as many details as you want to a message, but not here. The short code should be unambiguous, easily recognizable, and "machine-readable without ChatGPT."
 
 Once you have filled out the template, run [dune build] or other tools to check that everything compiles. If so, you are ready for the next step.
 
@@ -47,12 +47,12 @@ Once you have filled out the template, run [dune build] or other tools to check 
 
 Now, go to the places where you want to send a message to the end user, be it a warning or an error. If you want to print a message and continue the execution, you can {{!val:Asai.Reporter.S.emit}emit} a string:
 {[
-Reporter.emit Greeting "Hello!";
+Reporter.emit Greeting "hello";
 (* continue doing other things *)
 ]}
 where [Greeting] is the message and ["Hello!"] is the free-form text that explains the message. The fancier version is {{!val:Asai.Reporter.S.emitf}emitf}, which formats the text like [printf] and sends it:
 {[
-Reporter.emitf TypeError "@[<2>This term doesn't look right:@ %a@]" Syntax.pp term;
+Reporter.emitf TypeError "@[<2>this term doesn't look right:@ %a@]" Syntax.pp term;
 (* continue doing other things *)
 ]}
 There is an important limitation of {{!val:Asai.Reporter.S.emitf}emitf} though: you should not include {i any} control character (for example the newline character [\n]) {i anywhere} when using {{!val:Asai.Reporter.S.emitf}emitf}. Use break hints (such as [@,] and [@ ]) and boxes instead. See {!module:Stdlib.Format} for more information on boxes and break hints.
@@ -84,13 +84,13 @@ let f x y =
 Add {{!val:Asai.Reporter.S.trace}trace} to add a frame to the current backtrace:
 {[
 let f x y =
-  Reporter.trace "When calling f" @@ fun () ->
+  Reporter.trace "when calling f" @@ fun () ->
   (* very important code *)
 ]}
 Similar to {{!val:Asai.Reporter.S.emitf}emitf}, there is also {{!val:Asai.Reporter.S.tracef}tracef} which allows you to format texts:
 {[
 let f x y =
-  Reporter.tracef "When calling f on %d and %d" x y @@ fun () ->
+  Reporter.tracef "when calling f on %d and %d" x y @@ fun () ->
   (* very important code *)
 ]}
 
@@ -102,7 +102,7 @@ PS: We have a {{:https://github.com/RedPRL/asai/issues/38} GitHub issue on spewi
 
 Good diagnostics also help the end user locate the issues in their program or proof. Here, a location is a {i range} of text from a file or a string. Many functions in your [Reporter] take an optional location argument [loc], including {{!val:Asai.Reporter.S.trace}trace}, which should be a range highlighting the most relevant part of the text. For example, maybe the term which does not type check should be highlighted. The asai library will take the location information and draw fancy Unicode art on the screen to highlight the text. Here is one snippet showing the usage:
 {[
-Reporter.emit ~loc Greeting "Hello again!";
+Reporter.emit ~loc Greeting "hello again";
 (* continue doing other things *)
 ]}
 You can use {{!val:Asai.Range.make}Range.make} to create such a range manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Range.make}Range.locate}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
@@ -117,32 +117,32 @@ The annotated node will have type {{!type:Asai.Range.located}[data] Range.locate
 try Grammar.start Lex.token lexbuf with
 | Lex.SyntaxError token ->
   Reporter.fatalf ~loc:(Range.of_lexbuf lexbuf) ParsingError
-    {|Unrecognized token `%s'|} (String.escaped token)
+    "unrecognized token `%s'" (String.escaped token)
 | Grammar.Error ->
   Reporter.fatal ~loc:(Range.of_lexbuf lexbuf) ParsingError
-    "Failed to parse the code"
+    "failed to parse the code"
 ]}
 Please take a look at {!module:Asai.Range} to learn all kinds of ways to create a range!
 
 Note that [Reporter] will remember and reuse the innermost specified location, and thus you do not have to explicitly pass it. For example, in the following code
 {[
-Reporter.trace ~loc "When checking this code" @@ fun () ->
+Reporter.trace ~loc "when checking this code" @@ fun () ->
 (* ... *)
-Reporter.emit "Wow!" (* using the location [loc] from above *)
+Reporter.emit "wow" (* using the location [loc] from above *)
 (* ... *)
 ]}
 the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Reporter.S.trace}trace} function call! You can also use {{!val:Asai.Reporter.S.merge_loc}merge_loc} to "remember" a location for later use, which is helpful when you want to remember a location but not to leave a trace:
 {[
 Reporter.merge_loc (Some loc) @@ fun () ->
 (* ... *)
-Reporter.emit "Wow!" (* using the location [loc] from above *)
+Reporter.emit "wow" (* using the location [loc] from above *)
 (* ... *)
 ]}
 Of course, you can always pass a new location to overwrite the remembered one:
 {[
 Reporter.merge_loc (Some loc) @@ fun () ->
 (* ... *)
-Reporter.emit ~loc:real_loc "Wow!" (* using [real_loc] instead  *)
+Reporter.emit ~loc:real_loc "wow" (* using [real_loc] instead  *)
 (* ... *)
 ]}
 
@@ -169,10 +169,10 @@ struct
     | Cool c -> CoolLibrary.Reporter.default_severity c
 
   (** A short, concise, ideally Google-able string representation for each message. *)
-  let to_string : t -> Asai.Diagnostic.severity =
+  let short_code : t -> string =
     function
     (* ... *)
-    | Cool c -> CoolLibrary.Reporter.to_string c
+    | Cool c -> CoolLibrary.Reporter.short_code c
 
   (** It is recommended to add a helper function (such as [cool]) to save typing,
       and this tutorial will assume you have done that. *)
@@ -203,7 +203,7 @@ That's it!
 
 It is tempting to consider wrapping errors (e.g., {{: https://go.dev/blog/go1.13-errors}advocated in Go}). However, it seems {b good backtraces make error wrapping obsolete.} To see why one might wish to wrap errors, consider the following code:
 {[
-Reporter.trace "When loading settings" @@ fun () ->
+Reporter.trace "when loading settings" @@ fun () ->
 let content = Reporter.lift_cool @@ fun () ->
   CoolLibrary.read "/path/to/some/file.json"
 in
@@ -211,15 +211,14 @@ in
 ]}
 When the file does not exist, the cool library might output the message that the file does not exist. Together with the trace, the terminal handler will output
 {v
- ╭
- │ When loading settings
- ╯
-File `/path/to/some/file.json' does not exist
+ ￫ error[E123]
+ ꭍ ￮ when loading settings
+ ￮ file `/path/to/some/file.json' does not exist
 v}
 This message is {e not bad,} but suboptimal. There's a disconnection between "settings" and [/path/to/some/file.json]---how exactly is this file relevant? It is tempting to directly edit the text in the diagnostic to include such information, that is, {i wrapping the error.} However, we suggest improving the trace instead:
 {[
 let file_path = "/path/to/some/file.json" in
-Reporter.trace "When loading settings from file `%s'" file_path @@ fun () ->
+Reporter.trace "when loading settings from file `%s'" file_path @@ fun () ->
 let content = Reporter.lift_cool @@ fun () ->
   CoolLibrary.read file_path
 in
@@ -227,10 +226,9 @@ in
 ]}
 so that the output is
 {v
- ╭
- │ When loading settings from file `/path/to/some/file.json'
- ╯
-File `/path/to/some/file.json' does not exist
+ ￫ error[E123]
+ ꭍ ￮ when loading settings from file `/path/to/some/file.json'
+ ￮ file `/path/to/some/file.json' does not exist
 v}
 There's no conceptual gap in the message anymore!
 
@@ -257,7 +255,7 @@ Reporter.abort_at_any @@ fun () -> (* any diagnostic will abort the program *)
 
 Just like the usual [try ... with] in OCaml, you can use [Reporter.try_with] to intercept fatal diagnostics. However, unlike diagnostics sent via {{!val:Asai.Reporter.S.emit}emit}, there is no way to resume the aborted computation (as what you can expect from OCaml exceptions). Therefore, you have to provide a new value as a replacement. For example,
 {[
-Reporter.try_with ~fatal:(fun _ -> 42) @@ fun () -> Reporter.fatal "abort!"
+Reporter.try_with ~fatal:(fun _ -> 42) @@ fun () -> Reporter.fatal Abort "abort"
 ]}
 will give you the number [42] in the end. It intercepts the fatal diagnostic and gives [42] instead.
 

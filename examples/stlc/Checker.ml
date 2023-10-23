@@ -18,13 +18,13 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Reporter.fatalf ?loc `UnboundVariable "Variable '%s' is not in scope" nm
+      Reporter.fatalf ?loc `UnboundVariable "variable '%s' is not in scope" nm
 
   let expected_connective ?loc conn tp =
-    Reporter.fatalf ?loc `TypeError "Expected a %s, but got %a." conn pp_tp tp
+    Reporter.fatalf ?loc `TypeError "expected a %s, but got %a" conn pp_tp tp
 
   let rec equate ?loc expected actual =
-    Reporter.tracef ?loc "When equating terms" @@ fun () ->
+    Reporter.tracef ?loc "when equating terms" @@ fun () ->
     match expected, actual with
     | Fun (a0, b0), Fun (a1, b1) ->
       equate a0 a1;
@@ -35,10 +35,10 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Reporter.fatalf ?loc `TypeError "Expected type %a, but got %a." pp_tp expected pp_tp actual
+      Reporter.fatalf ?loc `TypeError "expected type %a, but got %a" pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
-    Reporter.tracef ?loc:tm.loc "When checking against %a" Syntax.pp_tp tp @@ fun () ->
+    Reporter.tracef ?loc:tm.loc "when checking against %a" Syntax.pp_tp tp @@ fun () ->
     match tm.value, tp with
     | Lam (nm, body), Fun (a, b) ->
       bind_var nm a @@ fun () ->
@@ -63,7 +63,7 @@ struct
       equate ?loc:tm.loc tp actual_tp
 
   and syn (tm : tm) : tp =
-    Reporter.tracef ?loc:tm.loc "When synthesizing" @@ fun () ->
+    Reporter.tracef ?loc:tm.loc "when synthesizing" @@ fun () ->
     match tm.value with
     | Var nm ->
       lookup ?loc:tm.loc nm
@@ -100,7 +100,7 @@ struct
         mot
       end
     | _ ->
-      Reporter.fatalf ?loc:tm.loc `TypeError "Unable to infer type"
+      Reporter.fatalf ?loc:tm.loc `TypeError "unable to infer type"
 end
 
 module Driver =
@@ -111,9 +111,9 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError {|Unrecognized token "%s"|} (String.escaped tok)
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "unrecognized token %S" tok
       | Grammar.Error ->
-        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "Failed to parse"
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "failed to parse"
     in
     Elab.Reader.run ~env:Emp @@ fun () ->
     Elab.chk tm tp
