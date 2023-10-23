@@ -7,19 +7,18 @@
 (** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
 module Make (Message : Reporter.Message) : sig
 
-  (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this:
+  (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this (but with coloring):
 
       {v
-    ╒══ test
-    │
-  1 │ aaaaaaaaaa
-  2 │ bbbbbbbbbb
-  3 │ cccccccccc
-    ┊
- Warning[hello]:
- this is a warning
-    ┊
-    ┷
+ ￫ warning[hello]
+ ╭ ￭ /path/to/file.cool
+ ┆ 1 | aaaaaaaaaa
+ ┆ 2 | bbbbbbbbbb
+ ╯   ^ when stepping into the abyss
+ ￭ /path/to/file.cool
+ 2 | bbbbbbbbbb
+ 3 | cccccccccc
+   ^ could not say hi here
       v}
 
       @param terminal_capacity Control whether ANSI escape sequences should be used, overwriting the auto-detection. Possible values are {!val:Notty.Cap.ansi} for using ANSI escape sequences strings and {!val:Notty.Cap.dumb} for not using them. Note that this handler uses {i exclusively} ANSI escape sequences for highlighting, which means turning them off will lose the precise location.
