@@ -211,34 +211,4 @@ struct
       Diagnostic.{severity; message; explanation; backtrace; extra_remarks} =
     let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 1} in
     Notty_unix.output_image ?cap:terminal_capacity ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~explanation ~backtrace ~extra_remarks
-
-  let interact ?(input=Unix.stdin) ?(output=Unix.stdout) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
-      Diagnostic.{severity; message; explanation; extra_remarks; backtrace} =
-    let param = {show_backtrace = true; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 1} in
-    let traces =
-      SourceReader.run @@ fun () ->
-      Bwd.snoc
-        (Bwd.map (fun msg -> display_message ~param msg ~extra_remarks:Emp) backtrace)
-        (display_message ~param explanation ~extra_remarks)
-      |> Bwd.to_list |> Array.of_list
-    in
-    let len = Array.length traces in
-    let images = traces |> Array.mapi @@ fun i image ->
-      (render_code ~param <->
-       image <->
-       I.strf "%d/%d" (i + 1) len <->
-       I.string A.empty "Use left/right keys to navigate the stack trace" <->
-       I.string A.empty "Press ESC to Quit")
-    in
-    let rec loop t i =
-      Notty_unix.Term.image t images.(i);
-      match Notty_unix.Term.event t with
-      | `Key (`Arrow `Left, _) -> loop t (Int.max 0 (i - 1))
-      | `Key (`Arrow `Right, _) -> loop t (Int.min (len-1) (i + 1))
-      | `Key (`Escape, _) -> ()
-      | _ -> loop t i
-    in
-    let t = Notty_unix.Term.create ~input ~output () in
-    loop t (len-1);
-    Notty_unix.Term.release t
 end

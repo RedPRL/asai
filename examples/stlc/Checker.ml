@@ -122,7 +122,6 @@ struct
     let display : Reporter.Message.t Asai.Diagnostic.t -> unit =
       match mode with
       | `Normal -> fun d -> Terminal.display d
-      | `Interact -> fun d -> Terminal.interact d
       | `GitHub -> fun d -> GitHub.print d
     in
     Reporter.run ~emit:display ~fatal:display @@ fun () ->
@@ -138,6 +137,5 @@ end
 let () =
   match Sys.argv.(1) with
   | "--server" -> Driver.server ()
-  | "--interact" -> Driver.load `Interact Sys.argv.(2)
   | "--github" -> Driver.load `GitHub Sys.argv.(2)
   | filepath -> Driver.load `Normal filepath
