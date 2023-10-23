@@ -6,7 +6,7 @@
 
 (** The functor to create a printer for GitHub Actions workflow commands. *)
 module Make (Message : Reporter.Message) : sig
-  (** Print a diagnostic as a GitHub Actions workflow command. Only the main message will be printed; backtraces and additional messages are ignored.
+  (** Print a diagnostic as a GitHub Actions workflow command. Only the main explanation will be printed; backtraces and extra remarks are ignored. Column numbers are also ignored because GitHub does not seem to use them.
 
       Example output:
       {v
