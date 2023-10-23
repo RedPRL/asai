@@ -2,8 +2,6 @@
 
 This tutorial is for an implementer (you!) to adopt this library as quickly as possible. We will assume you are already familiar with OCaml and are using a typical OCaml package structure.
 
-{i This tutorial is for the (unreleased) version 0.2.0.} If you are using an older version, some code might not work.
-
 {1 Define the Message Type}
 
 The first step is to create a file [Reporter.ml] with the following template:
