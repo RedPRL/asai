@@ -69,7 +69,7 @@ sig
 
       Example:
       {[
-        Reporter.fatalf FileError "failed to write the password %s on the screen" file_path
+        Reporter.fatalf SecurityTooStrict "failed to write the password %s on the screen" password
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
