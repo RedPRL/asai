@@ -44,37 +44,30 @@ module Terminal = Asai.Tty.Make(Reporter.Code)
 
 let exec handler =
   Reporter.run ~emit:handler ~fatal:handler @@ fun () ->
-  Reporter.emitf Hello "aloha; got %d" 100;
-  Reporter.emitf Bye "aloha; got %d" 200;
-  Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "hello here!";
-  Reporter.emit ~loc:(Range.make (~@ s2 2 3, ~@ s2 3 5)) Bye "bye there!";
-  Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "this is a bug" ~severity:Bug;
-  Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "this is an error" ~severity:Error;
-  Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "this is a warning" ~severity:Warning;
-  Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "this is an info" ~severity:Info;
-  Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "this is a hint" ~severity:Hint;
+  Reporter.emit Hello "this is a warning\nhaving two lines" ~severity:Warning;
+  Reporter.emit Bye "this is an error\nhaving two lines" ~severity:Error;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is a bug" ~severity:Bug;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is an error" ~severity:Error;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is a warning" ~severity:Warning;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is an info" ~severity:Info;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is a hint" ~severity:Hint;
 
-  Reporter.trace "when stepping into the abyss" begin fun () ->
-    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello again";
-    Reporter.trace "when stepping into the deep abyss" @@ fun () ->
+  Reporter.trace "when peaking into the abyss" begin fun () ->
+    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello from here";
+    Reporter.trace "when peaking into the deep abyss" @@ fun () ->
     begin
-      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello once again";
+      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello from here";
     end
   end;
 
   Reporter.trace ~loc:(Range.make (~@ s2 1 1, ~@ s2 3 4)) "when stepping into the abyss" begin fun () ->
-    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello again";
-    Reporter.trace "when stepping into the deep abyss" begin fun () ->
-      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello once again" ~severity:Info;
+    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello from here";
+    Reporter.trace ~loc:(Range.make (~@ s2 1 1, ~@ s2 3 4)) "when stepping into the deep abyss" begin fun () ->
+      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello from here" ~severity:Info;
     end
   end;
 
-  Reporter.emit ~loc:(Range.make (~@ s1 2 3, ~@ s1 2 7)) Hello "hello here!"
+  Reporter.emit ~loc:(Range.make (~@ s1 2 3, ~@ s1 2 7)) Hello "this is the main message"
     ~extra_remarks:[
       Diagnostic.loctext "message 1";
       Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) "message 2";

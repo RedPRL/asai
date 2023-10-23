@@ -10,24 +10,22 @@ let string_of_severity : Diagnostic.severity -> string =
   | Error -> "error"
   | Bug -> "bug"
 
+let hcat_with_pad l =
+  I.hcat @@ List.map (I.pad ~l:1) l
+
+let vmap_cat f l = I.vcat @@ List.map f l
+
 module E = Explicator.Make(TtyTag)
 
 module Make (Message : Reporter.Message) =
 struct
-  (* helper functions *)
-
-  let hcat_with_pad ~pad l =
-    I.hcat @@ List.map (I.pad ~l:pad) l
-
   (* parameters *)
   type param =
     {
-      show_backtrace : bool;
       line_breaking : [`Unicode | `Traditional];
       block_splitting_threshold : int;
       tab_size : int;
       severity : Diagnostic.severity;
-      message : Message.t;
       line_number_width : int;
     }
 
@@ -47,13 +45,13 @@ struct
 
   (* text *)
 
-  let render_code ~param =
+  let render_code ~param short_code =
     let attr = TtyStyle.code param.severity in
-    hcat_with_pad ~pad:1
+    hcat_with_pad
       [ I.string A.empty "￫"
       ; I.strf ~attr "%s[%s]"
           (string_of_severity param.severity)
-          (Message.short_code param.message)
+          short_code
       ]
 
   (* [ ￭ examples/stlc/source.lambda] *)
@@ -61,7 +59,7 @@ struct
     match Range.title s with
     | None -> I.empty
     | Some title ->
-      hcat_with_pad ~pad:1
+      hcat_with_pad
         [ I.string A.empty "￭"
         ; I.string A.empty title
         ]
@@ -72,60 +70,46 @@ struct
 
   let render_line_tag ~param ((_, text) as tag) =
     let attr = TtyStyle.message param.severity tag in
-    hcat_with_pad ~pad:1
+    hcat_with_pad
       [ I.void param.line_number_width 0
       ; I.string A.empty "^"
       ; I.strf ~attr "%t" text
       ]
 
-  let render_line_tags ~param tags =
-    I.vcat @@ List.map (render_line_tag ~param) tags
-
   let show_line ~line_num ~param Explication.{segments; tags} =
-    hcat_with_pad ~pad:1
+    hcat_with_pad
       [ I.hsnap ~align:`Right param.line_number_width (I.string TtyStyle.fringe (Int.to_string line_num))
       ; I.string TtyStyle.fringe "|"
       ; I.hcat @@ List.map (show_segment ~param) segments
       ]
     <->
-    render_line_tags ~param tags
+    vmap_cat (render_line_tag ~param) tags
 
-  let render_block ~param Explication.{begin_line_num; end_line_num=_; lines} =
+  let render_lines ~param ~begin_line_num lines =
     I.vcat begin
       lines |> List.mapi @@ fun i line ->
       show_line ~line_num:(begin_line_num + i) ~param line
     end
 
+  let render_block ~param Explication.{begin_line_num; end_line_num=_; lines} =
+    render_lines ~param ~begin_line_num lines
+
   let render_part ~param Explication.{source; blocks} =
     render_source_header ~param source
     <->
-    I.vcat begin
-      blocks |> List.map @@ render_block ~param
-    end
+    vmap_cat (render_block ~param) blocks
 
   let render_explication ~param parts =
-    I.vcat begin
-      parts |> List.map @@ fun p ->
-      render_part ~param p
-    end
+    vmap_cat (render_part ~param) parts
 
   let render_unlocated_tag ~param ((_, text) as tag) =
     let attr = TtyStyle.message param.severity tag in
-    hcat_with_pad ~pad:1
+    hcat_with_pad
       [ I.string A.empty "￮"
       ; I.strf ~attr "%t" text
       ]
 
-  let render_message ~param ?(end_padding=true) explication unlocated_tags =
-    render_explication ~param explication
-    <->
-    I.vcat begin
-      unlocated_tags |> List.map @@ render_unlocated_tag ~param
-    end
-    <->
-    if end_padding then I.void 0 1 else I.empty
-
-  let display_message ~param ?end_padding (explanation : Diagnostic.loctext) ~extra_remarks =
+  let display_message ~param (explanation : Diagnostic.loctext) ~extra_remarks =
     let located_tags, unlocated_tags =
       let explanation = TtyTag.Main, explanation in
       let extra_remarks = List.mapi (fun i r -> TtyTag.Extra i, r) (Bwd.to_list extra_remarks) in
@@ -139,37 +123,44 @@ struct
       E.explicate ~block_splitting_threshold:param.block_splitting_threshold located_tags
     in
     let line_number_width = Int.max param.line_number_width (line_number_width explication) in
-    render_message ~param:{param with line_number_width} ?end_padding explication unlocated_tags
+    let param = {param with line_number_width} in
+    render_explication ~param explication
+    <->
+    vmap_cat (render_unlocated_tag ~param) unlocated_tags
 
   let display_backtrace ~param backtrace =
     let backtrace =
-      I.vcat @@ Bwd.to_list @@
-      Bwd.map (display_message ~param ~end_padding:false ~extra_remarks:Emp) backtrace
+      vmap_cat (display_message ~param ~extra_remarks:Emp) @@ Bwd.to_list backtrace
     in
-    begin
+    let indentation =
+      I.pad ~l:1 @@
       match I.height backtrace with
       | 0 -> I.empty
-      | 1 -> I.string TtyStyle.indentation " ꭍ"
+      | 1 -> I.string TtyStyle.indentation "ꭍ"
       | h ->
         I.vcat
-          [ I.string TtyStyle.indentation " ╭"
-          ; I.tabulate 1
-              (h - 2)
-              (fun _ _ -> I.string TtyStyle.indentation " ┆")
-          ; I.string TtyStyle.indentation " ╯"
+          [ I.string TtyStyle.indentation "╭"
+          ; I.tabulate 1 (h - 2)
+              (fun _ _ -> I.string TtyStyle.indentation "┆")
+          ; I.string TtyStyle.indentation "╯"
           ]
-    end <|> backtrace
+    in
+    indentation <|> backtrace
 
-  let display_diagnostic ~param ~explanation ~backtrace ~extra_remarks =
-    render_code ~param
+  let display_diagnostic ~param ~short_code ~explanation ~backtrace ~extra_remarks =
+    render_code ~param short_code
     <->
     SourceReader.run @@ fun () ->
-    (if param.show_backtrace then display_backtrace ~param backtrace else I.empty)
+    display_backtrace ~param backtrace
     <->
-    display_message ~param ~end_padding:true explanation ~extra_remarks
+    display_message ~param explanation ~extra_remarks
+    <->
+    I.void 0 1
 
   let display ?(terminal_capacity) ?(output=Stdlib.stdout) ?(show_backtrace=true) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8)
       Diagnostic.{severity; message; explanation; backtrace; extra_remarks} =
-    let param = {show_backtrace; line_breaking; block_splitting_threshold; tab_size; severity; message; line_number_width = 1} in
-    Notty_unix.output_image ?cap:terminal_capacity ~fd:output @@ Notty_unix.eol @@ display_diagnostic ~param ~explanation ~backtrace ~extra_remarks
+    let backtrace = if show_backtrace then backtrace else Emp in
+    let param = {line_breaking; block_splitting_threshold; tab_size; severity; line_number_width = 1} in
+    Notty_unix.output_image ?cap:terminal_capacity ~fd:output @@ Notty_unix.eol @@
+    display_diagnostic ~param ~short_code:(Message.short_code message) ~explanation ~backtrace ~extra_remarks
 end
