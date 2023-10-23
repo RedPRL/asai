@@ -111,7 +111,7 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError {|unrecognized token "%s"|} (String.escaped tok)
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "unrecognized token %S" tok
       | Grammar.Error ->
         Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "failed to parse"
     in
