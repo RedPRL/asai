@@ -42,15 +42,10 @@ end
 
 module Terminal = Asai.Tty.Make(Reporter.Code)
 
-let () =
-  let handler =
-    match Sys.argv with
-    | [| _ ; "--interact" |] -> fun d -> Terminal.interact d
-    | _ -> fun d -> Terminal.display ~terminal_capacity:Notty.Cap.ansi d
-  in
+let exec handler =
   Reporter.run ~emit:handler ~fatal:handler @@ fun () ->
-  Reporter.emitf Hello "aloha %d" 100;
-  Reporter.emitf Bye "aloha %d" 200;
+  Reporter.emitf Hello "aloha; got %d" 100;
+  Reporter.emitf Bye "aloha; got %d" 200;
   Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "hello here!";
   Reporter.emit ~loc:(Range.make (~@ s2 2 3, ~@ s2 3 5)) Bye "bye there!";
   Reporter.emit ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 4)) Hello "this is a bug" ~severity:Bug;
@@ -64,29 +59,33 @@ let () =
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is an info" ~severity:Info;
   Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "this is a hint" ~severity:Hint;
 
-  Reporter.trace "When stepping into the abyss..." begin fun () ->
-    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello again!";
-    Reporter.trace "When stepping into the deep abyss..." @@ fun () ->
+  Reporter.trace "when stepping into the abyss" begin fun () ->
+    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello again";
+    Reporter.trace "when stepping into the deep abyss" @@ fun () ->
     begin
-      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello once again!";
+      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello once again";
     end
   end;
 
-  Reporter.trace ~loc:(Range.make (~@ s2 1 1, ~@ s2 3 4)) "When stepping into the abyss..." begin fun () ->
-    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello again!";
-    Reporter.trace "When stepping into the deep abyss..." begin fun () ->
-      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "Hello once again!" ~severity:Info;
+  Reporter.trace ~loc:(Range.make (~@ s2 1 1, ~@ s2 3 4)) "when stepping into the abyss" begin fun () ->
+    Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello again";
+    Reporter.trace "when stepping into the deep abyss" begin fun () ->
+      Reporter.emit ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) Hello "hello once again" ~severity:Info;
     end
   end;
 
   Reporter.emit ~loc:(Range.make (~@ s1 2 3, ~@ s1 2 7)) Hello "hello here!"
     ~extra_remarks:[
-      Diagnostic.loctext "Message 1";
-      Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) "Message 2";
-      Diagnostic.loctext "Message 3";
-      Diagnostic.loctext ~loc:(Range.make (~@ s1 3 4, ~@ s1 3 5)) "Message 4";
-      Diagnostic.loctext ~loc:(Range.make (~@ s1 2 8, ~@ s1 2 9)) "Message 5";
-      Diagnostic.loctext ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 1)) "Message 6";
-      Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 2 1)) "Message 7";
-      Diagnostic.loctext ~loc:(Range.make (~@ s2 10 0, ~@ s2 10 0)) "Message 8";
-    ];
+      Diagnostic.loctext "message 1";
+      Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) "message 2";
+      Diagnostic.loctext "message 3";
+      Diagnostic.loctext ~loc:(Range.make (~@ s1 3 4, ~@ s1 3 5)) "message 4";
+      Diagnostic.loctext ~loc:(Range.make (~@ s1 2 8, ~@ s1 2 9)) "message 5";
+      Diagnostic.loctext ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 1)) "message 6";
+      Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 2 1)) "message 7";
+      Diagnostic.loctext ~loc:(Range.make (~@ s2 10 0, ~@ s2 10 0)) "message 8";
+    ]
+
+let () =
+  exec (Terminal.display ~terminal_capacity:Notty.Cap.ansi);
+  exec (Terminal.display ~terminal_capacity:Notty.Cap.dumb);

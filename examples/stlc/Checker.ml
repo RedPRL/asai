@@ -21,7 +21,7 @@ struct
       Reporter.fatalf ?loc `UnboundVariable "variable '%s' is not in scope" nm
 
   let expected_connective ?loc conn tp =
-    Reporter.fatalf ?loc `TypeError "expected a %s, but got %a." conn pp_tp tp
+    Reporter.fatalf ?loc `TypeError "expected a %s, but got %a" conn pp_tp tp
 
   let rec equate ?loc expected actual =
     Reporter.tracef ?loc "when equating terms" @@ fun () ->
@@ -35,7 +35,7 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Reporter.fatalf ?loc `TypeError "expected type %a, but got %a." pp_tp expected pp_tp actual
+      Reporter.fatalf ?loc `TypeError "expected type %a, but got %a" pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
     Reporter.tracef ?loc:tm.loc "when checking against %a" Syntax.pp_tp tp @@ fun () ->

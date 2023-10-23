@@ -42,7 +42,7 @@ sig
 
       Example:
       {[
-        Reporter.fatal @@ CatError "Forgot to feed the cat"
+        Reporter.fatal @@ CatError "forgot to feed the cat"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
@@ -110,7 +110,7 @@ sig
 
       Example:
       {[
-        Reporter.diagnostic @@ SyntaxError "Too many emojis."
+        Reporter.diagnostic @@ SyntaxError "too many emojis"
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
