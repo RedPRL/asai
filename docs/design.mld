@@ -10,9 +10,18 @@ In addition to the main message, the API should allow an implementer to easily s
 + {b A stack backtrace.} It should be straightforward to push new stack frames. Our implementation is {{!val:Asai.Reporter.S.trace}trace}.
 + {b Additional notes.} It should be possible to attach any numbers of additional notes with location information. Currently, {{!val:Asai.Reporter.S.emit}emit} and {{!val:Asai.Reporter.S.fatal}fatal} are taking an optional argument [extra_remarks].
 
+{1 Free-Form and Structured Reporting}
+
+We realized there are two distinct use modes when coming to message reporting:
+
++ One is focusing on {b free-form texts,} which means one directly specifies the long explanation every time a diagnostic is sent; the messages are only a loose categorization of the long explanations.
++ The other is focusing on {b fully structured messages,} which means one directly specifies a structured message (e.g., an element of a variant type) and the long explanation is {i determined} by the message. The message captures all information in the long explanation.
+
+We should support at least the free-form use mode, and ideally support both. The free-form reporting is implemented as {{!module:Asai.Reporter}Reporter} and the structured one is implemented as {{!module:Asai.StructuredReporter}StructuredReporter}.
+
 {1 Compositionality: Using Libraries that Use [asai]}
 
-It should be easy for an application to use other libraries who themselves use [asai]. Our current implementation allows an application to {{!val:Asai.Reporter.S.adopt}adopt} diagnostics from a library.
+It should be easy for an application to use other libraries who themselves use [asai], even if the application and the library made different choices between free-form and structured free-form reporting. Our current implementation uses the same diagnostic type for both reporting styles and allows an application to {{!val:Asai.Reporter.S.adopt}adopt} diagnostics from a library.
 
 {1 Unicode Art}
 
