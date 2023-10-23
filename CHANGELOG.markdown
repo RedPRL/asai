@@ -2,12 +2,12 @@
 
 This is a major release with many backward incompatible changes.
 
-The most significant change is the introduction of **StructuredReporter**. The library thus supports two different modes:
+The most significant change is the introduction of **StructuredReporter**. The library can thus be used in two different modes:
 
-1. **Reporter** (as the old **Logger**): the API is biased towards free-form explanations.
-2. **StructuredReporter:** the API is biased towards fully structured messages.
+1. Use **Reporter** (as the old **Logger**): its API is biased towards free-form explanations.
+2. Use **StructuredReporter:** its API is biased towards fully structured messages.
 
-Both modes share the same type of **diagnostics**, and thus, an application using structured messages can adopt a library using free-form explanations and vice versa. Great care has been taken to make sure the two modes work together. The current tutorial focuses on **Reporter** and free-form explanations because we think that mode is slightly easier to set up.
+Both modes share the same type of **diagnostics**, and thus, an application using structured messages can adopt a library using free-form explanations and vice versa. Great care has been taken to make sure the two modes can work together. The current tutorial focuses on **Reporter** and free-form explanations because we think that mode is slightly easier to set up.
 
 The second most significant change is that the TTY handler got an overhaul. The output is now more concise, informational, and beautiful.
 
