@@ -185,17 +185,19 @@ struct
       I.vcat @@ Bwd.to_list @@
       Bwd.map (display_message ~param ~end_padding:false ~extra_remarks:Emp) backtrace
     in
-    if I.height backtrace >= 1 then
-      I.vcat
-        [ I.string Style.indentation " ╭"
-        ; I.tabulate 1
-            (Int.max 0 (I.height backtrace - 2))
-            (fun _ _ -> I.string Style.indentation " ┆")
-        ; I.string Style.indentation " ╯"
-        ]
-      <|> backtrace
-    else
-      I.empty
+    begin
+      match I.height backtrace with
+      | 0 -> I.empty
+      | 1 -> I.string Style.indentation " ꭍ"
+      | h ->
+        I.vcat
+          [ I.string Style.indentation " ╭"
+          ; I.tabulate 1
+              (h - 2)
+              (fun _ _ -> I.string Style.indentation " ┆")
+          ; I.string Style.indentation " ╯"
+          ]
+    end <|> backtrace
 
   let display_diagnostic ~param ~explanation ~backtrace ~extra_remarks =
     render_code ~param
