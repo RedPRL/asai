@@ -129,7 +129,7 @@ Reporter.trace ~loc "when checking this code" @@ fun () ->
 Reporter.emit "wow" (* using the location [loc] from above *)
 (* ... *)
 ]}
-the inner message ["Wow!"] will inherit the location [loc] from the outer {{!val:Asai.Reporter.S.trace}trace} function call! You can also use {{!val:Asai.Reporter.S.merge_loc}merge_loc} to "remember" a location for later use, which is helpful when you want to remember a location but not to leave a trace:
+the inner message ["wow"] will inherit the location [loc] from the outer {{!val:Asai.Reporter.S.trace}trace} function call! You can also use {{!val:Asai.Reporter.S.merge_loc}merge_loc} to "remember" a location for later use, which is helpful when you want to remember a location but not to leave a trace:
 {[
 Reporter.merge_loc (Some loc) @@ fun () ->
 (* ... *)
