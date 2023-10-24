@@ -38,7 +38,7 @@ struct
       Reporter.fatalf ?loc `TypeError "expected type %a, but got %a" pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
-    Reporter.tracef ?loc:tm.loc "when checking against %a" Syntax.pp_tp tp @@ fun () ->
+    Reporter.tracef ?loc:tm.loc "when checking it against %a" Syntax.pp_tp tp @@ fun () ->
     match tm.value, tp with
     | Lam (nm, body), Fun (a, b) ->
       bind_var nm a @@ fun () ->
@@ -63,7 +63,7 @@ struct
       equate ?loc:tm.loc tp actual_tp
 
   and syn (tm : tm) : tp =
-    Reporter.tracef ?loc:tm.loc "when synthesizing" @@ fun () ->
+    Reporter.tracef ?loc:tm.loc "when synthesizing its type" @@ fun () ->
     match tm.value with
     | Var nm ->
       lookup ?loc:tm.loc nm
@@ -100,7 +100,7 @@ struct
         mot
       end
     | _ ->
-      Reporter.fatalf ?loc:tm.loc `TypeError "unable to infer type"
+      Reporter.fatalf ?loc:tm.loc `TypeError "unable to infer its type"
 end
 
 module Driver =
