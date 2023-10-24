@@ -73,8 +73,6 @@ let of_lex_position ?source (pos : Lexing.position) : position =
 let of_lex_range ?source (begin_, end_) =
   make (of_lex_position ?source begin_, of_lex_position ?source end_)
 
-let of_lex_span = of_lex_range
-
 let of_lexbuf ?source lexbuf =
   of_lex_range ?source (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
 

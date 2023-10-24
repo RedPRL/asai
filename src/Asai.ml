@@ -10,7 +10,5 @@ module Explication = Explication
 module Explicator = Explicator
 module SourceReader = SourceReader
 
-module Span = Range (* backward compatibility *)
-module Logger = Reporter (* backward compatibility *)
 module UserContent = UserContent
 module Flattener = Flattener
