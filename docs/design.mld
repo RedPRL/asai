@@ -21,7 +21,7 @@ We should support at least the free-form use mode, and ideally support both. The
 
 {1 Compositionality: Using Libraries that Use [asai]}
 
-It should be easy for an application to use other libraries who themselves use [asai], even if the application and the library made different choices between free-form and structured free-form reporting. Our current implementation uses the same diagnostic type for both reporting styles and allows an application to {{!val:Asai.Reporter.S.adopt}adopt} diagnostics from a library.
+It should be easy for an application to use other libraries who themselves use [asai], even if the application and the library made different choices between free-form and structured reporting. Our current implementation uses the same diagnostic type for both reporting styles and allows an application to {{!val:Asai.Reporter.S.adopt}adopt} diagnostics from a library.
 
 {1 Unicode Art}
 
