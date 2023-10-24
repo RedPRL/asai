@@ -17,7 +17,7 @@ type t = position * position
 type 'a located = { loc : t option; value : 'a }
 
 let dump_string_source fmt {title; content} =
-  Format.fprintf fmt "@[{title=%a;@ content=%a}@]"
+  Format.fprintf fmt "@[<1>{@[<2>title=@,%a@];@ @[<2>content=@,%a@]}@]"
     (Utils.dump_option Utils.dump_string) title Utils.dump_string content
 
 let dump_source fmt : source -> unit =

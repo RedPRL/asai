@@ -11,8 +11,15 @@ type 'tag block =
 
 type 'tag t = (Range.source * 'tag block list) list
 
-let dump_block dump_tag fmt {begin_line_num; end_line_num; tagged_positions; tagged_lines} =
-  Format.fprintf fmt {|@[<1>{begin_line_num=%d;@ end_line_num=%d;@ @[<2>tagged_positions=@ @[%a@]@];@ @[<2>tagged_lines=@,@[%a@]@]}@]|}
+let dump_block dump_tag fmt {begin_line_num; end_line_num; tagged_positions; tagged_lines} : unit =
+  Format.fprintf fmt
+    begin
+      "@[<1>{" ^^
+      "begin_line_num=%d;@ " ^^
+      "end_line_num=%d;@ " ^^
+      "@[<2>tagged_positions=@ @[%a@]@];@ " ^^
+      "@[<2>tagged_lines=@,@[%a@]@]}@]"
+    end
     begin_line_num end_line_num
     (Utils.dump_list (Utils.dump_pair (Utils.dump_option dump_tag) Range.dump_position)) tagged_positions
     (Utils.dump_list (Utils.dump_pair dump_tag Format.pp_print_int)) tagged_lines
@@ -79,7 +86,7 @@ struct
     type t = (Tag.t option * Range.position) bwd
 
     (* precondition: x1 < x2 and there are already points at x1 and x2 *)
-    let impose ~blend xtag (x1 : Range.position) (x2 : Range.position) : t -> t =
+    let impose ~blend xtag (x1 : int) (x2 : int) : t -> t =
       let blend_opt =
         function
         | None -> Some xtag
@@ -87,13 +94,13 @@ struct
       in
       let[@tail_mod_cons] rec go2 : t -> t =
         function
-        | Snoc (ps, (ptag, ploc)) when ploc.offset >= x1.offset ->
+        | Snoc (ps, (ptag, ploc)) when ploc.offset >= x1 ->
           Snoc (go2 ps, (blend_opt ptag, ploc))
         | ps -> ps
       in
       let[@tail_mod_cons] rec go1 : t -> t =
         function
-        | Snoc (ps, ((_, ploc) as p)) when ploc.offset >= x2.offset ->
+        | Snoc (ps, ((_, ploc) as p)) when ploc.offset >= x2 ->
           Snoc (go1 ps, p)
         | ps -> go2 ps
       in
@@ -115,7 +122,7 @@ struct
 
     let add ~blend l (tag, value) =
       let x1, x2 = Range.split value in
-      impose ~blend tag x1 x2 @@ ensure_point x2 @@ ensure_point x1 l
+      impose ~blend tag x1.offset x2.offset @@ ensure_point x2 @@ ensure_point x1 l
 
     let flatten ~blend l =
       Bwd.to_list @@ List.fold_left (add ~blend) Emp l
