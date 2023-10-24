@@ -86,19 +86,21 @@ val title : source -> string option
 
 (** [of_lex_position pos] converts an OCaml lexer position [pos] of type {!type:Lexing.position} into a {!type:position}. The input [pos] must be byte-indexed. (Therefore, the OCaml tool [ocamllex] is compatible, but the OCaml library [sedlex] is not because it uses Unicode code points.)
 
-    @param source The source of the new position. The default source is the file source specified by the file path [pos.pos_fname].
+    @param source The source of the new position. The default source is [`File pos.pos_fname].
 *)
 val of_lex_position : ?source:source -> Lexing.position -> position
 
 (** [of_lex_range (begining, ending)] takes a pair of OCaml lexer positions and creates a range. It is [make (of_lex_position begining, of_lex_position ending)].
 
-    @param source The source of the new range. The default source is the file source specified by the file path [begining.pos_fname].
+    @param source The source of the new range. The default source is [`File begining.pos_fname].
+
+    @raise Invalid_argument if the optional argument [source] is not given and [begining.pos_fname] and [ending.pos_fname] differ. The comparison is done by [String.equal] without any path normalization.
 *)
 val of_lex_range : ?source:source -> Lexing.position * Lexing.position -> t
 
 (** [of_lexbuf lexbuf] constructs a range from the current lexeme that [lexbuf] points to. It is [of_lex_range (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)].
 
-    @param source The source of the new range. The default source is the file source specified by the file path [(Lexing.lexeme_start_p lexbuf).pos_fname].
+    @param source The source of the new range. The default source is [`File (Lexing.lexeme_start_p lexbuf).pos_fname].
 *)
 val of_lexbuf : ?source:source -> Lexing.lexbuf -> t
 
@@ -111,7 +113,7 @@ locate(X):
     { Asai.Range.locate_lex $loc e }
 v}
 
-    @param source The source of the range. The default source is the file source specified by the file path [(Lexing.lexeme_start_p lexbuf).pos_fname].
+    @param source The source of the range. The default source is [`File (Lexing.lexeme_start_p lexbuf).pos_fname].
 *)
 val locate_lex : ?source:source -> Lexing.position * Lexing.position -> 'a -> 'a located
 
