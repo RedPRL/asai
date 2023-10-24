@@ -36,8 +36,8 @@ let dump_position fmt {source; offset; start_of_line; line_num} =
 let dump fmt =
   function
   | Range (begin_, ending_) ->
-    Format.fprintf fmt {|@[<2>Range@ @[<1>(%a,@ %a)@]@]|}
-      dump_position begin_ dump_position ending_
+    Format.fprintf fmt {|@[<2>Range@ %a@]|}
+      (Utils.dump_pair dump_position dump_position) (begin_, ending_)
   | End_of_file pos ->
     Format.fprintf fmt {|@[<2>End_of_file@ %a@]|}
       dump_position pos

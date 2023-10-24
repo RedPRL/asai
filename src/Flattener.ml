@@ -121,8 +121,11 @@ struct
       go
 
     let add ~blend l (tag, value) =
-      let x1, x2 = Range.split value in
-      impose ~blend tag x1.offset x2.offset @@ ensure_point x2 @@ ensure_point x1 l
+      match Range.view value with
+      | `Range (x1, x2) ->
+        impose ~blend tag x1.offset x2.offset @@ ensure_point x2 @@ ensure_point x1 l
+      | `End_of_file x ->
+        impose ~blend tag x.offset Int.max_int @@ ensure_point x l
 
     let flatten ~blend l =
       Bwd.to_list @@ List.fold_left (add ~blend) Emp l

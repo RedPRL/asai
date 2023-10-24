@@ -109,8 +109,11 @@ module Make (Tag : Tag) = struct
           let lines, remaining_tagged_lines =
             let segments =
               if state.cursor.offset < state.eol then
-                state.segments <:
-                (state.current_tag, read_between ~source state.cursor.offset state.eol)
+                state.segments
+                <: (state.current_tag, read_between ~source state.cursor.offset state.eol)
+              else if state.cursor.offset = eof && Option.is_some state.current_tag then
+                state.segments
+                <: (state.current_tag, "‹EOF›")
               else
                 state.segments
             in
@@ -120,7 +123,6 @@ module Make (Tag : Tag) = struct
           (* Continue the process if [ps] is not empty. *)
           match ps with
           | [] ->
-            assert (Option.is_none state.current_tag);
             assert (state.line_num = b.end_line_num);
             lines
           | (_, ploc) :: _ ->

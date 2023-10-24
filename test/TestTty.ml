@@ -77,6 +77,11 @@ let exec handler =
       Diagnostic.loctext ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 1)) "message 6";
       Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 2 1)) "message 7";
       Diagnostic.loctext ~loc:(Range.make (~@ s2 10 0, ~@ s2 10 0)) "message 8";
+    ];
+
+  Reporter.emit ~loc:(Range.eof (~@ s1 23 width)) Hello "this is the main message"
+    ~extra_remarks:[
+      Diagnostic.loctext ~loc:(Range.eof (~@ s2 23 width)) "ending of another file";
     ]
 
 let () =
