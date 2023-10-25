@@ -59,9 +59,10 @@ If you wish to terminate your program after sending a message instead of continu
 
 {1 Choose a Diagnostic Handler}
 
-Now your program is generating lots of messages, and you have to choose a {i handler} to deal with them. We will show how to display those messages in a terminal. Suppose your entry point module looks like this:
+Now that your program is generating lots of messages, you need a {i handler} to deal with them. The library comes with a stock handler to display those messages in a terminal. Suppose your entry point module looks like this:
 {[
-let () = (* your application code *)
+let () =
+  (* your application code *)
 ]}
 You can use the {{!module:Asai.Tty}terminal} handler as follows:
 {[
@@ -71,6 +72,8 @@ let () =
   Reporter.run ~emit:Term.display ~fatal:Term.display @@ fun () ->
   (* your application code *)
 ]}
+
+A handler is actually just a function that takes a diagnostic. Here, any function of type [Reporter.Code.t Diagnostic.t -> unit] would have worked.
 
 {1 Add Backtraces}
 
