@@ -12,7 +12,9 @@ type position = {
   line_num : int;
 }
 
-type t = position * position
+type t =
+  | Range of position * position
+  | End_of_file of position
 
 type 'a located = { loc : t option; value : 'a }
 
@@ -31,7 +33,14 @@ let dump_position fmt {source; offset; start_of_line; line_num} =
   Format.fprintf fmt {|@[<1>{@[<2>source=@[%a@]@];@ offset=%d;@ start_of_line=%d;@ line_num=%d}@]|}
     dump_source source offset start_of_line line_num
 
-let dump = Utils.dump_pair dump_position dump_position
+let dump fmt =
+  function
+  | Range (begin_, ending_) ->
+    Format.fprintf fmt {|@[<2>Range@ %a@]|}
+      (Utils.dump_pair dump_position dump_position) (begin_, ending_)
+  | End_of_file pos ->
+    Format.fprintf fmt {|@[<2>End_of_file@ %a@]|}
+      dump_position pos
 
 let title : source -> string option =
   function
@@ -48,15 +57,25 @@ let make (begin_ , end_ : position * position) : t =
     invalid_arg @@
     Format.asprintf "make: the ending position comes before the starting position"
   else
-    begin_, end_
+    Range (begin_, end_)
 
-let split (r : t) : position * position = r
+let eof pos = End_of_file pos
 
-let source ((begin_,_) : t) = begin_.source
-let begin_line_num ((begin_, _) : t) = begin_.line_num
-let begin_offset ((begin_, _) : t) = begin_.offset
-let end_line_num ((_, end_) : t) = end_.line_num
-let end_offset ((_, end_) : t) = end_.offset
+let view =
+  function
+  | Range (p1, p2) -> `Range (p1, p2)
+  | End_of_file p -> `End_of_file p
+
+let split =
+  function
+  | Range (p1, p2) -> p1, p2
+  | End_of_file _ -> invalid_arg "Asai.Range.split"
+
+let source = function Range (x, _) | End_of_file x -> x.source
+let begin_line_num = function Range (x, _) | End_of_file x -> x.line_num
+let begin_offset = function Range (x, _) | End_of_file x -> x.offset
+let end_line_num = function Range (_, x) | End_of_file x -> x.line_num
+let end_offset = function Range (_, x) | End_of_file x -> x.offset
 
 let locate_opt loc value = {loc; value}
 let locate loc value = {loc = Some loc; value}

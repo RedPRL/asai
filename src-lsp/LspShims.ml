@@ -10,7 +10,11 @@ struct
   let lsp_range_of_range (r : Asai.Range.t option) =
     match r with
     | Some r ->
-      let (start , stop) = Asai.Range.split r in
+      let (start , stop) =
+        match Asai.Range.view r with
+        | `Range (start, stop) -> start, stop
+        | `End_of_file pos -> pos, pos
+      in
       L.Range.create
         ~start:(lsp_pos_of_pos start)
         ~end_:(lsp_pos_of_pos stop)
