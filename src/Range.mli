@@ -50,7 +50,7 @@ type 'a located = { loc : t option; value : 'a }
 *)
 val make : position * position -> t
 
-(** [eof pos] builds a special range marking the ending of the source. *)
+(** [eof pos] builds a special range referring to the end of the source. The input [pos] must be pointing at the end position; for example, if the position referring to a string source, [pos.offset] should be the length of the string. *)
 val eof : position -> t
 
 (** [view range] returns a {i view} of the range. *)
@@ -134,6 +134,6 @@ val dump : Format.formatter -> t -> unit
 
 (** [split range] returning the pair of the beginning and ending positions of [range].
 
-    @raise Invalid_argument if range is a special range marking the ending.
+    @raise Invalid_argument if range is a special range marking the end.
 *)
 val split : t -> position * position [@@ocaml.alert deprecated "Use Asai.Range.view"]
