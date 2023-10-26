@@ -21,6 +21,8 @@ module Make (Message : Reporter.Message) : sig
    ^ could not say hi here
       v}
 
+      Note that colors will be off if a non-empty value was assigned to the environment variable [NO_COLOR], and the checking will be done at the loading of the asai library.
+
       @param terminal_capacity Control whether ANSI escape sequences should be used, overwriting the auto-detection. Possible values are {!val:Notty.Cap.ansi} for using ANSI escape sequences strings and {!val:Notty.Cap.dumb} for not using them. Note that this handler uses {i exclusively} ANSI escape sequences for highlighting, which means turning them off will lose the precise location.
       @param output The output channel, such as {!val:stdout} and {!val:stderr}. By default, it is {!val:stdout}, the standard output.
       @param show_backtrace Whether the backtrace should be shown. The default is [true].
