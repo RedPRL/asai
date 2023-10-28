@@ -24,8 +24,8 @@ struct
   let with_backtrace bt = Traces.scope @@ fun (loc, _) -> loc, bt
 
   let trace_text ?loc text = Traces.scope @@ fun (l, bt) ->
-    let loc = match loc with None -> l | Some _ -> loc in
-    loc, bt <: {loc; value = text}
+    (match loc with None -> l | Some _ -> loc),
+    bt <: {loc; value = text}
 
   let trace_loctext (t : Diagnostic.loctext) =
     trace_text ?loc:t.loc t.value
