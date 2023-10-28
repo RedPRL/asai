@@ -147,7 +147,7 @@ sig
 
       Here shows the intended usage, where [Cool_lib] is the library to be used in the main application:
       {[
-        let _ = Reporter.adopt (Diagnostic.map message_mapper) Cool_lib.Reporter.run @@ fun () -> ...
+        Reporter.adopt (Diagnostic.map message_mapper) Cool_lib.Reporter.run @@ fun () -> ...
       ]}
   *)
   val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a

@@ -1,24 +1,22 @@
 module type Reporter =
 sig
+  (** This is a template signature provided by asai. The author of the library you are using employs this template to hide almost everything from the public interface except the minimum API for you to adopt it. In the following documentation, "the library" refers to the library using this template, not asai. *)
+
   module Message :
   sig
     (** The type of all messages from the library you use. *)
     type t
 
-    (** The default severity level of a message from the library you use. *)
-    val default_severity : t -> Diagnostic.severity
-
-    (** A concise, ideally Google-able string representation of each message from this library. *)
+    (** A concise, ideally Google-able string representation of each message from the library. *)
     val short_code : t -> string
   end
 
-  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing the computation (see {!val:emit} and {!val:emitf}), and [fatal] to handle fatal diagnostics that have aborted the computation (see {!val:fatal} and {!val:fatalf}).
-
-      The recommended way to embed messages from a library using asai is to use {!val:Reporter.S.adopt}:
+  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics from the library before continuing the computation, and [fatal] to handle fatal diagnostics from the library that have aborted the computation. The recommended way to handle messages from the library is to use {!val:Asai.Reporter.S.adopt}:
       {[
-        let _ = Reporter.adopt (Diagnostic.map message_mapper) ThisLib.Reporter.run @@ fun () -> ...
+        Reporter.adopt (Diagnostic.map message_mapper) The_library.Reporter.run @@ fun () -> ...
       ]}
 
+      @param init_loc The initial default location for inner {!val:emit} and {!val:fatal}. The default value is [None].
       @param init_backtrace The initial backtrace to start with. The default value is the empty backtrace.
       @param emit The handler of non-fatal diagnostics.
       @param fatal The handler of fatal diagnostics. *)

@@ -174,8 +174,8 @@ sig
 
   (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to handle fatal diagnostics that have aborted the computation (see {!val:fatal}).
 
-      @param init_loc The initial default location for inner {!val:emit} and {!val:fatal}. The default value is [None].
-      @param init_backtrace The initial backtrace to start with. The default value is the empty backtrace.
+      @param init_loc The initial default location for internal {!val:emit} and {!val:fatal} within the library. The default value is [None].
+      @param init_backtrace The initial backtrace for the library to start with. The default value is the empty backtrace.
       @param emit The handler of non-fatal diagnostics.
       @param fatal The handler of fatal diagnostics. *)
   val run : ?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:(Message.t Diagnostic.t -> unit) -> fatal:(Message.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
@@ -195,7 +195,7 @@ sig
 
       Here shows the intended usage, where [Cool_lib] is the library to be used in the main application:
       {[
-        let _ = Reporter.adopt (Diagnostic.map message_mapper) Cool_lib.Reporter.run @@ fun () -> ...
+        Reporter.adopt (Diagnostic.map message_mapper) Cool_lib.Reporter.run @@ fun () -> ...
       ]}
   *)
   val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
