@@ -20,6 +20,11 @@ module Reporter = Reporter
     @since 0.2.0 *)
 module StructuredReporter = StructuredReporter
 
+(** Signatures that help a library author expose a minimum interface of their internal reporter.
+
+    @since 0.3.0 *)
+module LibSigs = LibSigs
+
 (** {1 Experimental Diagnostic Handlers} *)
 
 (** These handlers are subject to changes, but we will minimize incompatible changes between minor versions. *)
