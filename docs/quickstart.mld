@@ -167,7 +167,7 @@ struct
   let default_severity : t -> Asai.Diagnostic.severity =
     function
     (* ... *)
-    | Cool c -> CoolLibrary.Reporter.default_severity c
+    | Cool _ -> assert false (* You probably should not create new diagnostics using the cool library's messages. *)
 
   (** A short, concise, ideally Google-able string representation for each message. *)
   let short_code : t -> string =
