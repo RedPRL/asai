@@ -190,7 +190,7 @@ struct
     I.void 0 1
 end
 
-module Make (Message : Reporter.Message) =
+module Make (Message : MinimumSigs.Message) =
 struct
   let display ?(terminal_capacity) ?(output=Stdlib.stdout) ?(show_backtrace=true) ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) d =
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in

@@ -20,10 +20,10 @@ module Reporter = Reporter
     @since 0.2.0 *)
 module StructuredReporter = StructuredReporter
 
-(** Signatures that help a library author expose a minimum interface of their internal reporter.
+(** Signatures that specify the minimum interface for libraries, applications, and handlers to work together.
 
     @since 0.3.0 *)
-module LibSigs = LibSigs
+module MinimumSigs = MinimumSigs
 
 (** {1 Experimental Diagnostic Handlers} *)
 

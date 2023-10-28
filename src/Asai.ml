@@ -2,7 +2,7 @@ module Range = Range
 module Diagnostic = Diagnostic
 module Reporter = Reporter
 module StructuredReporter = StructuredReporter
-module LibSigs = LibSigs
+module MinimumSigs = MinimumSigs
 
 module Tty = Tty
 module GitHub = GitHub

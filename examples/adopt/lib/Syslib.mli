@@ -1,2 +1,2 @@
-module Reporter : Asai.LibSigs.Reporter
+module Reporter : Asai.MinimumSigs.Reporter
 module Operations = Operations

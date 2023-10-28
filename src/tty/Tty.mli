@@ -5,7 +5,7 @@
 (** {1 Display} *)
 
 (** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
-module Make (Message : Reporter.Message) : sig
+module Make (Message : MinimumSigs.Message) : sig
 
   (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this (but with coloring):
 

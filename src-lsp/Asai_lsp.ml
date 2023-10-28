@@ -1,7 +1,7 @@
 module L = Lsp.Types
 module RPC = Jsonrpc
 
-module Make (Message : Asai.Reporter.Message) =
+module Make (Message : Asai.MinimumSigs.Message) =
 struct
   module Server = LspServer.Make(Message)
   open Server

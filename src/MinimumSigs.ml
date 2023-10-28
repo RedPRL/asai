@@ -1,15 +1,19 @@
+(** This signature presents the minimum interface to use diagnostic handlers. Any module implementing {!module-type:Reporter.Message} or {!module-type:StructuredReporter.Message} will also implement this minimum interface. *)
+module type Message =
+sig
+
+  (** The type of all messages from the library. *)
+  type t
+
+  (** A concise, ideally Google-able string representation of each message from the library. *)
+  val short_code : t -> string
+end
+
+(** This is a template signature provided by asai. It is the minimum interface for different libraries and applications that use asai to work together. The author of the library you are using employs this template to hide almost everything from the public interface except the minimum API for you to adopt it. In the following documentation, "the library" refers to the library using this template, not asai. *)
 module type Reporter =
 sig
-  (** This is a template signature provided by asai. The author of the library you are using employs this template to hide almost everything from the public interface except the minimum API for you to adopt it. In the following documentation, "the library" refers to the library using this template, not asai. *)
 
-  module Message :
-  sig
-    (** The type of all messages from the library you use. *)
-    type t
-
-    (** A concise, ideally Google-able string representation of each message from the library. *)
-    val short_code : t -> string
-  end
+  module Message : Message
 
   (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics from the library before continuing the computation, and [fatal] to handle fatal diagnostics from the library that have aborted the computation. The recommended way to handle messages from the library is to use {!val:Asai.Reporter.S.adopt}:
       {[

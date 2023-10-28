@@ -1,7 +1,7 @@
 module L := Lsp.Types
 module RPC := Jsonrpc
 
-module Make (Message : Asai.Reporter.Message) : sig
+module Make (Message : Asai.MinimumSigs.Message) : sig
   type lsp_error =
     | DecodeError of string
     | HandshakeError of string

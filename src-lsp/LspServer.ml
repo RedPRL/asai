@@ -7,7 +7,7 @@ module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (Message : Asai.Reporter.Message) =
+module Make (Message : Asai.MinimumSigs.Message) =
 struct
   type diagnostic = Message.t Asai.Diagnostic.t
 
