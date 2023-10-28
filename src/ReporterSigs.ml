@@ -28,7 +28,7 @@ sig
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -42,7 +42,7 @@ sig
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -59,7 +59,7 @@ sig
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -73,7 +73,7 @@ sig
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -99,33 +99,34 @@ sig
 
   (** [trace str f] records the string [str] and runs the thunk [f] with the new backtrace.
 
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is [None]. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
   val trace : ?loc:Range.t -> string -> (unit -> 'a) -> 'a
 
   (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is [None]. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
   val tracef : ?loc:Range.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
 
   (** [trace_text text f] records the [text] and runs the thunk [f] with the new backtrace.
 
-      @param loc The location of the text (usually the code) to highlight. *)
+      @param loc The location of the text (usually the code) to highlight. The default value is [None]. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
+  *)
   val trace_text : ?loc:Range.t -> Diagnostic.text -> (unit -> 'a) -> 'a
 
-  (** [trace_loctext loctext f] records the [loctext] and runs the thunk [f] with the new backtrace. *)
+  (** [trace_loctext loctext f] records the [loctext] and runs the thunk [f] with the new backtrace. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}. *)
   val trace_loctext : Diagnostic.loctext -> (unit -> 'a) -> 'a
 
   (** {2 Locations} *)
 
-  (** [get_loc()] returns the current location. *)
+  (** [get_loc()] returns the current default location for {!val:emit} and {!val:fatal}. *)
   val get_loc : unit -> Range.t option
 
-  (** [with_loc loc f] runs the thunk [f] with [loc] as the initial location [loc]. Note that [with_loc None] will clear the current location, while [merge_loc None] will keep it. See {!val:merge_loc}. *)
+  (** [with_loc loc f] runs the thunk [f] with [loc] as the new default location for {!val:emit} and {!val:fatal}. Note that [with_loc None] will clear the current default location, while [merge_loc None] will keep it. See {!val:merge_loc}. *)
   val with_loc : Range.t option -> (unit -> 'a) -> 'a
 
-  (** [merge_loc loc f] "merges" [loc] into the current location and runs the thunk [f]. By "merge", it means that if [loc] is [None], then the current location is kept; otherwise, it is overwritten. Note that [with_loc None] will clear the current location, while [merge_loc None] will keep it. See {!val:with_loc}. *)
+  (** [merge_loc loc f] "merges" [loc] into the current default location for {!val:emit} and {!val:fatal} and runs the thunk [f]. By "merge", it means that if [loc] is [None], then the current default location is kept; otherwise, it is overwritten. Note that [with_loc None] will clear the current default location, while [merge_loc None] will keep it. See {!val:with_loc}. *)
   val merge_loc : Range.t option -> (unit -> 'a) -> 'a
 
   (** {2 Constructing Diagnostics} *)
@@ -140,7 +141,7 @@ sig
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -154,7 +155,7 @@ sig
       ]}
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -163,7 +164,7 @@ sig
   (** [kdiagnosticf kont message format ...] is [kont (diagnosticf message format ...)]. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
-      @param loc The location of the text (usually the code) to highlight.
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
@@ -171,8 +172,9 @@ sig
 
   (** {2 Algebraic Effects} *)
 
-  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing the computation (see {!val:emit} and {!val:emitf}), and [fatal] to handle fatal diagnostics that have aborted the computation (see {!val:fatal} and {!val:fatalf}).
+  (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to handle fatal diagnostics that have aborted the computation (see {!val:fatal}).
 
+      @param init_loc The initial default location for inner {!val:emit} and {!val:fatal}. The default value is [None].
       @param init_backtrace The initial backtrace to start with. The default value is the empty backtrace.
       @param emit The handler of non-fatal diagnostics.
       @param fatal The handler of fatal diagnostics. *)
@@ -200,7 +202,7 @@ sig
   *)
   val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
 
-  (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit} and {!val:emitf}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal} and {!val:fatalf}). The default interceptors re-emit or re-raise the intercepted diagnostics.
+  (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal}). The default interceptors re-emit or re-raise the intercepted diagnostics.
 
       @param emit The interceptor of non-fatal diagnostics. The default value is {!val:emit_diagnostic}.
       @param fatal The interceptor of fatal diagnostics. The default value is {!val:fatal_diagnostic}. *)
