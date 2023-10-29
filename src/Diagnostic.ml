@@ -41,9 +41,15 @@ let map f d = {d with message = f d.message}
 
 let string_of_text text : string =
   let buf = Buffer.create 20 in
-  let fmt = Format.formatter_of_buffer buf in
-  let () = Format.pp_set_geometry fmt ~max_indent:2 ~margin:Int.max_int in
+  let fmt = Format.formatter_of_out_functions
+      { Format.out_string = Buffer.add_substring buf
+      ; Format.out_flush = (fun () -> ())
+      ; Format.out_newline = (fun () -> Buffer.add_char buf ' ')
+      ; Format.out_spaces = (fun _n -> Buffer.add_char buf ' ')
+      ; Format.out_indent = (fun _n -> ())
+      }
+  in
+  Format.pp_set_geometry fmt ~max_indent:2 ~margin:Int.max_int;
   text fmt;
   Format.pp_print_flush fmt ();
-  Str.global_replace (Str.regexp "\\([\r\n]+ *\\)+") " " @@
   Buffer.contents buf
