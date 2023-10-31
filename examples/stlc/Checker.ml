@@ -8,7 +8,7 @@ module Server = Asai_lsp.Make(Reporter.Message)
 module Elab =
 struct
   type env = (string * tp) bwd
-  module Reader = Algaeff.Reader.Make (struct type nonrec env = env end)
+  module Reader = Algaeff.Reader.Make (struct type t = env end)
 
   let bind_var nm tp k =
     Reader.scope (fun env -> Snoc(env, (nm, tp))) k
