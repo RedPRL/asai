@@ -1,6 +1,6 @@
 (library
  (name Asai)
  (public_name asai)
- (libraries algaeff bwd notty notty.unix))
+ (libraries str algaeff bwd notty notty.unix))
 
 (include_subdirs unqualified)
