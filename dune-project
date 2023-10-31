@@ -18,7 +18,7 @@
  (description "This package offers an implementation of compiler diagnostics and supports multiple handlers for displaying diagnostics to the end user. Currently, the package comes with built-in handlers for GitHub Actions workflow commands and UNIX terminals.")
  (depends
    (ocaml (>= 5.0))
-   (algaeff (>= 1.0))
+   (algaeff (>= 2.0))
    (bwd (>= 2.2))
    (notty (>= 0.2.3))
    (alcotest (and :with-test (>= 1.5)))
@@ -41,7 +41,7 @@
  (description "This package offers some examples of the asai package. They are organized into a separate package to reduce the dependencies of the main package.")
  (depends
    (ocaml (>= 5.0))
-   (algaeff (>= 1.0))
+   (algaeff (>= 2.0))
    (bwd (>= 2.2))
    (menhir (>= 20220210))
    (asai (= :version))

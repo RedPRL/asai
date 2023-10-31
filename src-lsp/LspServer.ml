@@ -19,7 +19,7 @@ struct
     load_file : display:(Message.t Asai.Diagnostic.t -> unit) -> string -> unit;
   }
 
-  module State = Algaeff.State.Make(struct type state = server end)
+  module State = Algaeff.State.Make(struct type t = server end)
 
   type lsp_error =
     | DecodeError of string

@@ -1,7 +1,7 @@
 type bigstring = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
 module M = Map.Make (String)
-module E = Algaeff.State.Make (struct type state = (Unix.file_descr * bigstring) M.t end)
+module E = Algaeff.State.Make (struct type t = (Unix.file_descr * bigstring) M.t end)
 
 module FileInternal =
 struct
