@@ -10,3 +10,11 @@
 {1 What is "asai"?}
 
 "asai" is the transliteration of "浅井", the family name of the character Kei Asai (浅井 ケイ) in the Japanese light novel Sagrada Reset (サクラダリセット, also known in English as Sakurada Reset). His ability is perfect photographic memory that is even immune to the "Reset" ability owned by another main character. This OCaml library should record all messages, just like the character.
+
+{1 Some Related Works}
+
+- {{: https://rustc-dev-guide.rust-lang.org/diagnostics.html}Rust Compiler Development Guide on Errors and Lints}
+- {{: https://crates.io/crates/miette}Rust crate: miette}
+- {{: https://crates.io/crates/codespan}Rust crate: codespan}
+- {{: https://crates.io/crates/ariadne}Rust crate: ariadne}
+- {{: https://github.com/johnyob/grace}OCaml development: grace}
