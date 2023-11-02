@@ -20,7 +20,7 @@ sig
         Reporter.adopt (Diagnostic.map message_mapper) The_library.Reporter.run @@ fun () -> ...
       ]}
 
-      @param init_loc The initial default location for inner {!val:emit} and {!val:fatal}. The default value is [None].
+      @param init_loc The initial default location for messages.
       @param init_backtrace The initial backtrace to start with. The default value is the empty backtrace.
       @param emit The handler of non-fatal diagnostics.
       @param fatal The handler of fatal diagnostics. *)

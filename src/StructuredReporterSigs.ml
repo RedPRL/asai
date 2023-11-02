@@ -73,19 +73,19 @@ sig
 
   (** [trace str f] records the string [str] and runs the thunk [f] with the new backtrace.
 
-      @param loc The location of the text (usually the code) to highlight. The default value is [None]. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
+      @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
   val trace : ?loc:Range.t -> string -> (unit -> 'a) -> 'a
 
   (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
 
-      @param loc The location of the text (usually the code) to highlight. The default value is [None]. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
+      @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
   val tracef : ?loc:Range.t -> ('a, Format.formatter, unit, (unit -> 'b) -> 'b) format4 -> 'a
 
   (** [trace_text text f] records the [text] and runs the thunk [f] with the new backtrace.
 
-      @param loc The location of the text (usually the code) to highlight. The default value is [None]. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
+      @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
   val trace_text : ?loc:Range.t -> Diagnostic.text -> (unit -> 'a) -> 'a
 
@@ -126,7 +126,7 @@ sig
 
   (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to handle fatal diagnostics that have aborted the computation (see {!val:fatal}).
 
-      @param init_loc The initial default location for inner {!val:emit} and {!val:fatal}. The default value is [None].
+      @param init_loc The initial default location for inner {!val:emit} and {!val:fatal}.
       @param init_backtrace The initial backtrace to start with. The default value is the empty backtrace.
       @param emit The handler of non-fatal diagnostics.
       @param fatal The handler of fatal diagnostics. *)
