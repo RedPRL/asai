@@ -23,6 +23,28 @@ We should support at least the free-form use mode, and ideally support both. The
 
 It should be easy for an application to use other libraries who themselves use [asai], even if the application and the library made different choices between free-form and structured reporting. Our current implementation uses the same diagnostic type for both reporting styles and allows an application to {{!val:Asai.Reporter.S.adopt}adopt} diagnostics from a library.
 
+{1 Inheritance of Location Information}
+
+The original design of asai did not retain any location information across API calls. That is, the location used to create a backtrace frame will not be inherited by inner API calls:
+{[
+Reporter.trace ~loc "outer trace with a location" @@ fun () ->
+Reporter.emit Greeting "hello"
+(* the message ["hello"] originally would not have a location *)
+]}
+
+The idea was to prevent an excessive amount of location information. However, all early adopters of this library implemented their own mechanisms to retain the location information, which indicated that the original design was cumbersome in practice.
+
+The new design (partially introduced in 0.1 and then fully implemented in 0.3) is to remember the locations of backtrace frames (the argument [loc] when calling {{!val:Asai.Reporter.S.trace}trace}) and use the innermost one as the default location for {{!val:Asai.Reporter.S.emit}emit} or {{!val:Asai.Reporter.S.fatal}fatal}. An inner {i backtrace frame}, however, will not use the inherited location of another frame to avoid duplicated locations in a backtrace (unless an implementer explicitly specifies the same location). We believe this strikes a good balance between convenience and succinctness. For example,
+{[
+Reporter.trace ~loc "outer trace with a location" @@ fun () ->
+Reporter.trace "inner trace" @@ fun () ->
+(* the frame ["inner trace"] will not have a location *)
+Reporter.emit Greeting "hello"
+(* the message ["hello"] will have [loc] as its location *)
+]}
+
+{i Note: inherited locations can be overwritten by the optional argument [loc] at any time.}
+
 {1 Unicode Art}
 
 There is a long history of using ASCII printable characters and {{: https://en.wikipedia.org/wiki/ANSI_escape_code}ANSI escape sequences,} and recently also non-ASCII Unicode characters, to draw pictures on terminals. To display compiler diagnostics, this technique has been used to assemble line numbers, code from the end user, code highlighting, and other pieces of information in a visually pleasing way. Non-ASCII Unicode characters (from the implementer or from the end user) greatly expand the vocabulary of ASCII art, and we will call the new art form {i Unicode art} to signify the use of non-ASCII characters.
