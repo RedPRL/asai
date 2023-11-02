@@ -23,11 +23,9 @@ let render_indentation height =
   I.pad ~l:1 @@
   match height with
   | 0 -> I.empty
-  | 1 -> I.string TtyStyle.indentation "ꭍ"
   | h ->
     I.vcat
-      [ I.string TtyStyle.indentation "╭"
-      ; I.tabulate 1 (h - 2)
+      [ I.tabulate 1 (h - 1)
           (fun _ _ -> I.string TtyStyle.indentation "┆")
       ; I.string TtyStyle.indentation "╯"
       ]
