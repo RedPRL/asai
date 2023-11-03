@@ -161,7 +161,7 @@ struct
   (** The type of all messages used in your application. *)
   type t =
     (* ... *)
-    | Cool of CoolLibrary.Reporter.t (** Embedding all messages from [CoolLibrary]. *)
+    | Cool of CoolLibrary.Reporter.Message.t (** Embedding all messages from [CoolLibrary]. *)
 
   (** The default severity level of diagnostics with a particular message. *)
   let default_severity : t -> Asai.Diagnostic.severity =
@@ -173,7 +173,7 @@ struct
   let short_code : t -> string =
     function
     (* ... *)
-    | Cool c -> CoolLibrary.Reporter.short_code c
+    | Cool c -> CoolLibrary.Reporter.Message.short_code c
 
   (** It is recommended to add a helper function (such as [cool]) to save typing,
       and this tutorial will assume you have done that. *)
