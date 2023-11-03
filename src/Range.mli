@@ -50,10 +50,16 @@ type 'a located = { loc : t option; value : 'a }
 *)
 val make : position * position -> t
 
-(** [eof pos] builds a special range referring to the end of the source. The input [pos] must be pointing at the end position; for example, if the position referring to a string source, [pos.offset] should be the length of the string. *)
+(** [eof pos] builds a special range referring to the end of the source. The input [pos] must be pointing at the end position; for example, if the position referring to a string source, [pos.offset] should be the length of the string.
+
+    @since 0.3.0
+*)
 val eof : position -> t
 
-(** [view range] returns a {i view} of the range. *)
+(** [view range] returns a {i view} of the range.
+
+    @since 0.3.0
+*)
 val view : t -> [`Range of position * position | `End_of_file of position]
 
 (** [source range] returns the source associated with [range]. *)
