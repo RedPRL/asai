@@ -8,13 +8,6 @@ let string_of_severity : Diagnostic.severity -> string =
   | Error -> "error"
   | Bug -> "bug"
 
-  (*
-let hcat_with_pad l =
-  I.hcat @@ List.map (I.pad ~l:1) l
-
-let map_vcat f l = I.vcat @@ List.map f l
-*)
-
 module E = Explicator.Make(TtyTag)
 
 (* calculating the width of line numbers *)
