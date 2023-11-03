@@ -1,6 +1,9 @@
 # [0.3.0](https://github.com/RedPRL/asai/compare/0.2.0...0.3.0) (2023-11-03)
 
-This is a major release with some breaking changes. Special `EOF` ranges were introduced to highlight the end of a file, and the terminal handler was rewritten to drop the dependency `notty` completely. The new terminal handler also detects the environment variable `NO_COLOR`, following the specification at <https://no-color.org/>.
+This is a major release with two notable changes:
+
+1. New special `EOF` ranges were introduced to highlight the end of a file. The terminal renderer will show “‹EOF›” and highlight it if a special `EOF` range is used.
+2. The terminal renderer was rewritten (again). Its visual appearance is almost identical to the previous one, except that the “faint” style replaces the gray coloring. Internally, it no longer uses `notty` (thus reducing the dependencies to a minimum), and it now automatically detects the environment variable `NO_COLOR`, following the specification at <https://no-color.org/>.
 
 ### BREAKING CHANGES
 
