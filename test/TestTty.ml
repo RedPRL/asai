@@ -85,5 +85,6 @@ let exec handler =
     ]
 
 let () =
-  exec (Terminal.display ~terminal_capacity:Notty.Cap.ansi);
-  exec (Terminal.display ~terminal_capacity:Notty.Cap.dumb);
+  exec (Terminal.display ~use_ansi:true ~use_color:true);
+  exec (Terminal.display ~use_ansi:true ~use_color:false);
+  exec (Terminal.display ~use_ansi:false ~use_color:false);
