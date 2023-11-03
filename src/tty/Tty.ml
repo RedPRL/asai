@@ -53,7 +53,7 @@ let indentf ~param fmt =
 (* different parts of the display *)
 
 let render_code ~param ~severity fmt short_code =
-  let st = TtyStyle.code severity in
+  let st = TtyStyle.code severity ~param in
   Format.fprintf fmt (" @<1>%s " ^^ highlight "%s[%s]" ^^ "@.")
     "￫"
     (Ansi.style_string ~param st)
@@ -94,14 +94,14 @@ struct
     | Some title -> Format.fprintf fmt " @<1>%s %s@." "￭" title
 
   let render_segment ~param fmt (tag, seg) =
-    let st = TtyStyle.highlight param.severity tag in
+    let st = TtyStyle.highlight ~param:param.ansi param.severity tag in
     Format.fprintf fmt (highlight "%s")
       (Ansi.style_string ~param:param.ansi st)
       (UserContent.replace_control ~tab_size:param.tab_size seg)
       (Ansi.reset_string ~param:param.ansi st)
 
   let render_line_tag ~param fmt ((_, text) as tag) =
-    let st = TtyStyle.message param.severity tag in
+    let st = TtyStyle.message ~param:param.ansi param.severity tag in
     Format.fprintf fmt (" %*s ^ " ^^ highlight "@[%t@]" ^^ "@.")
       param.line_number_width ""
       (Ansi.style_string ~param:param.ansi st)
@@ -133,7 +133,7 @@ struct
 end
 
 let render_unlocated_tag ~severity ~ansi fmt ((_, text) as tag) =
-  let st = TtyStyle.message severity tag in
+  let st = TtyStyle.message ~param:ansi severity tag in
   Format.fprintf fmt (" @<1>%s " ^^ highlight "@[%t@]" ^^ "@.")
     "￮"
     (Ansi.style_string ~param:ansi st)

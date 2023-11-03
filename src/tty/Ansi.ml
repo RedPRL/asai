@@ -37,14 +37,6 @@ let code_of_attr : attr -> string =
   | `Fg `Magenta -> "35"
   | `Fg `Cyan -> "36"
   | `Fg `White -> "37"
-  | `Fg `Bright `Black -> "90"
-  | `Fg `Bright `Red -> "91"
-  | `Fg `Bright `Green -> "92"
-  | `Fg `Bright `Yellow -> "93"
-  | `Fg `Bright `Blue -> "94"
-  | `Fg `Bright `Magenta -> "95"
-  | `Fg `Bright `Cyan -> "96"
-  | `Fg `Bright `White -> "97"
   | `Bg `Black -> "40"
   | `Bg `Red -> "41"
   | `Bg `Green -> "42"
@@ -53,6 +45,14 @@ let code_of_attr : attr -> string =
   | `Bg `Magenta -> "45"
   | `Bg `Cyan -> "46"
   | `Bg `White -> "47"
+  | `Fg `Bright `Black -> "90"
+  | `Fg `Bright `Red -> "91"
+  | `Fg `Bright `Green -> "92"
+  | `Fg `Bright `Yellow -> "93"
+  | `Fg `Bright `Blue -> "94"
+  | `Fg `Bright `Magenta -> "95"
+  | `Fg `Bright `Cyan -> "96"
+  | `Fg `Bright `White -> "97"
   | `Bg `Bright `Black -> "100"
   | `Bg `Bright `Red -> "101"
   | `Bg `Bright `Green -> "102"
@@ -74,7 +74,6 @@ let style_string ~param st =
   match param.enabled with
   | false -> ""
   | _ ->
-    let st = st ~param in
     let st = if param.color then st else List.filter not_color st in
     match st with
     | [] -> ""
@@ -84,7 +83,6 @@ let reset_string ~param st =
   match param.enabled with
   | false -> ""
   | _ ->
-    let st = st ~param in
     let st = if param.color then st else List.filter not_color st in
     match st with
     | [] -> ""

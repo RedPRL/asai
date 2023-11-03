@@ -19,6 +19,6 @@ let highlight ~param (severity : Diagnostic.severity) : TtyTag.t option -> Ansi.
   | None -> []
   | Some tag -> [`Underline] @ message ~param severity tag
 
-let fringe ~param:_ = [`Faint]
+let fringe = [`Faint]
 
-let indentation ~param:_ = [`Faint]
+let indentation = [`Faint]
