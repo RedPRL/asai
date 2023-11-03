@@ -1,32 +1,24 @@
-open Notty
-open Notty.Infix
-
-let no_color =
-  match Sys.getenv_opt "NO_COLOR" with
-  | None | Some "" -> false
-  | _ -> true
-
-let code (severity : Diagnostic.severity) : attr =
-  if no_color then
-    A.st A.bold
+let code ~param (severity : Diagnostic.severity) : Ansi.style =
+  if not param.Ansi.color then
+    [`Bold]
   else
     match severity with
-    | Hint -> A.fg A.blue
-    | Info -> A.fg A.green
-    | Warning -> A.fg A.yellow
-    | Error -> A.fg A.red
-    | Bug -> A.bg A.red ++ A.fg A.black
+    | Hint -> [`Fg `Blue]
+    | Info -> [`Fg `Green]
+    | Warning -> [`Fg `Yellow]
+    | Error -> [`Fg `Red]
+    | Bug -> [`Bg `Red; `Fg `Black]
 
-let message (severity : Diagnostic.severity) (tag : TtyTag.t) : attr =
+let message ~param (severity : Diagnostic.severity) (tag : TtyTag.t) : Ansi.style =
   match tag with
-  | Extra _, _ -> A.empty
-  | Main, _ -> code severity
+  | Extra _, _ -> []
+  | Main, _ -> code ~param severity
 
-let highlight (severity : Diagnostic.severity) : TtyTag.t option -> attr =
+let highlight ~param (severity : Diagnostic.severity) : TtyTag.t option -> Ansi.style =
   function
-  | None -> A.empty
-  | Some tag -> A.st A.underline ++ message severity tag
+  | None -> []
+  | Some tag -> [`Underline] @ message ~param severity tag
 
-let fringe = if no_color then A.empty else A.fg @@ A.gray 8
+let fringe ~param:_ = [`Faint]
 
-let indentation = if no_color then A.empty else A.fg @@ A.gray 8
+let indentation ~param:_ = [`Faint]

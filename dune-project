@@ -20,7 +20,6 @@
    (ocaml (>= 5.0))
    (algaeff (>= 2.0))
    (bwd (>= 2.2))
-   (notty (>= 0.2.3))
    (alcotest (and :with-test (>= 1.5)))
    (odoc :with-doc)))
 (package

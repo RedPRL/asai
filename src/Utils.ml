@@ -6,7 +6,7 @@ let dump_string fmt s = Format.fprintf fmt "%S" s [@@inline]
 let dump_option dump fmt =
   function
   | None -> Format.pp_print_string fmt "None"
-  | Some v -> Format.fprintf fmt "@[<2>Some@ (%a)@]" dump v
+  | Some v -> Format.fprintf fmt "@[<2>Some@ %a@]" dump v
 
 let dump_pair dump_x dump_y fmt (x, y) =
   Format.fprintf fmt {|@[<1>(%a,@ %a)@]|} dump_x x dump_y y

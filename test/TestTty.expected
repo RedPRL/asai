@@ -1,4 +1,119 @@
-[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m [0m￮[0m [0m[K[0;33mthis is a warningE[0m   [0m[K[0;33mhaving two linesE[0m[KE[0m[K[0m[0m [0m￫[0m [0;31merror[0;31m[[0;31mbye[0m[K[0;31m]E[0m [0m￮[0m [0m[K[0;31mthis is an errorE[0m   [0m[K[0;31mhaving two linesE[0m[KE[0m[K[0m[0m [0m￫[0m [0;30;41mbug[0;30;41m[[0;30;41mhello[0m[K[0;30;41m]E[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;30;41;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;30;41;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;30;41;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;30;41mthis is a bugE[0m[KE[0m[K[0m[0m [0m￫[0m [0;31merror[0;31m[[0;31mhello[0m[K[0;31m]E[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;31;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;31;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;31;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;31mthis is an errorE[0m[KE[0m[K[0m[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;33;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;33;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;33;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;33mthis is a warningE[0m[KE[0m[K[0m[0m [0m￫[0m [0;32minfo[0;32m[[0;32mhello[0m[K[0;32m]E[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;32;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;32;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;32;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;32mthis is an infoE[0m[KE[0m[K[0m[0m [0m￫[0m [0;34mhint[0;34m[[0;34mhello[0m[K[0;34m]E[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;34;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;34;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;34;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;34mthis is a hintE[0m[KE[0m[K[0m[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m [0;38;5;240mꭍ[0m [0m￮[0m [0m[K[0;33mwhen peaking into the abyssE[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;33;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;33;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;33;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;33mhello from hereE[0m[KE[0m[K[0m[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m [0;38;5;240m╭[0m [0m￮[0m [0m[K[0;33mwhen peaking into the abyssE[0m [0;38;5;240m╯[0m [0m￮[0m [0m[K[0;33mwhen peaking into the deep abyssE[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;33;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;33;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;33;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;33mhello from hereE[0m[KE[0m[K[0m[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m [0;38;5;240m╭[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m┆[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0ma[0m[K[0;33;4maaaaaaaaaE[0m [0;38;5;240m┆[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;33;4mbbbbbbbbbbE[0m [0;38;5;240m┆[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;33;4mcccc[0m[K[0mccccccE[0m [0;38;5;240m╯[0m   [0m^[0m [0m[K[0;33mwhen stepping into the abyssE[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;33;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;33;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;33;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;33mhello from hereE[0m[KE[0m[K[0m[0m [0m￫[0m [0;32minfo[0;32m[[0;32mhello[0m[K[0;32m]E[0m [0;38;5;240m╭[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m┆[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0ma[0m[K[0;32;4maaaaaaaaaE[0m [0;38;5;240m┆[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;32;4mbbbbbbbbbbE[0m [0;38;5;240m┆[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;32;4mcccc[0m[K[0mccccccE[0m [0;38;5;240m┆[0m   [0m^[0m [0m[K[0;32mwhen stepping into the abyssE[0m [0;38;5;240m┆[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m┆[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0ma[0m[K[0;32;4maaaaaaaaaE[0m [0;38;5;240m┆[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;32;4mbbbbbbbbbbE[0m [0;38;5;240m┆[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;32;4mcccc[0m[K[0mccccccE[0m [0;38;5;240m╯[0m   [0m^[0m [0m[K[0;32mwhen stepping into the deep abyssE[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;32;4maaaaaaaE[0m [0;38;5;240m2[0m [0;38;5;240m|[0m [0m[K[0;32;4mbbbbbbbbbbE[0m [0;38;5;240m3[0m [0;38;5;240m|[0m [0;32;4mcccc[0m[K[0mccccccE[0m   [0m^[0m [0m[K[0;32mhello from hereE[0m[KE[0m[K[0m[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m  [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;4maaaaaaaE[0m  [0;38;5;240m2[0m [0;38;5;240m|[0m [0;4mb[0mbb[0;33;4mbbbb[0mb[0;4mb[0m[K[0mbE[0m    [0m^[0m [0m[K[0mmessage 6E[0m    [0m^[0m [0m[K[0;33mthis is the main messageE[0m    [0m^[0m [0m[K[0mmessage 5E[0m  [0;38;5;240m3[0m [0;38;5;240m|[0m [0mcccc[0;4mc[0m[K[0mcccccE[0m    [0m^[0m [0m[K[0mmessage 4E[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m  [0;38;5;240m1[0m [0;38;5;240m|[0m [0maaa[0m[K[0;4maaaaaaaE[0m  [0;38;5;240m2[0m [0;38;5;240m|[0m [0;4mb[0m[K[0;4mbbbbbbbbbE[0m    [0m^[0m [0m[K[0mmessage 7E[0m  [0;38;5;240m3[0m [0;38;5;240m|[0m [0;4mcccc[0m[K[0mccccccE[0m    [0m^[0m [0m[K[0mmessage 2E[0m [0;38;5;240m10[0m [0;38;5;240m|[0m [0m[K[0mjjjjjjjjjjE[0m    [0m^[0m [0m[K[0mmessage 8E[0m [0m￮[0m [0m[K[0mmessage 1E[0m [0m￮[0m [0m[K[0mmessage 3E[0m[KE[0m[K[0m[0m [0m￫[0m [0;33mwarning[0;33m[[0;33mhello[0m[K[0;33m]E[0m [0;38;5;240m23[0m [0;38;5;240m|[0m [0mwwwwwwwwww[0m[K[0;33;4m‹EOF›E[0m    [0m^[0m [0m[K[0;33mthis is the main messageE[0m [0m￭[0m [0m[K[0m/path/to/file.coolE[0m [0;38;5;240m23[0m [0;38;5;240m|[0m [0mwwwwwwwwww[0m[K[0;4m‹EOF›E[0m    [0m^[0m [0m[K[0mending of another fileE[0m[KE[0m[K[0m ￫ warning[hello]
+ ￫ [33mwarning[hello][m
+ ￮ [33mthis is a warning
+   having two lines[m
+
+ ￫ [31merror[bye][m
+ ￮ [31mthis is an error
+   having two lines[m
+
+ ￫ [41;30mbug[hello][m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;41;30maaaaaaa[m
+ [2m2 |[m [4;41;30mbbbbbbbbbb[m
+ [2m3 |[m [4;41;30mcccc[mcccccc
+   ^ [41;30mthis is a bug[m
+
+ ￫ [31merror[hello][m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;31maaaaaaa[m
+ [2m2 |[m [4;31mbbbbbbbbbb[m
+ [2m3 |[m [4;31mcccc[mcccccc
+   ^ [31mthis is an error[m
+
+ ￫ [33mwarning[hello][m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;33maaaaaaa[m
+ [2m2 |[m [4;33mbbbbbbbbbb[m
+ [2m3 |[m [4;33mcccc[mcccccc
+   ^ [33mthis is a warning[m
+
+ ￫ [32minfo[hello][m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;32maaaaaaa[m
+ [2m2 |[m [4;32mbbbbbbbbbb[m
+ [2m3 |[m [4;32mcccc[mcccccc
+   ^ [32mthis is an info[m
+
+ ￫ [34mhint[hello][m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;34maaaaaaa[m
+ [2m2 |[m [4;34mbbbbbbbbbb[m
+ [2m3 |[m [4;34mcccc[mcccccc
+   ^ [34mthis is a hint[m
+
+ ￫ [33mwarning[hello][m
+ [2mꭍ[m ￮ [33mwhen peaking into the abyss[m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;33maaaaaaa[m
+ [2m2 |[m [4;33mbbbbbbbbbb[m
+ [2m3 |[m [4;33mcccc[mcccccc
+   ^ [33mhello from here[m
+
+ ￫ [33mwarning[hello][m
+ [2m╭[m ￮ [33mwhen peaking into the abyss[m
+ [2m╯[m ￮ [33mwhen peaking into the deep abyss[m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;33maaaaaaa[m
+ [2m2 |[m [4;33mbbbbbbbbbb[m
+ [2m3 |[m [4;33mcccc[mcccccc
+   ^ [33mhello from here[m
+
+ ￫ [33mwarning[hello][m
+ [2m╭[m ￭ /path/to/file.cool
+ [2m┆[m [2m1 |[m a[4;33maaaaaaaaa[m
+ [2m┆[m [2m2 |[m [4;33mbbbbbbbbbb[m
+ [2m┆[m [2m3 |[m [4;33mcccc[mcccccc
+ [2m╯[m   ^ [33mwhen stepping into the abyss[m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;33maaaaaaa[m
+ [2m2 |[m [4;33mbbbbbbbbbb[m
+ [2m3 |[m [4;33mcccc[mcccccc
+   ^ [33mhello from here[m
+
+ ￫ [32minfo[hello][m
+ [2m╭[m ￭ /path/to/file.cool
+ [2m┆[m [2m1 |[m a[4;32maaaaaaaaa[m
+ [2m┆[m [2m2 |[m [4;32mbbbbbbbbbb[m
+ [2m┆[m [2m3 |[m [4;32mcccc[mcccccc
+ [2m┆[m   ^ [32mwhen stepping into the abyss[m
+ [2m┆[m ￭ /path/to/file.cool
+ [2m┆[m [2m1 |[m a[4;32maaaaaaaaa[m
+ [2m┆[m [2m2 |[m [4;32mbbbbbbbbbb[m
+ [2m┆[m [2m3 |[m [4;32mcccc[mcccccc
+ [2m╯[m   ^ [32mwhen stepping into the deep abyss[m
+ ￭ /path/to/file.cool
+ [2m1 |[m aaa[4;32maaaaaaa[m
+ [2m2 |[m [4;32mbbbbbbbbbb[m
+ [2m3 |[m [4;32mcccc[mcccccc
+   ^ [32mhello from here[m
+
+ ￫ [33mwarning[hello][m
+ [2m 1 |[m aaa[4maaaaaaa[m
+ [2m 2 |[m [4mb[mbb[4;33mbbbb[mb[4mb[mb
+    ^ message 6
+    ^ [33mthis is the main message[m
+    ^ message 5
+ [2m 3 |[m cccc[4mc[mccccc
+    ^ message 4
+ ￭ /path/to/file.cool
+ [2m 1 |[m aaa[4maaaaaaa[m
+ [2m 2 |[m [4mb[m[4mbbbbbbbbb[m
+    ^ message 7
+ [2m 3 |[m [4mcccc[mcccccc
+    ^ message 2
+ [2m10 |[m jjjjjjjjjj
+    ^ message 8
+ ￮ message 1
+ ￮ message 3
+
+ ￫ [33mwarning[hello][m
+ [2m23 |[m wwwwwwwwww[4;33m‹EOF›[m
+    ^ [33mthis is the main message[m
+ ￭ /path/to/file.cool
+ [2m23 |[m wwwwwwwwww[4m‹EOF›[m
+    ^ ending of another file
+
+ ￫ warning[hello]
  ￮ this is a warning
    having two lines
 
