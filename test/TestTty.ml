@@ -85,5 +85,6 @@ let exec handler =
     ]
 
 let () =
-  exec (Terminal.display ~use_ansi:true);
-  exec (Terminal.display ~use_ansi:false);
+  exec (Terminal.display ~use_ansi:true ~use_color:true);
+  exec (Terminal.display ~use_ansi:true ~use_color:false);
+  exec (Terminal.display ~use_ansi:false ~use_color:false);
