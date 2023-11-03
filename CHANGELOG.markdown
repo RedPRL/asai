@@ -1,3 +1,23 @@
+# [0.3.0](https://github.com/RedPRL/asai/compare/0.2.0...0.3.0) (2023-11-03)
+
+This is a major release with some breaking changes. Special `EOF` ranges were introduced to highlight the end of a file, and the terminal handler was rewritten to drop the dependency `notty` completely. The new terminal handler also detects the environment variable `NO_COLOR`, following the specification at <https://no-color.org/>.
+
+### BREAKING CHANGES
+
+- **Range:** because of the new special `EOF` ranges, `split` is deprecated and will be removed soon; use `view` instead
+
+### Bug Fixes
+
+- **Reporter:** backtrace frames no longer inherit locations ([#128](https://github.com/RedPRL/asai/issues/128)) ([bbd7d0b](https://github.com/RedPRL/asai/commit/bbd7d0b747712ee54986747b136405820926cf9d))
+- **Tty:** drop `notty` and use the "faint" style ([#135](https://github.com/RedPRL/asai/issues/135)) ([1988a5a](https://github.com/RedPRL/asai/commit/1988a5ae348d50472448673a00a37ed366eccabf))
+- upgrade the dependency `algaeff` to 2.0.0 ([#132](https://github.com/RedPRL/asai/issues/132)) ([6e8b9a2](https://github.com/RedPRL/asai/commit/6e8b9a254cdebeb24ef1cfc862a876e100a794f9))
+
+### Features
+
+- **MinimumSigs:** new signatures to help library authors hide internal reporters ([#126](https://github.com/RedPRL/asai/issues/126)) ([058171c](https://github.com/RedPRL/asai/commit/058171cd1da4187d24614e643d9f8f0e9bb6c1d5))
+- **Range:** allow special `EOF` ranges ([#125](https://github.com/RedPRL/asai/issues/125)) ([1b85fbd](https://github.com/RedPRL/asai/commit/1b85fbdf164b8d8da796c0fa084abdaf6386dc9b))
+- **Tty:** detect `NO_COLOR` ([472f096](https://github.com/RedPRL/asai/commit/472f096a5cc1cbce53ab930e30f5867935b163d5))
+
 # [0.2.0](https://github.com/RedPRL/asai/compare/0.1.1...0.2.0) (2023-10-23)
 
 This is a major release with many backward incompatible changes.
