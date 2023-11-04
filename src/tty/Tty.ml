@@ -18,30 +18,27 @@ let[@tail_mod_cons] rec drop_last_empty =
   | [""] -> []
   | x :: xs -> x :: (drop_last_empty[@tailcall]) xs
 
+let indent_decorations len i =
+  match len, i with
+  | 1, _ -> "ꭍ"
+  | _, 0 -> "╭"
+  | n, i when i = n-1 -> "╯"
+  | _ -> "┆"
+
 let highlight fmt = "@<0>%s" ^^ fmt ^^ "@<0>%s"
 
 let indentf ~param fmt =
   Format.kasprintf @@ fun s ->
   let lines = drop_last_empty @@ String.split_on_char '\n' s in
+  let num_lines = List.length lines in
   let p m line =
-    Format.fprintf fmt (" " ^^ highlight "%s" ^^ "%s@.")
+    Format.fprintf fmt (" " ^^ highlight "@<1>%s" ^^ "%s@.")
       (Ansi.style_string ~param TtyStyle.indentation)
       m
       (Ansi.reset_string ~param TtyStyle.indentation)
       line
   in
-  match lines with
-  | [] -> ()
-  | [line] -> p "ꭍ" line
-  | line :: lines -> p "╭" line;
-    let rec go =
-      function
-      | [] -> assert false
-      | [line] -> p "╯" line;
-      | line :: lines -> p "┆" line;
-        go lines
-    in
-    go lines
+  List.iteri (fun i line -> p (indent_decorations num_lines i) line) lines
 
 (* different parts of the display *)
 
@@ -133,7 +130,7 @@ let render_unlocated_tag ~severity ~ansi fmt ((_, text) as tag) =
     text
     (Ansi.reset_string ~param:ansi st)
 
-module TopLevelRenderer :
+module DiagnosticRenderer :
 sig
   type param =
     {
@@ -200,9 +197,9 @@ struct
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in
     let d = Diagnostic.map Message.short_code d in
     let ansi = Ansi.Test.guess ?use_ansi ?use_color output in
-    let param = {TopLevelRenderer.line_breaking; block_splitting_threshold; tab_size; ansi} in
+    let param = {DiagnosticRenderer.line_breaking; block_splitting_threshold; tab_size; ansi} in
     let fmt = Format.formatter_of_out_channel output in
     SourceReader.run @@ fun () ->
-    TopLevelRenderer.render_diagnostic ~param fmt d;
+    DiagnosticRenderer.render_diagnostic ~param fmt d;
     Format.pp_print_newline fmt ()
 end
