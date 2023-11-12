@@ -124,7 +124,7 @@ struct
       | `Normal -> fun d -> Terminal.display d
       | `GitHub -> fun d -> GitHub.print d
     in
-    Reporter.run ~emit:display ~fatal:display @@ fun () ->
+    Reporter.run ~emit:display ~fatal:(fun d -> display d; exit 1) @@ fun () ->
     load_file filepath
 
   let server () =

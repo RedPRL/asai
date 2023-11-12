@@ -69,7 +69,7 @@ You can use the {{!module:Asai.Tty}terminal} handler as follows:
 module Term = Asai.Tty.Make(Reporter.Message)
 
 let () =
-  Reporter.run ~emit:Term.display ~fatal:Term.display @@ fun () ->
+  Reporter.run ~emit:Term.display ~fatal:(fun d -> Term.display d; exit 1) @@ fun () ->
   (* your application code *)
 ]}
 
