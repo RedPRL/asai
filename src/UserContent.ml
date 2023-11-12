@@ -1,5 +1,3 @@
-let count_newlines ~linebreaking:_ _read = failwith "TODO"
-
 let find_eol_traditional read (i, eof) =
   let rec go i =
     if i >= eof then
@@ -46,6 +44,15 @@ let find_eol ~line_breaking =
   match line_breaking with
   | `Unicode -> find_eol_unicode
   | `Traditional -> find_eol_traditional
+
+let count_newlines ~line_breaking read (pos, eof) =
+  let find_eol i = find_eol ~line_breaking read (i, eof) in
+  let rec go acc i =
+    match find_eol i with
+    | _, None -> acc
+    | pos, Some shift -> (go[@tailcall]) (acc+1) (pos+shift)
+  in
+  go 0 pos
 
 let replace_control ~tab_size str =
   let tab_string = String.make tab_size ' ' in
