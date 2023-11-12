@@ -34,11 +34,6 @@ module Make (Tag : Tag) = struct
     ; line_num : int
     }
 
-  exception Unexpected_end_of_source of Range.position
-  exception Unexpected_line_num_increment of Range.position
-  exception Unexpected_newline of Range.position
-  exception Unexpected_position_in_newline of Range.position
-
   module F = Flattener.Make(Tag)
 
   let explicate_block ~line_breaks (b : Tag.t Flattener.block) : Tag.t block =

@@ -1,5 +1,17 @@
 open Explication
 
+exception Unexpected_end_of_source of Range.position
+(** [Unexpected_end_of_source pos] means the [pos] lies beyond the end of source. This usually means the file has been truncated after the parsing. *)
+
+exception Unexpected_line_num_increment of Range.position
+(** [Unexpected_line_num_increment pos] means the line number of [pos] is larger than than that of its preceding position during explication, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Unexpected_newline of Range.position
+(** [Unexpected_newline pos] means the line number of [pos] is the same as its preceding position during explication, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Unexpected_position_in_newline of Range.position
+(** [Unexpected_position_in_newline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
 (** The signature of tags *)
 module type Tag = sig
   (** The abstract type of tags. *)
@@ -18,18 +30,6 @@ end
 (** The signature of explicators. *)
 module type S = sig
   module Tag : Tag
-
-  exception Unexpected_end_of_source of Range.position
-  (** [Unexpected_end_of_source pos] means the [pos] lies beyond the end of source. This usually means the file has been truncated after the parsing. *)
-
-  exception Unexpected_line_num_increment of Range.position
-  (** [Unexpected_line_num_increment pos] means the line number of [pos] is larger than than that of its preceding position during explication, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  exception Unexpected_newline of Range.position
-  (** [Unexpected_newline pos] means the line number of [pos] is the same as its preceding position during explication, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  exception Unexpected_position_in_newline of Range.position
-  (** [Unexpected_position_in_newline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
 
   val explicate : ?debug:bool -> ?line_breaks:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?blend:(Tag.t -> Tag.t -> Tag.t) -> (Tag.t * Range.t) list -> Tag.t t
   (** Explicate a list of ranges using content from a data reader. This function must be run under [SourceReader.run].
