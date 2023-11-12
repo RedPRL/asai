@@ -10,51 +10,9 @@ let default_blend ~(priority : _ -> int) t1 t2 = if priority t2 <= priority t1 t
 module Make (Tag : Tag) = struct
   type position = Range.position
 
-  (** [find_eol_traditional pos] finds the position of the next ['\n']. If the end of source is reached before ['\n'], then the position of the end of the source is returned. *)
-  let find_eol_traditional ~source ~eof next =
-    let rec go i =
-      if i >= eof then
-        eof, 0
-      else
-        match SourceReader.unsafe_get source i with
-        | '\n' -> i, 1 (* LF *)
-        | '\r' ->
-          if i+1 < eof && SourceReader.unsafe_get source (i+1) = '\n'
-          then i, 2 (* CRLF *)
-          else i, 1 (* CR *)
-        | _ ->
-          go (i+1)
-    in
-    go next
-
-  (** [find_eol_unicode pos] finds the position of the next ['\n']. If the end of source is reached before ['\n'], then the position of the end of the source is returned. *)
-  let find_eol_unicode ~source ~eof next =
-    let rec go i =
-      if i >= eof then
-        eof, 0
-      else
-        match SourceReader.unsafe_get source i with
-        | '\n' (* LF *) | '\x0b' (* VT *) | '\x0c' (* FF *) -> i, 1
-        | '\r' ->
-          if i+1 < eof && SourceReader.unsafe_get source (i+1) = '\n'
-          then i, 2 (* CRLF *)
-          else i, 1 (* CR *)
-        | '\xc2' ->
-          if i+1 < eof && SourceReader.unsafe_get source (i+1) = '\x85'
-          then i, 2 (* NEL *)
-          else go (i+1)
-        | '\xe2' ->
-          if i+2 < eof && SourceReader.unsafe_get source (i+1) = '\x80' &&
-             (let c2 = SourceReader.unsafe_get source (i+2) in c2 = '\xa8' || c2 = '\xa9')
-          then i, 3 (* LS and PS *)
-          else go (i+1)
-        | _ ->
-          go (i+1)
-    in
-    go next
-
-  (** Skip the ['\n'] character, assuming that [eol] is not the end of source *)
+  (** Skip the newline sequence, assuming that [shift] is not zero. (Otherwise, it means we already reached eof.) *)
   let eol_to_next_line shift (pos : position) : position =
+    assert (shift <> 0);
     { source = pos.source;
       (* Need to update our offset to skip the newline char *)
       offset = pos.offset + shift;
@@ -72,7 +30,7 @@ module Make (Tag : Tag) = struct
     ; current_tag : Tag.t option
     ; cursor : Range.position
     ; eol : int
-    ; eol_shift : int
+    ; eol_shift : int option
     ; line_num : int
     }
 
@@ -84,15 +42,15 @@ module Make (Tag : Tag) = struct
   module F = Flattener.Make(Tag)
 
   let explicate_block ~line_breaking (b : Tag.t Flattener.block) : Tag.t block =
-    let find_eol = match line_breaking with `Unicode -> find_eol_unicode | `Traditional -> find_eol_traditional in
     match b.tagged_positions with
     | [] -> invalid_arg "explicate_block: empty block"
     | ((_, ploc) :: _) as ps ->
       let source = SourceReader.load ploc.source in
       let eof = SourceReader.length source in
+      let find_eol i = UserContent.find_eol ~line_breaking (SourceReader.unsafe_get source) (i, eof) in
       let[@tailcall] rec go state : (Tag.t option * Range.position) list -> _ =
         function
-        | (ptag,ploc)::ps when state.cursor.line_num = ploc.line_num ->
+        | (ptag, ploc) :: ps when state.cursor.line_num = ploc.line_num ->
           if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
           if ploc.offset > state.eol then raise @@ Unexpected_newline ploc;
           if ploc.offset = state.cursor.offset then
@@ -111,7 +69,7 @@ module Make (Tag : Tag) = struct
               if state.cursor.offset < state.eol then
                 state.segments
                 <: (state.current_tag, read_between ~source state.cursor.offset state.eol)
-              else if state.cursor.offset = eof && Option.is_some state.current_tag then
+              else if Option.is_none state.eol_shift && Option.is_some state.current_tag then
                 state.segments
                 <: (state.current_tag, "‹EOF›")
               else
@@ -121,23 +79,32 @@ module Make (Tag : Tag) = struct
             (state.lines <: {segments = Bwd.to_list segments; tags = List.map fst tagged_lines}), remaining_tagged_lines
           in
           (* Continue the process if [ps] is not empty. *)
-          match ps with
-          | [] ->
+          match ps, state.eol_shift with
+          | [], _ ->
             assert (state.line_num = b.end_line_num);
             lines
-          | (_, ploc) :: _ ->
+          | (_, ploc) :: _, None -> raise @@ Unexpected_end_of_source ploc
+          | (_, ploc) :: _, Some eol_shift ->
             if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
             if ploc.offset <= state.eol then raise @@ Unexpected_line_num_increment ploc;
-            if ploc.offset < state.eol + state.eol_shift then raise @@ Unexpected_position_in_newline ploc;
+            if ploc.offset < state.eol + eol_shift then raise @@ Unexpected_position_in_newline ploc;
             (* Okay, p is really on the next line *)
-            let cursor =
-              eol_to_next_line state.eol_shift {state.cursor with offset = state.eol}
-            in
-            let eol, eol_shift = find_eol ~source ~eof (state.eol + state.eol_shift) in
-            go {lines; segments=Emp; current_tag = state.current_tag; cursor; eol; eol_shift; remaining_tagged_lines; line_num = state.line_num + 1} ps
+            let cursor = eol_to_next_line eol_shift {state.cursor with offset = state.eol} in
+            let eol, eol_shift = find_eol (state.eol + eol_shift) in
+            go
+              { lines
+              ; segments = Emp
+              ; remaining_tagged_lines
+              ; current_tag = state.current_tag
+              ; cursor
+              ; eol
+              ; eol_shift
+              ; line_num = state.line_num + 1
+              }
+              ps
       in
       let begin_pos = to_start_of_line ploc in
-      let eol, eol_shift = find_eol ~source ~eof ploc.offset in
+      let eol, eol_shift = find_eol ploc.offset in
       let lines =
         go
           { lines = Emp
