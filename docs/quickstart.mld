@@ -73,7 +73,7 @@ let () =
   (* your application code *)
 ]}
 
-A handler is actually just a function that takes a diagnostic. Here, any function of type [Reporter.Code.t Diagnostic.t -> unit] would have worked.
+A handler is actually just a function that takes a diagnostic. Here, any function of type [Reporter.Code.t Diagnostic.t -> unit] would have worked. We suggest adding [exit 1] or something equivalent in the case of [fatal] to exit the whole program with a non-zero code (as demonstrated in the above snippet); the non-zero exit code will signal other programs that something might have gone wrong.
 
 {1 Add Backtraces}
 
