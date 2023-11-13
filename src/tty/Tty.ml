@@ -134,7 +134,8 @@ module DiagnosticRenderer :
 sig
   type param =
     {
-      line_breaking : [`Unicode | `Traditional];
+      debug : bool;
+      line_breaks : [`Unicode | `Traditional];
       block_splitting_threshold : int;
       tab_size : int;
       ansi : Ansi.param;
@@ -146,7 +147,8 @@ end
 struct
   type param =
     {
-      line_breaking : [`Unicode | `Traditional];
+      debug : bool;
+      line_breaks : [`Unicode | `Traditional];
       block_splitting_threshold : int;
       tab_size : int;
       ansi : Ansi.param;
@@ -173,7 +175,7 @@ struct
         (main :: extra_remarks)
     in
     let explication =
-      E.explicate ~block_splitting_threshold:param.block_splitting_threshold located_tags
+      E.explicate ~debug:param.debug ~block_splitting_threshold:param.block_splitting_threshold located_tags
     in
     let line_number_width = line_number_width explication in
     let param = {ExplicationRenderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
@@ -192,12 +194,12 @@ end
 
 module Make (Message : MinimumSigs.Message) =
 struct
-  let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
-      ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) d =
+  let display ?(debug=false) ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
+      ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) d =
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in
     let d = Diagnostic.map Message.short_code d in
     let ansi = Ansi.Test.guess ?use_ansi ?use_color output in
-    let param = {DiagnosticRenderer.line_breaking; block_splitting_threshold; tab_size; ansi} in
+    let param = {DiagnosticRenderer.debug; line_breaks; block_splitting_threshold; tab_size; ansi} in
     let fmt = Format.formatter_of_out_channel output in
     SourceReader.run @@ fun () ->
     DiagnosticRenderer.render_diagnostic ~param fmt d;

@@ -41,13 +41,13 @@ module Make (Tag : Tag) = struct
 
   module F = Flattener.Make(Tag)
 
-  let explicate_block ~line_breaking (b : Tag.t Flattener.block) : Tag.t block =
+  let explicate_block ~line_breaks (b : Tag.t Flattener.block) : Tag.t block =
     match b.tagged_positions with
     | [] -> invalid_arg "explicate_block: empty block"
     | ((_, ploc) :: _) as ps ->
       let source = SourceReader.load ploc.source in
       let eof = SourceReader.length source in
-      let find_eol i = UserContent.find_eol ~line_breaking (SourceReader.unsafe_get source) (i, eof) in
+      let find_eol i = UserContent.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
       let[@tailcall] rec go state : (Tag.t option * Range.position) list -> _ =
         function
         | (ptag, ploc) :: ps when state.cursor.line_num = ploc.line_num ->
@@ -123,11 +123,18 @@ module Make (Tag : Tag) = struct
       ; lines = Bwd.to_list @@ lines
       }
 
-  let[@inline] explicate_blocks ~line_breaking = List.map (explicate_block ~line_breaking)
+  let[@inline] explicate_blocks ~line_breaks = List.map (explicate_block ~line_breaks)
 
-  let[@inline] explicate_part ~line_breaking (source, bs) : Tag.t part =
-    { source; blocks = explicate_blocks ~line_breaking bs }
+  let[@inline] explicate_part ~line_breaks (source, bs) : Tag.t part =
+    { source; blocks = explicate_blocks ~line_breaks bs }
 
-  let explicate ?(line_breaking=`Traditional) ?(block_splitting_threshold=5) ?(blend=default_blend ~priority:Tag.priority) ranges =
-    List.map (explicate_part ~line_breaking) @@ F.flatten ~block_splitting_threshold ~blend ranges
+  let explicate ?(debug=false) ?(line_breaks=`Traditional) ?(block_splitting_threshold=5)
+      ?(blend=default_blend ~priority:Tag.priority) ranges =
+    if debug then
+      assert begin
+        List.for_all
+          (fun (_, r) -> UserContent.check_line_num ~line_breaks (SourceReader.unsafe_get (SourceReader.load (Range.source r))) r)
+          ranges
+      end;
+    List.map (explicate_part ~line_breaks) @@ F.flatten ~block_splitting_threshold ~blend ranges
 end

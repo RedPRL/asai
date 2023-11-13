@@ -25,7 +25,7 @@ let single_line mode eol () =
                 ]}]}
         ]}
     ] in
-  let actual = E.explicate ~line_breaking:mode [range1; range2] in
+  let actual = E.explicate ~line_breaks:mode [range1; range2] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines_with_ls () =
@@ -52,7 +52,7 @@ let multi_lines_with_ls () =
         ]}
     ]
   in
-  let actual = E.explicate ~line_breaking:`Unicode [range] in
+  let actual = E.explicate ~line_breaks:`Unicode [range] in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let multi_lines () =
@@ -133,7 +133,7 @@ ggggghh
                 [(Some 16, "ggggg");
                  (None, "hh")]}]}]}]
   in
-  let actual = E.explicate ~line_breaking:`Traditional ~block_splitting_threshold:5 ranges in
+  let actual = E.explicate ~line_breaks:`Traditional ~block_splitting_threshold:5 ranges in
   Alcotest.(check test_explication) "Explication is correct" expected actual
 
 let () =
