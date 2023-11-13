@@ -1,5 +1,8 @@
 open Explication
 
+exception Incorrect_line_num of [`Unicode | `Traditional] * Range.t list
+(** [Incorrect_line_num rs] means the all ranges in [rs] contain invalid line numbers. *)
+
 exception Unexpected_end_of_source of Range.position
 (** [Unexpected_end_of_source pos] means the [pos] lies beyond the end of source. This usually means the file has been truncated after the parsing. *)
 

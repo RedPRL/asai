@@ -4,6 +4,37 @@ open Bwd.Infix
 open Explication
 include ExplicatorSigs
 
+let blame_range mode fmt r =
+  let read = SourceReader.unsafe_get (SourceReader.load (Range.source r)) in
+  let line_num p = UserContent.count_newlines ~line_breaks:mode read (0, p.Range.offset) + 1 in
+  match Range.view r with
+  | `End_of_file p ->
+    Format.fprintf fmt
+      "@[@[%a@]@ should probably have line number %i.@]"
+      Range.dump r (line_num p)
+  | `Range (p1, p2) ->
+    Format.fprintf fmt
+      "@[@[%a@]@ should probably have line numbers %i and %i.@]"
+      Range.dump r (line_num p1) (line_num p2)
+
+let () = Printexc.register_printer @@
+  function
+  | Unexpected_end_of_source _pos ->
+    Some "Asai.Explicator.Unexpected_end_of_source; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
+  | Unexpected_line_num_increment _pos ->
+    Some "Asai.Explicator.Unexpected_line_num_increment; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
+  | Unexpected_newline _pos ->
+    Some "Asai.Explicator.Unexpected_newline; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
+  | Unexpected_position_in_newline _pos ->
+    Some "Asai.Explicator.Unexpected_newline; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
+  | Incorrect_line_num (mode, rs) ->
+    Option.some begin
+      SourceReader.run @@ fun () ->
+      Format.asprintf "@[<2>These ranges have incorrect line numbers:@ %a@]"
+        (Format.pp_print_list ~pp_sep:Format.pp_force_newline (blame_range mode)) rs
+    end
+  | _ -> None
+
 let to_start_of_line (pos : Range.position) = {pos with offset = pos.start_of_line}
 let default_blend ~(priority : _ -> int) t1 t2 = if priority t2 <= priority t1 then t2 else t1
 
@@ -126,10 +157,21 @@ module Make (Tag : Tag) = struct
   let explicate ?(debug=false) ?(line_breaks=`Traditional) ?(block_splitting_threshold=5)
       ?(blend=default_blend ~priority:Tag.priority) ranges =
     if debug then
-      assert begin
-        List.for_all
-          (fun (_, r) -> UserContent.check_line_num ~line_breaks (SourceReader.unsafe_get (SourceReader.load (Range.source r))) r)
-          ranges
+      begin
+        let broken_ranges =
+          List.filter_map
+            (fun (_, r) ->
+               if not @@
+                 UserContent.check_line_num ~line_breaks
+                   (SourceReader.unsafe_get (SourceReader.load (Range.source r)))
+                   r
+               then Some r
+               else None)
+            ranges
+        in
+        match broken_ranges with
+        | [] -> ()
+        | _ -> raise (Incorrect_line_num (line_breaks, broken_ranges))
       end;
     List.map (explicate_part ~line_breaks) @@ F.flatten ~block_splitting_threshold ~blend ranges
 end
