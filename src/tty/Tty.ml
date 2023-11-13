@@ -175,7 +175,7 @@ struct
         (main :: extra_remarks)
     in
     let explication =
-      E.explicate ~debug:param.debug ~block_splitting_threshold:param.block_splitting_threshold located_tags
+      E.explicate ~block_splitting_threshold:param.block_splitting_threshold ~debug:param.debug located_tags
     in
     let line_number_width = line_number_width explication in
     let param = {ExplicationRenderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
@@ -194,8 +194,8 @@ end
 
 module Make (Message : MinimumSigs.Message) =
 struct
-  let display ?(debug=false) ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
-      ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) d =
+  let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
+      ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) ?(debug=false) d =
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in
     let d = Diagnostic.map Message.short_code d in
     let ansi = Ansi.Test.guess ?use_ansi ?use_color output in

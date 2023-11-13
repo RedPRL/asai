@@ -1,5 +1,20 @@
 open Explication
 
+exception Unexpected_end_of_source of Range.position
+(** [Unexpected_end_of_source pos] means the [pos] lies beyond the end of source. This usually means the file has been truncated after the parsing. *)
+
+exception Unexpected_line_num_increment of Range.position
+(** [Unexpected_line_num_increment pos] means the line number of [pos] is larger than than that of its preceding position during explication, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Unexpected_newline of Range.position
+(** [Unexpected_newline pos] means the line number of [pos] is the same as its preceding position during explication, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Unexpected_position_in_newline of Range.position
+(** [Unexpected_position_in_newline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
+
+exception Invalid_ranges of [`Unicode | `Traditional] * Range.t list
+(** [Invalid_ranges (line_breaks, ranges)] means all the [ranges] contain invalid line numbers or other impossible values. The [line_breaks] indicates the set of hard line breaks used to determine line numbers. This exception will be raised only when the debug mode is enabled. See the [debug] argument of {!val:Explicator.S.explicate}. *)
+
 (** The signature of tags *)
 module type Tag = sig
   (** The abstract type of tags. *)
@@ -19,29 +34,18 @@ end
 module type S = sig
   module Tag : Tag
 
-  exception Unexpected_end_of_source of Range.position
-  (** [Unexpected_end_of_source pos] means the [pos] lies beyond the end of source. This usually means the file has been truncated after the parsing. *)
-
-  exception Unexpected_line_num_increment of Range.position
-  (** [Unexpected_line_num_increment pos] means the line number of [pos] is larger than than that of its preceding position during explication, but the explicator did not encounter a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  exception Unexpected_newline of Range.position
-  (** [Unexpected_newline pos] means the line number of [pos] is the same as its preceding position during explication, but the explicator encountered a newline in between. This usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  exception Unexpected_position_in_newline of Range.position
-  (** [Unexpected_position_in_newline pos] means the position [pos] is in the middle of a newline. This can happen when the newline consists of multiple bytes, for example [0x0D 0x0A]. It usually indicates that there's something wrong with the lexer, or that the file has changed since the parsing. *)
-
-  val explicate : ?debug:bool -> ?line_breaks:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?blend:(Tag.t -> Tag.t -> Tag.t) -> (Tag.t * Range.t) list -> Tag.t t
+  val explicate : ?line_breaks:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?blend:(Tag.t -> Tag.t -> Tag.t) -> ?debug:bool -> (Tag.t * Range.t) list -> Tag.t t
   (** Explicate a list of ranges using content from a data reader. This function must be run under [SourceReader.run].
 
-      @param debug Whether to enable the debug mode that performs extra checking. The default is [false].
       @param line_breaks The set of character sequences that are recognized as (hard) line breaks. The [`Unicode] set contains all Unicode character sequences in {{:https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G41643}Unicode 15.0.0 Table 5-1.} The [`Traditional] set only contains [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] set.
       @param block_splitting_threshold The maximum number of consecutive, non-highlighted lines allowed in a block. The function will try to minimize the number of blocks, as long as no block has too many consecutive, non-highlighted lines. A higher threshold will lead to fewer blocks. When the threshold is zero, it means no block can contain any non-highlighted line. The default value is zero.
       @param blend The algorithm to blend two tags on a visual range. The default algorithm chooses the more important tag based on priority.
+      @param debug Whether to enable the debug mode that performs expensive extra checking. The default is [false].
 
       @raise Unexpected_end_of_source See {!exception:Unexpected_end_of_source}.
       @raise Unexpected_line_num_increment See {!exception:Unexpected_line_num_increment}.
-      @raise Unexpected_newline See {!exception:Unexpected_newline}
-      @raise Unexpected_position_in_newline See {!Unexpected_position_in_newline}
+      @raise Unexpected_newline See {!exception:Unexpected_newline}.
+      @raise Unexpected_position_in_newline See {!exception:Unexpected_position_in_newline}.
+      @raise Invalid_ranges See {!exception:Invalid_ranges}.
   *)
 end

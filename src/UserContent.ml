@@ -55,7 +55,7 @@ let count_newlines ~line_breaks read (pos, eof) =
   go 0 pos
 
 let check_line_num_pos ~line_breaks read pos =
-  pos.Range.line_num = count_newlines ~line_breaks read (0, pos.Range.offset)
+  pos.Range.line_num = 1 + count_newlines ~line_breaks read (0, pos.Range.offset)
 
 let check_line_num ~line_breaks read range =
   match Range.view range with
