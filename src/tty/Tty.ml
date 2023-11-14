@@ -92,8 +92,10 @@ struct
 
   let render_line_tag ~param fmt ((_, text) as tag) =
     let st = TtyStyle.message ~param:param.ansi param.severity tag in
-    Format.fprintf fmt (" %*s ^ " ^^ highlight "@[%t@]" ^^ "@.")
+    Format.fprintf fmt (" %*s " ^^ highlight "^" ^^ " " ^^ highlight "@[%t@]" ^^ "@.")
       param.line_number_width ""
+      (Ansi.style_string ~param:param.ansi TtyStyle.fringe)
+      (Ansi.reset_string ~param:param.ansi TtyStyle.fringe)
       (Ansi.style_string ~param:param.ansi st)
       text
       (Ansi.reset_string ~param:param.ansi st)
