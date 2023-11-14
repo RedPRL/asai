@@ -11,35 +11,35 @@
  [2m1 |[m aaa[4;41;30maaaaaaa[m
  [2m2 |[m [4;41;30mbbbbbbbbbb[m
  [2m3 |[m [4;41;30mcccc[mcccccc
-   ^ [41;30mthis is a bug[m
+   [2m^[m [41;30mthis is a bug[m
 
  ￫ [31merror[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;31maaaaaaa[m
  [2m2 |[m [4;31mbbbbbbbbbb[m
  [2m3 |[m [4;31mcccc[mcccccc
-   ^ [31mthis is an error[m
+   [2m^[m [31mthis is an error[m
 
  ￫ [33mwarning[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;33maaaaaaa[m
  [2m2 |[m [4;33mbbbbbbbbbb[m
  [2m3 |[m [4;33mcccc[mcccccc
-   ^ [33mthis is a warning[m
+   [2m^[m [33mthis is a warning[m
 
  ￫ [32minfo[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;32maaaaaaa[m
  [2m2 |[m [4;32mbbbbbbbbbb[m
  [2m3 |[m [4;32mcccc[mcccccc
-   ^ [32mthis is an info[m
+   [2m^[m [32mthis is an info[m
 
  ￫ [34mhint[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;34maaaaaaa[m
  [2m2 |[m [4;34mbbbbbbbbbb[m
  [2m3 |[m [4;34mcccc[mcccccc
-   ^ [34mthis is a hint[m
+   [2m^[m [34mthis is a hint[m
 
  ￫ [33mwarning[hello][m
  [2mꭍ[m ￮ [33mwhen peaking into the abyss[m
@@ -47,7 +47,7 @@
  [2m1 |[m aaa[4;33maaaaaaa[m
  [2m2 |[m [4;33mbbbbbbbbbb[m
  [2m3 |[m [4;33mcccc[mcccccc
-   ^ [33mhello from here[m
+   [2m^[m [33mhello from here[m
 
  ￫ [33mwarning[hello][m
  [2m╭[m ￮ [33mwhen peaking into the abyss[m
@@ -56,62 +56,62 @@
  [2m1 |[m aaa[4;33maaaaaaa[m
  [2m2 |[m [4;33mbbbbbbbbbb[m
  [2m3 |[m [4;33mcccc[mcccccc
-   ^ [33mhello from here[m
+   [2m^[m [33mhello from here[m
 
  ￫ [33mwarning[hello][m
  [2m╭[m ￭ /path/to/file.cool
  [2m┆[m [2m1 |[m a[4;33maaaaaaaaa[m
  [2m┆[m [2m2 |[m [4;33mbbbbbbbbbb[m
  [2m┆[m [2m3 |[m [4;33mcccc[mcccccc
- [2m╯[m   ^ [33mwhen stepping into the abyss[m
+ [2m╯[m   [2m^[m [33mwhen stepping into the abyss[m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;33maaaaaaa[m
  [2m2 |[m [4;33mbbbbbbbbbb[m
  [2m3 |[m [4;33mcccc[mcccccc
-   ^ [33mhello from here[m
+   [2m^[m [33mhello from here[m
 
  ￫ [32minfo[hello][m
  [2m╭[m ￭ /path/to/file.cool
  [2m┆[m [2m1 |[m a[4;32maaaaaaaaa[m
  [2m┆[m [2m2 |[m [4;32mbbbbbbbbbb[m
  [2m┆[m [2m3 |[m [4;32mcccc[mcccccc
- [2m┆[m   ^ [32mwhen stepping into the abyss[m
+ [2m┆[m   [2m^[m [32mwhen stepping into the abyss[m
  [2m┆[m ￭ /path/to/file.cool
  [2m┆[m [2m1 |[m a[4;32maaaaaaaaa[m
  [2m┆[m [2m2 |[m [4;32mbbbbbbbbbb[m
  [2m┆[m [2m3 |[m [4;32mcccc[mcccccc
- [2m╯[m   ^ [32mwhen stepping into the deep abyss[m
+ [2m╯[m   [2m^[m [32mwhen stepping into the deep abyss[m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;32maaaaaaa[m
  [2m2 |[m [4;32mbbbbbbbbbb[m
  [2m3 |[m [4;32mcccc[mcccccc
-   ^ [32mhello from here[m
+   [2m^[m [32mhello from here[m
 
  ￫ [33mwarning[hello][m
  [2m 1 |[m aaa[4maaaaaaa[m
  [2m 2 |[m [4mb[mbb[4;33mbbbb[mb[4mb[mb
-    ^ message 6
-    ^ [33mthis is the main message[m
-    ^ message 5
+    [2m^[m message 6
+    [2m^[m [33mthis is the main message[m
+    [2m^[m message 5
  [2m 3 |[m cccc[4mc[mccccc
-    ^ message 4
+    [2m^[m message 4
  ￭ /path/to/file.cool
  [2m 1 |[m aaa[4maaaaaaa[m
  [2m 2 |[m [4mb[m[4mbbbbbbbbb[m
-    ^ message 7
+    [2m^[m message 7
  [2m 3 |[m [4mcccc[mcccccc
-    ^ message 2
+    [2m^[m message 2
  [2m10 |[m jjjjjjjjjj
-    ^ message 8
+    [2m^[m message 8
  ￮ message 1
  ￮ message 3
 
  ￫ [33mwarning[hello][m
  [2m23 |[m wwwwwwwwww[4;33m‹EOF›[m
-    ^ [33mthis is the main message[m
+    [2m^[m [33mthis is the main message[m
  ￭ /path/to/file.cool
  [2m23 |[m wwwwwwwwww[4m‹EOF›[m
-    ^ ending of another file
+    [2m^[m ending of another file
 
  ￫ [1mwarning[hello][m
  ￮ [1mthis is a warning
@@ -126,35 +126,35 @@
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mthis is a bug[m
+   [2m^[m [1mthis is a bug[m
 
  ￫ [1merror[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mthis is an error[m
+   [2m^[m [1mthis is an error[m
 
  ￫ [1mwarning[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mthis is a warning[m
+   [2m^[m [1mthis is a warning[m
 
  ￫ [1minfo[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mthis is an info[m
+   [2m^[m [1mthis is an info[m
 
  ￫ [1mhint[hello][m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mthis is a hint[m
+   [2m^[m [1mthis is a hint[m
 
  ￫ [1mwarning[hello][m
  [2mꭍ[m ￮ [1mwhen peaking into the abyss[m
@@ -162,7 +162,7 @@
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mhello from here[m
+   [2m^[m [1mhello from here[m
 
  ￫ [1mwarning[hello][m
  [2m╭[m ￮ [1mwhen peaking into the abyss[m
@@ -171,62 +171,62 @@
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mhello from here[m
+   [2m^[m [1mhello from here[m
 
  ￫ [1mwarning[hello][m
  [2m╭[m ￭ /path/to/file.cool
  [2m┆[m [2m1 |[m a[4;1maaaaaaaaa[m
  [2m┆[m [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m┆[m [2m3 |[m [4;1mcccc[mcccccc
- [2m╯[m   ^ [1mwhen stepping into the abyss[m
+ [2m╯[m   [2m^[m [1mwhen stepping into the abyss[m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mhello from here[m
+   [2m^[m [1mhello from here[m
 
  ￫ [1minfo[hello][m
  [2m╭[m ￭ /path/to/file.cool
  [2m┆[m [2m1 |[m a[4;1maaaaaaaaa[m
  [2m┆[m [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m┆[m [2m3 |[m [4;1mcccc[mcccccc
- [2m┆[m   ^ [1mwhen stepping into the abyss[m
+ [2m┆[m   [2m^[m [1mwhen stepping into the abyss[m
  [2m┆[m ￭ /path/to/file.cool
  [2m┆[m [2m1 |[m a[4;1maaaaaaaaa[m
  [2m┆[m [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m┆[m [2m3 |[m [4;1mcccc[mcccccc
- [2m╯[m   ^ [1mwhen stepping into the deep abyss[m
+ [2m╯[m   [2m^[m [1mwhen stepping into the deep abyss[m
  ￭ /path/to/file.cool
  [2m1 |[m aaa[4;1maaaaaaa[m
  [2m2 |[m [4;1mbbbbbbbbbb[m
  [2m3 |[m [4;1mcccc[mcccccc
-   ^ [1mhello from here[m
+   [2m^[m [1mhello from here[m
 
  ￫ [1mwarning[hello][m
  [2m 1 |[m aaa[4maaaaaaa[m
  [2m 2 |[m [4mb[mbb[4;1mbbbb[mb[4mb[mb
-    ^ message 6
-    ^ [1mthis is the main message[m
-    ^ message 5
+    [2m^[m message 6
+    [2m^[m [1mthis is the main message[m
+    [2m^[m message 5
  [2m 3 |[m cccc[4mc[mccccc
-    ^ message 4
+    [2m^[m message 4
  ￭ /path/to/file.cool
  [2m 1 |[m aaa[4maaaaaaa[m
  [2m 2 |[m [4mb[m[4mbbbbbbbbb[m
-    ^ message 7
+    [2m^[m message 7
  [2m 3 |[m [4mcccc[mcccccc
-    ^ message 2
+    [2m^[m message 2
  [2m10 |[m jjjjjjjjjj
-    ^ message 8
+    [2m^[m message 8
  ￮ message 1
  ￮ message 3
 
  ￫ [1mwarning[hello][m
  [2m23 |[m wwwwwwwwww[4;1m‹EOF›[m
-    ^ [1mthis is the main message[m
+    [2m^[m [1mthis is the main message[m
  ￭ /path/to/file.cool
  [2m23 |[m wwwwwwwwww[4m‹EOF›[m
-    ^ ending of another file
+    [2m^[m ending of another file
 
  ￫ warning[hello]
  ￮ this is a warning
