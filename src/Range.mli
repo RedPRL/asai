@@ -62,6 +62,12 @@ val eof : position -> t
 *)
 val view : t -> [`Range of position * position | `End_of_file of position]
 
+(** [split range] returning the pair of the beginning and ending positions of [range]. It is the left-inverse of {!val:make}.
+
+    @raise Invalid_argument if range is a special range marking the end of the source. See {!val:eof}.
+*)
+val split : t -> position * position
+
 (** [source range] returns the source associated with [range]. *)
 val source : t -> source
 
@@ -135,11 +141,3 @@ val dump_source : Format.formatter -> source -> unit
 val dump_position : Format.formatter -> position -> unit
 
 val dump : Format.formatter -> t -> unit
-
-(**/**)
-
-(** [split range] returning the pair of the beginning and ending positions of [range].
-
-    @raise Invalid_argument if range is a special range marking the end.
-*)
-val split : t -> position * position [@@ocaml.alert deprecated "Use Asai.Range.view"]
