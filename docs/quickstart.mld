@@ -194,7 +194,9 @@ struct
   let short_code : t -> string =
     function
     (* ... *)
-    | Cool c -> CoolLibrary.Reporter.Message.short_code c
+    | Cool c ->
+      (* You can add a prefix to avoid code collision. *)
+      "C-" ^ CoolLibrary.Reporter.Message.short_code c
 
   (** It is recommended to add a helper function (such as [cool]) to save typing,
       and this tutorial will assume you have done that. *)
