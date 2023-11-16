@@ -147,6 +147,25 @@ Reporter.emit ~loc:real_loc "wow" (* using [real_loc] instead  *)
 (* ... *)
 ]}
 
+{2 How to Debug Ranges}
+
+If you have seen an exception from asai like this:
+{v
+Invalid_argument("Asai.Explicator.explicate: <REASON>; use the debug mode")
+v}
+It means asai has detected invalid ranges. This usually indicates that your lexer or parser is buggy and generates invalid locations. For efficiency, asai by default will not check ranges carefully, but you can force it to do so by using the optional argument [debug]:
+{[
+module Term = Asai.Tty.Make(Reporter.Message)
+
+let () =
+  Reporter.run
+    ~emit:(Term.display ~debug:true)
+    ~fatal:(fun d -> Term.display ~debug:true d; exit 1) @@ fun () ->
+  (* your application code *)
+]}
+
+The checking is very expensive; it is highly recommended to disable the [debug] mode once you are convinced that your code is correct. At very least, disable it unless the end user explicitly wants to enable it.
+
 {1 Use a Library that Uses asai}
 
 Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the diagnostics from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Reporter]. You want to painlessly incorporate the library.

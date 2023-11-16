@@ -4,35 +4,43 @@ open Bwd.Infix
 open Explication
 include ExplicatorSigs
 
-(* used by the register_printer below *)
-let blame_range mode fmt r =
-  let read = SourceReader.unsafe_get (SourceReader.load (Range.source r)) in
-  let line_num p = UserContent.count_newlines ~line_breaks:mode read (0, p.Range.offset) + 1 in
-  match Range.view r with
-  | `End_of_file p ->
-    Format.fprintf fmt
-      "@[@[%a@]@ should probably have line number %i.@]"
-      Range.dump r (line_num p)
-  | `Range (p1, p2) ->
-    Format.fprintf fmt
-      "@[@[%a@]@ should probably have line numbers %i and %i.@]"
-      Range.dump r (line_num p1) (line_num p2)
+(* helper functions used by the register_printer below *)
+
+let print_invalid_offset fmt : UserContent.invalid_offset -> unit =
+  function
+  | `Negative i ->
+    Format.fprintf fmt "its@ offset@ %d@ is@ negative." i
+  | `Beyond_end_of_file (i, e) ->
+    Format.fprintf fmt "its@ offset@ %d@ is@ beyond@ the@ end@ of@ file@ (%d)." i e
+  | `Within_newline (i, (s, e)) ->
+    Format.fprintf fmt "its@ offset@ %d@ is@ within@ a@ newline@ sequence@ [%d,%d)." i s e
+
+let print_invalid_position fmt : UserContent.invalid_position -> unit =
+  function
+  | `Offset r ->
+    print_invalid_offset fmt r
+  | `Incorrect_start_of_line (s, s') ->
+    Format.fprintf fmt "its@ start@ of@ line@ is@ %d@ but@ it@ should@ have@ been@ %d." s s'
+  | `Incorrect_line_num (ln, ln') ->
+    Format.fprintf fmt "its@ line@ number@ is@ %d@ but@ it@ should@ have@ been@ %d." ln ln'
+
+let print_invalid_range fmt : UserContent.invalid_range -> unit =
+  function
+  | `Begin r ->
+    Format.fprintf fmt "its@ beginning@ position@ is@ invalid;@ %a" print_invalid_position r
+  | `End r ->
+    Format.fprintf fmt "its@ ending@ position@ is@ invalid;@ %a" print_invalid_position r
+  | `Not_end_of_file (l, l') ->
+    Format.fprintf fmt "its@ offset@ %d@ is@ not@ the@ end@ of@ file@ (%d)." l l'
+  | `End_of_file r -> print_invalid_position fmt r
 
 let () = Printexc.register_printer @@
   function
-  | Unexpected_end_of_source _pos ->
-    Some "Asai.Explicator.Unexpected_end_of_source; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
-  | Unexpected_line_num_increment _pos ->
-    Some "Asai.Explicator.Unexpected_line_num_increment; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
-  | Unexpected_newline _pos ->
-    Some "Asai.Explicator.Unexpected_newline; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
-  | Unexpected_position_in_newline _pos ->
-    Some "Asai.Explicator.Unexpected_newline; turn on the debug mode (e.g., Term.display ~debug:true) and check your lexer"
-  | Invalid_ranges (mode, rs) ->
-    Option.some begin
+  | Invalid_range (range, reason) ->
+    Some begin
       SourceReader.run @@ fun () ->
-      Format.asprintf "@[<2>These ranges have incorrect line numbers:@ %a@]"
-        (Format.pp_print_list ~pp_sep:Format.pp_force_newline (blame_range mode)) rs
+      Format.asprintf "@[<2>Invalid range:@ @[%a@]@ is@ invalid@ because@ %a"
+        Range.dump range print_invalid_range reason
     end
   | _ -> None
 
@@ -78,8 +86,8 @@ module Make (Tag : Tag) = struct
       let[@tailcall] rec go state : (Tag.t option * Range.position) list -> _ =
         function
         | (ptag, ploc) :: ps when state.cursor.line_num = ploc.line_num ->
-          if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
-          if ploc.offset > state.eol then raise @@ Unexpected_newline ploc;
+          if ploc.offset > eof then invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode";
+          if ploc.offset > state.eol then invalid_arg "Asai.Explicator.explicate: unexpected newline; use the debug mode";
           if ploc.offset = state.cursor.offset then
             go {state with cursor = ploc; current_tag = ptag} ps
           else
@@ -110,11 +118,11 @@ module Make (Tag : Tag) = struct
           | [], _ ->
             assert (state.line_num = b.end_line_num);
             lines
-          | (_, ploc) :: _, None -> raise @@ Unexpected_end_of_source ploc
+          | _ :: _, None -> invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode"
           | (_, ploc) :: _, Some eol_shift ->
-            if ploc.offset > eof then raise @@ Unexpected_end_of_source ploc;
-            if ploc.offset <= state.eol then raise @@ Unexpected_line_num_increment ploc;
-            if ploc.offset < state.eol + eol_shift then raise @@ Unexpected_position_in_newline ploc;
+            if ploc.offset > eof then invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode";
+            if ploc.offset <= state.eol then invalid_arg "Asai.Explicator.explicate: expected newline missing; use the debug mode";
+            if ploc.offset < state.eol + eol_shift then invalid_arg "Asai.Explicator.explicate: offset within newline; use the debug mode";
             (* Okay, p is really on the next line *)
             let cursor = eol_to_next_line eol_shift {state.cursor with offset = state.eol} in
             let eol, eol_shift = find_eol (state.eol + eol_shift) in
@@ -156,14 +164,14 @@ module Make (Tag : Tag) = struct
     { source; blocks = explicate_blocks ~line_breaks bs }
 
   let check_ranges ~line_breaks ranges =
-    let broken_ranges =
-      List.filter_map
-        (fun (_, r) ->
-           let read = SourceReader.unsafe_get @@ SourceReader.load @@ Range.source r in
-           if not @@ UserContent.check_line_num ~line_breaks read r then Some r else None)
-        ranges
-    in
-    if broken_ranges <> [] then raise @@ Invalid_ranges (line_breaks, broken_ranges)
+    List.iter
+      (fun (_, range) ->
+         let source = SourceReader.load @@ Range.source range in
+         let read = SourceReader.unsafe_get source in
+         let eof = SourceReader.length source in
+         try UserContent.check_range ~line_breaks ~eof read range
+         with UserContent.Invalid_range reason -> raise @@ Invalid_range (range, reason))
+      ranges
 
   let explicate ?(line_breaks=`Traditional) ?(block_splitting_threshold=5)
       ?(blend=default_blend ~priority:Tag.priority) ?(debug=false) ranges =
