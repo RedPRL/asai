@@ -30,12 +30,8 @@ module Make (Message : MinimumSigs.Message) : sig
       @param tab_size The number of spaces that should be used to replace a horizontal tab. Note that a horizontal tab is always expanded to the same number of spaces. The result should still be visually appealing as long as horizontal tabs are only used at the beginning of lines. The default value is [8].
       @param debug Whether to enable the debug mode that performs expensive extra checking. The default is [false].
 
-      @raise Invalid_argument if [tab_size < 0].
-      @raise Unexpected_end_of_source See {!exception:Explicator.Unexpected_end_of_source}.
-      @raise Unexpected_line_num_increment See {!exception:Explicator.Unexpected_line_num_increment}.
-      @raise Unexpected_newline See {!exception:Explicator.Unexpected_newline}.
-      @raise Unexpected_position_in_newline See {!exception:Explicator.Unexpected_position_in_newline}.
-      @raise Invalid_ranges See {!exception:Explicator.Invalid_ranges}.
+      @raise Invalid_argument if [tab_size < 0] or inconsistent ranges are detected.
+      @raise Invalid_range if the debug mode is enabled and some ranges are invalid. See {!exception:Explicator.Invalid_range}.
 
       @see <https://no-color.org/> for the [NO_COLOR] specification
   *)

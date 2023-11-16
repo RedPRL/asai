@@ -1,3 +1,9 @@
+include UserContentData
+
+exception Invalid_offset of invalid_offset
+exception Invalid_position of invalid_position
+exception Invalid_range of invalid_range
+
 let find_eol_traditional read (i, eof) =
   let rec go i =
     if i >= eof then
@@ -45,25 +51,42 @@ let find_eol ~line_breaks =
   | `Unicode -> find_eol_unicode
   | `Traditional -> find_eol_traditional
 
-let count_newlines ~line_breaks read (pos, eof) =
-  let find_eol i = find_eol ~line_breaks read (i, eof) in
-  let rec go acc i =
-    match find_eol i with
-    | _, None -> acc
-    | pos, Some shift -> (go[@tailcall]) (acc+1) (pos+shift)
+let reconstruct_pos ~source ~line_breaks ~eof read offset =
+  let find_eol = find_eol ~line_breaks read in
+  if offset < 0 then raise @@ Invalid_offset (`Negative offset);
+  if offset > eof then raise @@ Invalid_offset (`Beyond_end_of_file (offset, eof));
+  let rec go line_num start_of_line =
+    let eol, eol_shift = find_eol (start_of_line, eof) in
+    if offset <= eol then
+      (line_num, start_of_line)
+    else
+      match eol_shift with
+      | None -> assert false;
+      | Some s ->
+        if offset < eol + s then raise @@ Invalid_offset (`Within_newline (offset, (eol, eol+s)));
+        (go[@tailcall]) (line_num+1) (eol+s)
   in
-  go 0 pos
+  let line_num, start_of_line = go 1 0 in
+  {Range.source = source; offset; start_of_line; line_num}
 
-let check_line_num_pos ~line_breaks read pos =
-  pos.Range.line_num = 1 + count_newlines ~line_breaks read (0, pos.Range.offset)
+let check_pos ~line_breaks ~eof read pos =
+  let new_pos =
+    try reconstruct_pos ~source:pos.Range.source ~line_breaks ~eof read pos.offset
+    with Invalid_offset reason -> raise @@ Invalid_position (`Offset reason)
+  in
+  if pos.line_num <> new_pos.line_num then
+    raise @@ Invalid_position (`Incorrect_line_num (pos.line_num, new_pos.line_num));
+  if pos.start_of_line <> new_pos.start_of_line then
+    raise @@ Invalid_position (`Incorrect_start_of_line (pos.start_of_line, new_pos.start_of_line))
 
-let check_line_num ~line_breaks read range =
+let check_range ~line_breaks ~eof read range =
   match Range.view range with
-  | `End_of_file eof ->
-    check_line_num_pos ~line_breaks read eof
   | `Range (p1, p2) ->
-    check_line_num_pos ~line_breaks read p1 &&
-    check_line_num_pos ~line_breaks read p2
+    (try check_pos ~line_breaks ~eof read p1 with Invalid_position reason -> raise @@ Invalid_range (`Begin reason));
+    (try check_pos ~line_breaks ~eof read p2 with Invalid_position reason -> raise @@ Invalid_range (`End reason))
+  | `End_of_file p ->
+    if p.offset <> eof then raise @@ Invalid_range (`Not_end_of_file (p.offset, eof));
+    (try check_pos ~line_breaks ~eof read p with Invalid_position reason -> raise @@ Invalid_range (`End_of_file reason))
 
 let replace_control ~tab_size str =
   let tab_string = String.make tab_size ' ' in
