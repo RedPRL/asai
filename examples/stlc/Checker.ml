@@ -13,18 +13,18 @@ struct
   let bind_var nm tp k =
     Reader.scope (fun env -> Snoc(env, (nm, tp))) k
 
-  let lookup ?loc nm =
+  let lookup nm =
     let ctx = Reader.read () in
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Reporter.fatalf ?loc `UnboundVariable "variable '%s' is not in scope" nm
+      Reporter.fatalf UnboundVariable "variable '%s' is not in scope" nm
 
-  let expected_connective ?loc conn tp =
-    Reporter.fatalf ?loc `TypeError "expected a %s, but got %a" conn pp_tp tp
+  let expected_connective conn tp =
+    Reporter.fatalf TypeError "expected a %s, but got %a" conn pp_tp tp
 
-  let rec equate ?loc expected actual =
-    Reporter.tracef ?loc "when equating terms" @@ fun () ->
+  let rec equate expected actual =
+    Reporter.trace "when equating terms" @@ fun () ->
     match expected, actual with
     | Fun (a0, b0), Fun (a1, b1) ->
       equate a0 a1;
@@ -35,7 +35,7 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Reporter.fatalf ?loc `TypeError "expected type %a, but got %a" pp_tp expected pp_tp actual
+      Reporter.fatalf TypeError "expected type %a, but got %a" pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
     Reporter.tracef ?loc:tm.loc "when checking it against %a" Syntax.pp_tp tp @@ fun () ->
@@ -44,29 +44,29 @@ struct
       bind_var nm a @@ fun () ->
       chk body b
     | Lam (_, _), _ ->
-      expected_connective ?loc:tm.loc "function type" tp
+      expected_connective "function type" tp
     | Pair (l, r), Tuple (a, b) ->
       chk l a;
       chk r b;
     | Pair (_, _), _ ->
-      expected_connective ?loc:tm.loc "pair type" tp
+      expected_connective "pair type" tp
     | Lit _, Nat ->
       ()
     | Lit _, _ ->
-      expected_connective ?loc:tm.loc "ℕ" tp
+      expected_connective "ℕ" tp
     | Suc n, Nat ->
       chk n Nat
     | Suc _, _ ->
-      expected_connective ?loc:tm.loc "ℕ" tp
+      expected_connective "ℕ" tp
     | _ ->
       let actual_tp = syn tm in
-      equate ?loc:tm.loc tp actual_tp
+      equate tp actual_tp
 
   and syn (tm : tm) : tp =
-    Reporter.tracef ?loc:tm.loc "when synthesizing its type" @@ fun () ->
+    Reporter.trace ?loc:tm.loc "when synthesizing its type" @@ fun () ->
     match tm.value with
     | Var nm ->
-      lookup ?loc:tm.loc nm
+      lookup nm
     | Ap (fn, arg) ->
       begin
         match syn fn with
@@ -74,7 +74,7 @@ struct
           chk arg a;
           b
         | tp ->
-          expected_connective ?loc:tm.loc "function type" tp
+          expected_connective "function type" tp
       end
     | Fst tm ->
       begin
@@ -82,7 +82,7 @@ struct
         | Tuple (l, _) ->
           l
         | tp ->
-          expected_connective ?loc:tm.loc "pair type" tp
+          expected_connective "pair type" tp
       end
     | Snd tm ->
       begin
@@ -90,7 +90,7 @@ struct
         | Tuple (_, r) ->
           r
         | tp ->
-          expected_connective ?loc:tm.loc "pair type" tp
+          expected_connective "pair type" tp
       end
     | NatRec (z, s, scrut) ->
       begin
@@ -100,7 +100,7 @@ struct
         mot
       end
     | _ ->
-      Reporter.fatalf ?loc:tm.loc `TypeError "unable to infer its type"
+      Reporter.fatal TypeError "unable to infer its type"
 end
 
 module Driver =
@@ -111,12 +111,10 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "unrecognized token %S" tok
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) ParsingError "unrecognized token %S" tok
       | Grammar.Error ->
-        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) `LexingError "failed to parse"
-    in
-    Elab.Reader.run ~env:Emp @@ fun () ->
-    Elab.chk tm tp
+        Reporter.fatal ~loc:(Asai.Range.of_lexbuf lexbuf) ParsingError "failed to parse"
+    in Elab.Reader.run ~env:Emp @@ fun () -> Elab.chk tm tp
 
   let load mode filepath =
     let display : Reporter.Message.t Asai.Diagnostic.t -> unit =
