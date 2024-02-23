@@ -10,7 +10,7 @@ jobs:
       matrix:
         include:
           - ocaml-compiler: "ocaml-base-compiler.5.2.0~alpha1"
-            with-doc: true
+            with-doc: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
