@@ -83,7 +83,7 @@ module Make (Tag : Tag) = struct
       let source = SourceReader.load ploc.source in
       let eof = SourceReader.length source in
       let find_eol i = UserContent.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
-      let[@tailcall] rec go state : (Tag.t option * Range.position) list -> _ =
+      let rec go state : (Tag.t option * Range.position) list -> _ =
         function
         | (ptag, ploc) :: ps when state.cursor.line_num = ploc.line_num ->
           if ploc.offset > eof then invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode";
