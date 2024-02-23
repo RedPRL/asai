@@ -1,3 +1,19 @@
+# [0.3.1](https://github.com/RedPRL/asai/compare/0.3.0...0.3.1) (2024-02-23)
+
+This is a minor release with several improvements, especially the debug mode to actively detect invalid ranges. OCaml 5.2.0 introduced backward-incompatible changes in ocaml/ocaml#12477 and thus we had to bump up the minimum OCaml version.
+
+### Bug Fixes
+
+- correct and enhance the debug mode ([#142](https://github.com/RedPRL/asai/issues/142)) ([db89139](https://github.com/RedPRL/asai/commit/db891396bfe7e79516b6215070b7536cac96b726))
+- **Diagnostic:** use `Format.pp_infinity` in `string_of_text` for OCaml 5.2 ([#149](https://github.com/RedPRL/asai/issues/149)) ([b835fac](https://github.com/RedPRL/asai/commit/b835facfa5996ef7ff24fa78409e9c638d7c2de2))
+- dim the carets ([#145](https://github.com/RedPRL/asai/issues/145)) ([08c7dc2](https://github.com/RedPRL/asai/commit/08c7dc2f923b78a15236a077a1029e8cc4626a40))
+
+### Features
+
+- comprehensive checking for ranges ([#147](https://github.com/RedPRL/asai/issues/147)) ([891d627](https://github.com/RedPRL/asai/commit/891d627f50709af5e210e4bfe8a97b377eda3119))
+- **Explicator:** introduce debug mode ([#139](https://github.com/RedPRL/asai/issues/139)) ([9830591](https://github.com/RedPRL/asai/commit/983059128df785bde5c80aff5d30d81279079fbf))
+- **Range:** re-introduce `split` ([7cdce93](https://github.com/RedPRL/asai/commit/7cdce936a18abafed132e3a0dc055d59ec17aef1))
+
 # [0.3.0](https://github.com/RedPRL/asai/compare/0.2.0...0.3.0) (2023-11-03)
 
 This is a major release with two notable changes:
