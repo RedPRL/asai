@@ -17,7 +17,7 @@
  (synopsis "A library for constructing and printing compiler diagnostics")
  (description "This package offers an implementation of compiler diagnostics and supports multiple handlers for displaying diagnostics to the end user. Currently, the package comes with built-in handlers for GitHub Actions workflow commands and UNIX terminals.")
  (depends
-   (ocaml (>= 5.0))
+   (ocaml (>= 5.2))
    (algaeff (>= 2.0))
    (bwd (>= 2.2))
    (alcotest (and :with-test (>= 1.5)))
@@ -27,7 +27,7 @@
  (synopsis "LSP handler for the package asai")
  (description "This package offers an language server protocol (LSP) handler that can turn an application using the asai package into a LSP server. This is an experimental prototype and very likely its design will significantly change in future versions.")
  (depends
-   (ocaml (>= 5.0))
+   (ocaml (>= 5.2))
    (bwd (>= 2.2))
    (eio (>= 0.12))
    (eio_main (>= 0.12))
@@ -39,7 +39,7 @@
  (synopsis "Examples of the package asai")
  (description "This package offers some examples of the asai package. They are organized into a separate package to reduce the dependencies of the main package.")
  (depends
-   (ocaml (>= 5.0))
+   (ocaml (>= 5.2))
    (algaeff (>= 2.0))
    (bwd (>= 2.2))
    (menhir (>= 20220210))
