@@ -74,7 +74,7 @@ struct
       ~severity
       ~code
       ?source
-      ~message
+      ~message:(`String message)
       ~relatedInformation
       ()
 
