@@ -5,7 +5,7 @@ description:
   "This package offers an language server protocol (LSP) handler that can turn an application using the asai package into a LSP server. This is an experimental prototype and very likely its design will significantly change in future versions."
 maintainer: ["favonia <favonia@gmail.com>"]
 authors: ["The RedPRL Development Team"]
-license: "Apache-2.0"
+license: "Apache-2.0 WITH LLVM-exception"
 homepage: "https://github.com/RedPRL/asai"
 bug-reports: "https://github.com/RedPRL/asai/issues"
 depends: [
