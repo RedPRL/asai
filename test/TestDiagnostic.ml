@@ -8,5 +8,6 @@ let () =
     "string_of_text",
     [
       of_test "\\n" (Asai.Diagnostic.text " \r   e \n  f  \n   g   ") "  e  f   g   ";
+      of_test "\\n" (Asai.Diagnostic.textf "@[<v>123@[456@]789@]") "123 456789";
     ]
   ]
