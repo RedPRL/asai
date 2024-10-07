@@ -15,9 +15,9 @@ open Syntax
 %%
 
 %inline
-locate(X):
+located(X):
   | e = X
-    { Asai.Range.locate_lex $loc e }
+    { Asai.Range.located_lex $loc e }
 
 defn:
   | LPR; CHECK; tm = term; tp = typ; RPR
@@ -32,7 +32,7 @@ typ:
     { Nat }
 
 term:
-  | tm = locate(term_)
+  | tm = located(term_)
     { tm }
 
 term_:

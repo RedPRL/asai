@@ -106,12 +106,12 @@ Good diagnostics also help the end user locate the issues in their program or pr
 Reporter.emit ~loc Greeting "hello again";
 (* continue doing other things *)
 ]}
-You can use {{!val:Asai.Range.make}Range.make} to create such a range manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Range.make}Range.locate}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
+You can use {{!val:Asai.Range.make}Range.make} to create such a range manually. However, if you are using ocamllex and Menhir, you certainly want to use provided helper functions. One of them is {{!val:Asai.Range.located_lex}Range.located_lex}; you can add these lines in your Menhir grammar to generated a node annotated with its location:
 {v
 %inline
-locate(X):
+located(X):
   | e = X
-    { Asai.Range.locate_lex $loc e }
+    { Asai.Range.located_lex $loc e }
 v}
 The annotated node will have type {{!type:Asai.Range.located}[data] Range.located} where [data] is the output type of [X]. Another one is {{!val:Asai.Range.of_lexbuf}Range.of_lexbuf}, which comes in handy when reporting a parsing error:
 {[

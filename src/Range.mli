@@ -83,11 +83,15 @@ val begin_offset : t -> int
 (** [end_offset range] returns the 0-indexed offset of the (exclusive) ending position. *)
 val end_offset : t -> int
 
-(** [locate_opt r v] is [{loc = r; value = v}]. *)
-val locate_opt : t option -> 'a -> 'a located
+(** [located r v] is [{loc = Some r; value = v}].
 
-(** [locate r v] is [{loc = Some r; value = v}]. *)
-val locate : t -> 'a -> 'a located
+    @since 0.3.2 *)
+val located : t -> 'a -> 'a located
+
+(** [located_opt r v] is [{loc = r; value = v}].
+
+    @since 0.3.2 *)
+val located_opt : t option -> 'a -> 'a located
 
 (** {1 Other Helper Functions} *)
 
@@ -119,18 +123,20 @@ val of_lex_range : ?source:source -> Lexing.position * Lexing.position -> t
 *)
 val of_lexbuf : ?source:source -> Lexing.lexbuf -> t
 
-(** [locate_lex ps v] is a helper function to create a value annotated with a range. It is [locate (Some (of_lex_range ps)) v] and is designed to work with the OCaml parser generator Menhir. You can add the following code to your Menhir grammar to generate annotated data:
+(** [located_lex ps v] is a helper function to create a value annotated with a range. It is [located (of_lex_range ps) v] and is designed to work with the OCaml parser generator Menhir. You can add the following code to your Menhir grammar to generate annotated data:
 
     {v
 %inline
 locate(X):
   | e = X
-    { Asai.Range.locate_lex $loc e }
+    { Asai.Range.located_lex $loc e }
 v}
 
     @param source The source of the range. The default source is [`File (Lexing.lexeme_start_p lexbuf).pos_fname].
+
+    @since 0.3.2
 *)
-val locate_lex : ?source:source -> Lexing.position * Lexing.position -> 'a -> 'a located
+val located_lex : ?source:source -> Lexing.position * Lexing.position -> 'a -> 'a located
 
 (** {1 Debugging} *)
 
@@ -141,3 +147,17 @@ val dump_source : Format.formatter -> source -> unit
 val dump_position : Format.formatter -> position -> unit
 
 val dump : Format.formatter -> t -> unit
+
+(** {1 Deprecated Functions} *)
+
+(** An alias of [located] for backward compatibility *)
+val locate : t -> 'a -> 'a located
+[@@ocaml.alert deprecated "Use Range.located instead"]
+
+(** An alias of [located_opt] for backward compatibility *)
+val locate_opt : t option -> 'a -> 'a located
+[@@ocaml.alert deprecated "Use Range.located_opt instead"]
+
+(** An alias of [located_lex] for backward compatibility. *)
+val locate_lex : ?source:source -> Lexing.position * Lexing.position -> 'a -> 'a located
+[@@ocaml.alert deprecated "Use Range.located_lex instead"]

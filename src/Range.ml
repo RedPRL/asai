@@ -77,8 +77,10 @@ let begin_offset = function Range (x, _) | End_of_file x -> x.offset
 let end_line_num = function Range (_, x) | End_of_file x -> x.line_num
 let end_offset = function Range (_, x) | End_of_file x -> x.offset
 
-let locate_opt loc value = {loc; value}
-let locate loc value = {loc = Some loc; value}
+let located loc value = {loc = Some loc; value}
+let locate = located
+let located_opt loc value = {loc; value}
+let locate_opt = located_opt
 
 let of_lex_position ?source (pos : Lexing.position) : position =
   let source = Option.value ~default:(`File pos.pos_fname) source in
@@ -95,4 +97,5 @@ let of_lex_range ?source (begin_, end_) =
 let of_lexbuf ?source lexbuf =
   of_lex_range ?source (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
 
-let locate_lex ?source r v = locate (of_lex_range ?source r) v
+let located_lex ?source r v = located (of_lex_range ?source r) v
+let locate_lex = located_lex
