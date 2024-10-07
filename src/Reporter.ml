@@ -27,12 +27,12 @@ struct
     (match loc with None -> l | Some _ -> loc),
     bt <: {loc; value = text}
 
-  let trace_loctext (t : Diagnostic.loctext) =
+  let trace_loctext (t : Loctext.t) =
     trace_text ?loc:t.loc t.value
 
-  let trace ?loc str = trace_text ?loc @@ Diagnostic.text str
+  let trace ?loc str = trace_text ?loc @@ Text.make str
 
-  let tracef ?loc = Diagnostic.kloctextf trace_loctext ?loc
+  let tracef ?loc = Loctext.kmakef trace_loctext ?loc
 
   (* Constructing diagnostics *)
 

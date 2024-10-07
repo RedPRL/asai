@@ -7,8 +7,8 @@ sig
   (** The default severity level of a message. Severity levels classify diagnostics into errors, warnings, etc. It is about how serious the {i end user} should take the diagnostic, not whether the program should stop or continue. The severity may be overwritten at the time of issuing a diagnostic. *)
   val default_severity : t -> Diagnostic.severity
 
-  (** The default text of the message. This is the long explanation of the message that the end user would see. You might find helper functions {!val:Diagnostic.text} and {!val:Diagnostic.textf} useful. The text may be overwritten at the time of issuing a diagnostic. *)
-  val default_text : t -> Diagnostic.text
+  (** The default text of the message. This is the long explanation of the message that the end user would see. You might find helper functions {!val:Text.t} and {!val:Text.tf} useful. The text may be overwritten at the time of issuing a diagnostic. *)
+  val default_text : t -> Text.t
 
   (** A concise, ideally Google-able string representation of each message. Detailed or long descriptions should be avoided---the shorter, the better. For example, [E001] works better than [type-checking error]. It will be assumed that the string representation has no control characters (such as newline characters). *)
   val short_code : t -> string
@@ -33,7 +33,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val emit : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Diagnostic.text -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> unit
+  val emit : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Text.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> unit
 
   (** Emit a diagnostic and continue the computation. *)
   val emit_diagnostic : Message.t Diagnostic.t -> unit
@@ -51,7 +51,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val fatal : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Diagnostic.text -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> 'a
+  val fatal : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Text.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> 'a
 
   (** Abort the computation with a diagnostic. *)
   val fatal_diagnostic: Message.t Diagnostic.t -> 'a
@@ -77,7 +77,7 @@ sig
   *)
   val trace : ?loc:Range.t -> string -> (unit -> 'a) -> 'a
 
-  (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
@@ -87,10 +87,10 @@ sig
 
       @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
-  val trace_text : ?loc:Range.t -> Diagnostic.text -> (unit -> 'a) -> 'a
+  val trace_text : ?loc:Range.t -> Text.t -> (unit -> 'a) -> 'a
 
   (** [trace_loctext loctext f] records the [loctext] and runs the thunk [f] with the new backtrace. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}. *)
-  val trace_loctext : Diagnostic.loctext -> (unit -> 'a) -> 'a
+  val trace_loctext : Loctext.t -> (unit -> 'a) -> 'a
 
   (** {2 Locations} *)
 
@@ -120,7 +120,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Diagnostic.text -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> Message.t Diagnostic.t
+  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Text.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> Message.t Diagnostic.t
 
   (** {2 Algebraic Effects} *)
 

@@ -7,6 +7,16 @@
 (** Locations and ranges. *)
 module Range = Range
 
+(** Texts that preserve pretty-printing structures.
+
+    @since 0.3.2 *)
+module Text = Text
+
+(** Located texts. "Loctext" is a portmanteau of "locate" and "text".
+
+    @since 0.3.2 *)
+module Loctext = Loctext
+
 (** The definition of diagnostics and some utility functions. *)
 module Diagnostic = Diagnostic
 

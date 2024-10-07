@@ -1,4 +1,6 @@
 module Range = Range
+module Text = Text
+module Loctext = Loctext
 module Diagnostic = Diagnostic
 module Reporter = Reporter
 module StructuredReporter = StructuredReporter

@@ -32,9 +32,9 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val emit : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> unit
+  val emit : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> string -> unit
 
-  (** [emitf message format ...] formats and emits a message, and then continues the computation. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [emitf message format ...] formats and emits a message, and then continues the computation. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       Example:
       {[
@@ -46,7 +46,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val emitf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
+  val emitf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
   (** Emit a diagnostic and continue the computation. *)
   val emit_diagnostic : Message.t Diagnostic.t -> unit
@@ -63,9 +63,9 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val fatal : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> 'a
+  val fatal : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> string -> 'a
 
-  (** [fatalf message format ...] constructs a diagnostic and aborts the current computation with the diagnostic. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [fatalf message format ...] constructs a diagnostic and aborts the current computation with the diagnostic. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       Example:
       {[
@@ -77,7 +77,7 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val fatalf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  val fatalf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** Abort the computation with a diagnostic. *)
   val fatal_diagnostic: Message.t Diagnostic.t -> 'a
@@ -103,7 +103,7 @@ sig
   *)
   val trace : ?loc:Range.t -> string -> (unit -> 'a) -> 'a
 
-  (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [tracef format ... f] formats and records a frame in the backtrace, and runs the thunk [f] with the new backtrace. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
@@ -113,10 +113,10 @@ sig
 
       @param loc The location of the text (usually the code) to highlight. Note that a location given here will become the new default location for inner {!val:emit} and {!val:fatal}.
   *)
-  val trace_text : ?loc:Range.t -> Diagnostic.text -> (unit -> 'a) -> 'a
+  val trace_text : ?loc:Range.t -> Text.t -> (unit -> 'a) -> 'a
 
   (** [trace_loctext loctext f] records the [loctext] and runs the thunk [f] with the new backtrace. Note that a non-[None] location given here will become the new default location for inner {!val:emit} and {!val:fatal}. *)
-  val trace_loctext : Diagnostic.loctext -> (unit -> 'a) -> 'a
+  val trace_loctext : Loctext.t -> (unit -> 'a) -> 'a
 
   (** {2 Locations} *)
 
@@ -145,9 +145,9 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> string -> Message.t Diagnostic.t
+  val diagnostic : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> string -> Message.t Diagnostic.t
 
-  (** [diagnosticf message format ...] constructs a diagnostic along with the backtrace frames recorded via {!val:trace}. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [diagnosticf message format ...] constructs a diagnostic along with the backtrace frames recorded via {!val:trace}. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       Example:
       {[
@@ -159,16 +159,16 @@ sig
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val diagnosticf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> Message.t -> ('a, Format.formatter, unit, Message.t Diagnostic.t) format4 -> 'a
+  val diagnosticf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> ('a, Format.formatter, unit, Message.t Diagnostic.t) format4 -> 'a
 
-  (** [kdiagnosticf kont message format ...] is [kont (diagnosticf message format ...)]. Note that there should not be any literal control characters. See {!type:Diagnostic.text}.
+  (** [kdiagnosticf kont message format ...] is [kont (diagnosticf message format ...)]. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       @param severity The severity (to overwrite the default severity inferred from the [message]).
       @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
       @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
       @param extra_remarks Additional remarks that are not part of the backtrace.
   *)
-  val kdiagnosticf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Diagnostic.loctext list -> (Message.t Diagnostic.t -> 'b) -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  val kdiagnosticf : ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> (Message.t Diagnostic.t -> 'b) -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
   (** {2 Algebraic Effects} *)
 

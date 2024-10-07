@@ -1,5 +1,5 @@
 type index = Main | Extra of int
-type t = index * Diagnostic.text
+type t = index * Text.t
 let equal (x : t) y = fst x = fst y
 let priority =
   function
