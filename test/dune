@@ -4,8 +4,8 @@
  (libraries asai alcotest))
 
 (tests
- (names TestUserContent TestDiagnostic)
- (modules TestUserContent TestDiagnostic)
+ (names TestUserContent TestText)
+ (modules TestUserContent TestText)
  (libraries asai alcotest))
 
 (test

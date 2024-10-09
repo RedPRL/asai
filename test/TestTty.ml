@@ -69,19 +69,19 @@ let exec handler =
 
   Reporter.emit ~loc:(Range.make (~@ s1 2 3, ~@ s1 2 7)) Hello "this is the main message"
     ~extra_remarks:[
-      Diagnostic.loctext "message 1";
-      Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) "message 2";
-      Diagnostic.loctext "message 3";
-      Diagnostic.loctext ~loc:(Range.make (~@ s1 3 4, ~@ s1 3 5)) "message 4";
-      Diagnostic.loctext ~loc:(Range.make (~@ s1 2 8, ~@ s1 2 9)) "message 5";
-      Diagnostic.loctext ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 1)) "message 6";
-      Diagnostic.loctext ~loc:(Range.make (~@ s2 1 3, ~@ s2 2 1)) "message 7";
-      Diagnostic.loctext ~loc:(Range.make (~@ s2 10 0, ~@ s2 10 0)) "message 8";
+      Loctext.make "message 1";
+      Loctext.make ~loc:(Range.make (~@ s2 1 3, ~@ s2 3 4)) "message 2";
+      Loctext.make "message 3";
+      Loctext.make ~loc:(Range.make (~@ s1 3 4, ~@ s1 3 5)) "message 4";
+      Loctext.make ~loc:(Range.make (~@ s1 2 8, ~@ s1 2 9)) "message 5";
+      Loctext.make ~loc:(Range.make (~@ s1 1 3, ~@ s1 2 1)) "message 6";
+      Loctext.make ~loc:(Range.make (~@ s2 1 3, ~@ s2 2 1)) "message 7";
+      Loctext.make ~loc:(Range.make (~@ s2 10 0, ~@ s2 10 0)) "message 8";
     ];
 
   Reporter.emit ~loc:(Range.eof (~@ s1 23 width)) Hello "this is the main message"
     ~extra_remarks:[
-      Diagnostic.loctext ~loc:(Range.eof (~@ s2 23 width)) "ending of another file";
+      Loctext.make ~loc:(Range.eof (~@ s2 23 width)) "ending of another file";
     ]
 
 let () =
