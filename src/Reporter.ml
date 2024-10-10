@@ -61,13 +61,14 @@ struct
       exnc = (function Fatal d -> fatal d | exn -> raise exn);
       effc = fun (type a) (eff : a Effect.t) ->
         match eff with
+        |
         | Emit d -> Option.some @@ fun (k : (a, _) Effect.Deep.continuation) ->
           Algaeff.Fun.Deep.finally k @@ fun () -> emit d
         | _ -> None }
 
   (* Algebraic effects *)
 
-  let run ?init_loc ?(init_backtrace=Emp) ~emit ~fatal f =
+  let run ?init_loc ?(init_backtrace=Emp) ?debug ~emit ~fatal f =
     Traces.run ~env:(init_loc, init_backtrace) @@ fun () ->
     Effect.Deep.match_with f () @@ handler ~emit ~fatal
 
