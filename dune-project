@@ -45,3 +45,14 @@
    (menhir (>= 20220210))
    (asai (= :version))
    (odoc :with-doc)))
+(package
+ (name asai-grace)
+ (synopsis "An asai backend based on Grace")
+ (description "Grace is an OCaml library inspired by diagnostics in Rust. By default, asai displays diagnostics differently to better support Unicode, and this package provides a backend for asai to adopt the Rust style.")
+ (depends
+   (ocaml (>= 5.2))
+   (algaeff (>= 2.0))
+   (bwd (>= 2.2))
+   (grace (>= 0.2))
+   (asai (= :version))
+   (odoc :with-doc)))
