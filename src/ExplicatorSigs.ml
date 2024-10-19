@@ -8,9 +8,6 @@ module type Tag = sig
   (** The abstract type of tags. *)
   type t
 
-  (** Comparing whether two tags are equivalent. *)
-  val equal : t -> t -> bool
-
   (** Get the priority number of a tag. We followed the UNIX convention here---a {i smaller} priority number represents higher priority. The convention works well with {!val:List.sort}, which sorts numbers in ascending order. (The more important things go first.) *)
   val priority : t -> int
 
