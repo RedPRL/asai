@@ -1,5 +1,8 @@
 (** A segment is an optionally tagged string from the user content. (Note the use of [option].) *)
-type 'tag segment = 'tag option * string
+type 'tag segment =
+  | String of 'tag option * string
+  | Start of 'tag
+  | End of 'tag
 
 (** A line is a list of {!type:segment}s along with tags. *)
 type 'tag line =

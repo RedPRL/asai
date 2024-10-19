@@ -18,7 +18,8 @@ let dump_block dump_tag fmt {begin_line_num; end_line_num; tagged_positions; tag
       "begin_line_num=%d;@ " ^^
       "end_line_num=%d;@ " ^^
       "@[<2>tagged_positions=@ @[%a@]@];@ " ^^
-      "@[<2>tagged_lines=@,@[%a@]@]}@]"
+      "@[<2>tagged_lines=@,@[%a@]@]" ^^
+      "}@]"
     end
     begin_line_num end_line_num
     (Utils.dump_list (Utils.dump_pair (Utils.dump_option dump_tag) Range.dump_position)) tagged_positions
@@ -34,12 +35,14 @@ struct
     ; end_line_num : int
     ; ranges : (Tag.t * Range.t) list}
 
+  (* Stage 1: group ranges into blocks *)
   module Splitter :
   sig
     val partition : block_splitting_threshold:int -> (Tag.t * Range.t) list -> unflattened_block list
   end
   =
   struct
+    (* Sort the ranges by their ending positions *)
     let compare_range (s1 : Range.t) (s2 : Range.t) =
       Utils.compare_pair Int.compare Int.compare
         (Range.end_offset s1, Range.begin_offset s1)
@@ -77,9 +80,12 @@ struct
       partition_sorted ~block_splitting_threshold (sort_tagged l)
   end
 
+  type pin = 
+
+  (* Stage 2: flatten out ranges into segments *)
   module BlockFlattener :
   sig
-    val flatten : blend:(Tag.t -> Tag.t -> Tag.t) -> (Tag.t * Range.t) list -> (Tag.t option * Range.position) list
+    val flatten : (Tag.t * Range.t) list -> (Tag.t option * Range.position) list
   end
   =
   struct
