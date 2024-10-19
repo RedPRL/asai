@@ -56,10 +56,10 @@ struct
     let msg = Broadcast.to_jsonrpc notif in
     send (RPC.Packet.Notification msg)
 
-  let render_lsp_related_info (uri : L.DocumentUri.t) (message : Asai.Diagnostic.loctext) : L.DiagnosticRelatedInformation.t =
+  let render_lsp_related_info (uri : L.DocumentUri.t) (message : Asai.Loctext.t) : L.DiagnosticRelatedInformation.t =
     let range = LspShims.Loc.lsp_range_of_range message.loc in
     let location = L.Location.create ~uri ~range in
-    let message = Asai.Diagnostic.string_of_text message.value in
+    let message = Asai.Text.to_string message.value in
     L.DiagnosticRelatedInformation.create ~location ~message
 
   let render_lsp_diagnostic (uri : L.DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
@@ -67,7 +67,7 @@ struct
     let severity = LspShims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
     let code = `String (Message.short_code diag.message) in
     let source = (State.get ()).source in
-    let message = Asai.Diagnostic.string_of_text diag.explanation.value in
+    let message = Asai.Text.to_string diag.explanation.value in
     let relatedInformation = Bwd.to_list @@ Bwd.map (render_lsp_related_info uri) diag.extra_remarks in
     Lsp_Diagnostic.create
       ~range

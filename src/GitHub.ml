@@ -13,7 +13,7 @@ module Make (Message : Reporter.Message) = struct
     Format.printf "::%s title=%s::%s@."
       (command_of_severity severity)
       (Message.short_code msg)
-      (Diagnostic.string_of_text text)
+      (Text.to_string text)
 
   let print_with_loc severity msg loc text =
     match Range.source loc with
@@ -26,7 +26,7 @@ module Make (Message : Reporter.Message) = struct
         (Range.begin_line_num loc)
         (Range.end_line_num loc)
         (Message.short_code msg)
-        (Diagnostic.string_of_text text)
+        (Text.to_string text)
 
   let print Diagnostic.{severity; message; explanation = {loc; value = text}; _} =
     match loc with

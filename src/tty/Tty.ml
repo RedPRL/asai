@@ -166,7 +166,7 @@ struct
     in
     String.length @@ Int.to_string @@ max_line_number explication
 
-  let render_textloc ~param ~severity ~extra_remarks fmt (textloc : Diagnostic.loctext) =
+  let render_textloc ~param ~severity ~extra_remarks fmt (textloc : Loctext.t) =
     let located_tags, unlocated_tags =
       let main = TtyTag.Main, textloc in
       let extra_remarks = List.mapi (fun i r -> TtyTag.Extra i, r) (Bwd.to_list extra_remarks) in
