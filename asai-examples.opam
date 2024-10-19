@@ -5,7 +5,7 @@ description:
   "This package offers some examples of the asai package. They are organized into a separate package to reduce the dependencies of the main package."
 maintainer: ["favonia <favonia@gmail.com>"]
 authors: ["The RedPRL Development Team"]
-license: "Apache-2.0"
+license: "Apache-2.0 WITH LLVM-exception"
 homepage: "https://github.com/RedPRL/asai"
 bug-reports: "https://github.com/RedPRL/asai/issues"
 depends: [
