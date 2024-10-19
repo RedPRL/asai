@@ -90,7 +90,7 @@ struct
       (UserContent.replace_control ~tab_size:param.tab_size seg)
       (Ansi.reset_string ~param:param.ansi st)
 
-  let render_line_tag ~param fmt ((_, text) as tag) =
+  let render_line_marker ~param fmt ((_, text) as tag) =
     let st = TtyStyle.message ~param:param.ansi param.severity tag in
     Format.fprintf fmt (" %*s " ^^ highlight "^" ^^ " " ^^ highlight "@[%t@]" ^^ "@.")
       param.line_number_width ""
@@ -100,12 +100,12 @@ struct
       text
       (Ansi.reset_string ~param:param.ansi st)
 
-  let render_line ~line_num ~param fmt Explication.{segments; tags} =
+  let render_line ~line_num ~param fmt Explication.{tokens; tags} =
     Format.fprintf fmt (" " ^^ highlight "%*d |" ^^ " ")
       (Ansi.style_string ~param:param.ansi TtyStyle.fringe)
       param.line_number_width line_num
       (Ansi.reset_string ~param:param.ansi TtyStyle.fringe);
-    List.iter (render_segment ~param fmt) segments;
+    List.iter (render_segment ~param fmt) tokens;
     Format.fprintf fmt "@.";
     List.iter (render_line_tag ~param fmt) tags
 

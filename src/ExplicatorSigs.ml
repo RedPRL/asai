@@ -21,7 +21,7 @@ end
 module type S = sig
   module Tag : Tag
 
-  val explicate : ?line_breaks:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?debug:bool -> (Tag.t * Range.t) list -> Tag.t t
+  val explicate : ?line_breaks:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?debug:bool -> (Range.t * Tag.t) list -> Tag.t t
   (** Explicate a list of ranges using content from a data reader. This function must be run under [SourceReader.run].
 
       @param line_breaks The set of character sequences that are recognized as (hard) line breaks. The [`Unicode] set contains all Unicode character sequences in {{:https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G41643}Unicode 15.0.0 Table 5-1.} The [`Traditional] set only contains [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] set.
