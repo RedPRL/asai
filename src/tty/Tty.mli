@@ -23,15 +23,15 @@ module Make (Message : MinimumSigs.Message) : sig
 
       @param output The output channel, such as {!val:stdout} or {!val:stderr}. By default, it is {!val:stdout}, the standard output.
       @param use_ansi Whether ANSI escape sequences should be used, overwriting the auto-detection. By default, the auto-detection checks whether the [output] is a TTY and whether the environment variable [TERM] is set to a non-empty value other than [dumb]. Note that this handler is currently using {i exclusively} ANSI escape sequences for highlighting, which means turning them off will lose the precise location. (This may change in the future.)
-      @param use_color Whether colors should be use when ANSI escape sequences are used, overwriting the auto-detection. By default, the auto-detection will turn off the colors if a non-empty value was assigned to the environment variable [NO_COLOR]. Note that even when the colors are turned off, the handler may still use the bold style, the faint style, and underlines for highlighting. This parameter has no effects if ANSI escape sequences are not used.
+      @param use_color Whether colors should be use when ANSI escape sequences are used, overwriting the auto-detection. By default, the auto-detection will turn off the colors if ANSI escape sequences should not be used or if a non-empty value was assigned to the environment variable [NO_COLOR]. Note that even when the colors are turned off, the handler may still use the bold style, the faint style, and underlines for highlighting if ANSI escape sequences are used. It is an error to pass [true] as this parameter and [false] as [use_ansi].
       @param show_backtrace Whether the backtrace should be shown. The default is [true].
       @param line_breaks The set of character sequences that are recognized as (hard) line breaks. The [`Unicode] set contains all Unicode character sequences in {{:https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G41643}Unicode 15.0.0 Table 5-1.} The [`Traditional] set only contains [U+000A (LF)], [U+000D (CR)], and [U+000D U+000A (CRLF)] as line breaks. The default is the [`Traditional] set.
       @param block_splitting_threshold The maximum number of consecutive, non-highlighted lines allowed in a block. The function will try to minimize the number of blocks, as long as no block has too many consecutive, non-highlighted lines. A higher threshold will lead to fewer blocks. When the threshold is zero, it means no block can contain any non-highlighted line. The default value is [5].
       @param tab_size The number of spaces that should be used to replace a horizontal tab. Note that a horizontal tab is always expanded to the same number of spaces. The result should still be visually appealing as long as horizontal tabs are only used at the beginning of lines. The default value is [8].
       @param debug Whether to enable the debug mode that performs expensive extra checking. The default is [false].
 
-      @raise Invalid_argument if [tab_size < 0] or inconsistent ranges are detected.
-      @raise Invalid_range if the debug mode is enabled and some ranges are invalid. See {!exception:Explicator.Invalid_range}.
+      @raise Invalid_argument if [use_color] is explicitly set to [true] but [use_ansi] is explicitly set to [false], or if [tab_size < 0], or if invalid ranges are detected. When the debug mode is enabled, detection of invalid ranges will raise the more structured exception {!exception:Explicator.Invalid_range} instead.
+      @raise Invalid_range if the debug mode is enabled and invalid ranges are detected. See {!exception:Explicator.Invalid_range} for the detailed listing of all possible errors being reported.
 
       @see <https://no-color.org/> for the [NO_COLOR] specification
   *)

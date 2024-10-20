@@ -1,7 +1,7 @@
 open Explication
 
 exception Invalid_range of Range.t * UserContent.invalid_range
-(** [Invalid_range (range, reason)] means that [range] is an invalid range because of [reason]. This exception will be raised only when the debug mode is enabled. See the [debug] argument of {!val:Explicator.S.explicate}. *)
+(** [Invalid_range (range, reason)] means that [range] is an invalid range because of [reason]. This exception will be raised only when the debug mode is enabled. See the [debug] parameter of {!val:Explicator.S.explicate} for enabling the debug mode. *)
 
 (** The signature of tags *)
 module type Tag = sig
