@@ -8,7 +8,7 @@
 (generate_opam_files true)
 
 (source (github RedPRL/asai))
-(license Apache-2.0)
+(license "Apache-2.0 WITH LLVM-exception")
 (authors "The RedPRL Development Team")
 (maintainers "favonia <favonia@gmail.com>")
 
