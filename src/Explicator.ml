@@ -30,9 +30,6 @@ let print_invalid_range fmt : UserContent.invalid_range -> unit =
     Format.fprintf fmt "its@ beginning@ position@ is@ invalid;@ %a" print_invalid_position r
   | `End r ->
     Format.fprintf fmt "its@ ending@ position@ is@ invalid;@ %a" print_invalid_position r
-  | `Not_end_of_file (l, l') ->
-    Format.fprintf fmt "its@ offset@ %d@ is@ not@ the@ end@ of@ file@ (%d)." l l'
-  | `End_of_file r -> print_invalid_position fmt r
 
 let () = Printexc.register_printer @@
   function
@@ -74,11 +71,11 @@ module Make (Tag : Tag) = struct
 
   module F = Flattener.Make(Tag)
 
-  let explicate_block ~line_breaks (b : Tag.t Flattener.block) : Tag.t block =
+  let explicate_block ~line_breaks source (b : Tag.t Flattener.block) : Tag.t block =
     match b.markers with
     | [] -> invalid_arg "explicate_block: empty block; should be impossible"
     | ((first_loc, _) :: _) as markers ->
-      let source = SourceReader.load first_loc.source in
+      let source = SourceReader.load source in
       let eof = SourceReader.length source in
       let find_eol i = UserContent.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
       let rec go state : (Range.position * Tag.t marker) list -> _ =
@@ -93,7 +90,7 @@ module Make (Tag : Tag) = struct
               state.tokens <: String (read_between ~source state.cursor.offset loc.offset) <: Marker marker
           in
           go { state with tokens; cursor = loc } markers
-        | ps ->
+        | markers ->
           (* Shifting to the next line *)
           let lines, remaining_line_markers =
             let tokens =
@@ -105,10 +102,14 @@ module Make (Tag : Tag) = struct
             let line_markers, remaining_line_markers =
               Utils.span (fun (line_num, _) -> line_num = state.line_num) state.remaining_line_markers
             in
-            (state.lines <: {tokens = Bwd.to_list tokens; tags = List.map snd line_markers}), remaining_line_markers
+            (state.lines <:
+             { tokens = Bwd.to_list tokens
+             ; markers = List.map snd line_markers
+             }),
+            remaining_line_markers
           in
-          (* Continue the process if [ps] is not empty. *)
-          match ps, state.eol_shift with
+          (* Continue the process if [markers] is not empty. *)
+          match markers, state.eol_shift with
           | [], _ ->
             assert (state.line_num = b.end_line_num);
             lines
@@ -129,11 +130,11 @@ module Make (Tag : Tag) = struct
               ; eol_shift
               ; line_num = state.line_num + 1
               }
-              ps
+              markers
       in
-      let begin_pos = to_start_of_line first_loc in
-      let eol, eol_shift = find_eol first_loc.offset in
       let lines =
+        let begin_pos = to_start_of_line first_loc in
+        let eol, eol_shift = find_eol first_loc.offset in
         go
           { lines = Emp
           ; tokens = Emp
@@ -150,10 +151,11 @@ module Make (Tag : Tag) = struct
       ; lines = Bwd.to_list @@ lines
       }
 
-  let[@inline] explicate_blocks ~line_breaks = List.map (explicate_block ~line_breaks)
+  let[@inline] explicate_blocks ~line_breaks source ranges =
+    List.map (explicate_block ~line_breaks source) ranges
 
   let[@inline] explicate_part ~line_breaks (source, bs) : Tag.t part =
-    { source; blocks = explicate_blocks ~line_breaks bs }
+    { source; blocks = explicate_blocks ~line_breaks source bs }
 
   let check_ranges ~line_breaks ranges =
     List.iter

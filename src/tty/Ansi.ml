@@ -105,7 +105,7 @@ struct
 
   let guess ?use_ansi ?use_color o =
     if use_color = Some true && use_ansi = Some false then
-      invalid_arg "Ansi.Tty.display: called with use_color=true but use_ansi=false";
+      invalid_arg "Asai.Tty.S.display: called with use_color=true but use_ansi=false";
     let enabled = match use_ansi with Some a -> a | None -> rich_term && is_tty o in
     let color = enabled && match use_color with Some c -> c | None -> not no_color in
     {enabled; color}

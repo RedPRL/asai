@@ -37,8 +37,7 @@ struct
     ; ranges : (Range.t * Tag.t) bwd}
 
   let compare_position (p1 : Range.position) (p2 : Range.position) =
-    Utils.compare_pair Int.compare Int.compare
-      (p1.offset, p1.line_num) (p2.offset, p2.line_num)
+    Int.compare p1.offset p2.offset
 
   (* Stage 1: group ranges into blocks *)
   module Splitter :
@@ -87,7 +86,21 @@ struct
       partition_sorted ~block_splitting_threshold (sort_tagged l)
   end
 
-  (* Stage 2: flatten out ranges into tokens *)
+  (* Stage 2: flatten out ranges into markers
+
+     The code needs to handle several subtleties, using the XML-like notation to demonstrate:
+     1. The ordering of markers and text strings should be ordered like this:
+        <range1>...</range1><point/><range2>...</range2>
+        Note that, in the middle, RangeEnd goes first, and then Point, and then RangeBegin.
+     2. If the set of ranges is "well-scoped" (that is, a range is always completely included in,
+        completely including, or being disjoint from another range), then matching beginning and
+        ending markers will have the expected nested structures, like this:
+        <range1><range2>...</range2><range3>...</range3></range1>
+     3. For two ranges marking the same text with different priorities, the prioritized one goes inside.
+        For two ranges with the same text and priority, the order of beginning markers will follow
+        the order of the original input list. This is to reduce interruption of the prioritized highlighting.
+        <low_pri1><low_pri2><high_pri1><high_pri2>...</high_pri2></high_pri1></low_pri2></low_pri1>
+  *)
   module BlockFlattener :
   sig
     val flatten : (Range.t * Tag.t) list -> (Range.position * Tag.t marker) list
@@ -96,29 +109,33 @@ struct
   struct
     type t =
       { begins : (Range.position * Tag.t marker) bwd
-      ; points : (Range.position * Tag.t marker) list
+      ; points : (Range.position * Tag.t marker) bwd
       ; ends : (Range.position * Tag.t marker) list
       }
 
     let add {begins; points; ends} (range, tag) =
       let b, e = Range.split range in
       if compare_position b e = 0 then
-        {begins; points = (b, Point tag) :: points; ends}
+        {begins; points = points <: (b, Point tag); ends}
       else
         {begins = begins <: (b, RangeBegin tag); points; ends = (e, RangeEnd tag) :: ends}
 
-    let sort_cmd =
-      let compare_cmd (p1, _) (p2, _) =
-        compare_position p1 p2
+    let sort_marker =
+      let marker_order =
+        function
+        | RangeEnd _ -> -1
+        | Point _ -> 0
+        | RangeBegin _ -> 1
       in
-      List.stable_sort compare_cmd
+      let compare_marker m1 m2 = Int.compare (marker_order m1) (marker_order m2) in
+      List.stable_sort (Utils.compare_pair compare_position compare_marker)
 
-    let merge_cmd {begins; points; ends} =
-      (begins <@ points) @> ends
+    let merge_marker {begins; points; ends} =
+      begins @> points @> ends
 
     let flatten l =
-      sort_cmd @@ merge_cmd @@
-      List.fold_left add {begins = Emp; points = []; ends = []} l
+      sort_marker @@ merge_marker @@
+      List.fold_left add {begins = Emp; points = Emp; ends = []} l
   end
 
   module FileFlattener :

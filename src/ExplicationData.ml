@@ -11,7 +11,7 @@ type 'tag token =
 
 (** A line is a list of {!type:segment}s along with tags. *)
 type 'tag line =
-  { tags : 'tag list (** All tags in this line *)
+  { markers : 'tag list (** All tags in this line *)
   ; tokens : 'tag token list
   }
 
