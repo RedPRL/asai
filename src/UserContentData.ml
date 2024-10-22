@@ -16,6 +16,4 @@ type invalid_position =
 type invalid_range =
   [ `Begin of invalid_position (** The first position of a range is invalid. *)
   | `End of invalid_position (** The second position of a range is invalid. *)
-  | `End_of_file of invalid_position (** The range is a special end-of-file marking, but the position is invalid. *)
-  | `Not_end_of_file of int * int (** The range is a special end-of-file marking, but the offset of the position is not at the end of file. The pair [(m, n)] means that the current offset is [m] but the length or size of the source is [n]. *)
   ]

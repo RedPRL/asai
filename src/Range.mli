@@ -50,22 +50,15 @@ type 'a located = { loc : t option; value : 'a }
 *)
 val make : position * position -> t
 
-(** [eof pos] builds a special range referring to the end of the source. The input [pos] must be pointing at the end position; for example, if the position referring to a string source, [pos.offset] should be the length of the string.
-
-    @since 0.3.0
-*)
+(** [eof pos] builds a special range referring to the end of the source. The input [pos] must be pointing at the end position; for example, if the position referring to a string source, [pos.offset] should be the length of the string. *)
 val eof : position -> t
+[@@ocaml.alert deprecated "Use Range.of_pos instead"]
 
-(** [view range] returns a {i view} of the range.
-
-    @since 0.3.0
-*)
+(** [view range] returns a {i view} of the range. *)
 val view : t -> [`Range of position * position | `End_of_file of position]
+[@@ocaml.alert deprecated "Use Range.split instead"]
 
-(** [split range] returning the pair of the beginning and ending positions of [range]. It is the left-inverse of {!val:make}.
-
-    @raise Invalid_argument if range is a special range marking the end of the source. See {!val:eof}.
-*)
+(** [split range] returning the pair of the beginning and ending positions of [range]. It is the left-inverse of {!val:make}. *)
 val split : t -> position * position
 
 (** [source range] returns the source associated with [range]. *)
