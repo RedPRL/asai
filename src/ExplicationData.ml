@@ -1,10 +1,18 @@
-(** A segment is an optionally tagged string from the user content. (Note the use of [option].) *)
-type 'tag segment = 'tag option * string
+(** A marker is a delimiter of a range or a specific point. *)
+type 'tag marker =
+  | RangeBegin of 'tag
+  | RangeEnd of 'tag
+  | Point of 'tag
+
+(** A token is either a string or a marker. *)
+type 'tag token =
+  | String of string
+  | Marker of 'tag marker
 
 (** A line is a list of {!type:segment}s along with tags. *)
 type 'tag line =
-  { tags : 'tag list
-  ; segments : 'tag segment list
+  { markers : 'tag list (** All tags in this line *)
+  ; tokens : 'tag token list
   }
 
 (** A block is a collection of consecutive lines. *)
