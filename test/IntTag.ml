@@ -1,4 +1,4 @@
-type t = int
-let equal = Int.equal
-let priority i = -i
-let dump = Format.pp_print_int
+type t = int * string
+let equal = (=)
+let priority (i, _) = -i
+let dump fmt (i, s) = Format.fprintf fmt {|(%d, "%s")|} i (String.escaped s)
