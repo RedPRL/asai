@@ -1,11 +1,20 @@
 include ExplicationData
 
-let dump_seg dump_tag = Utils.dump_pair (Utils.dump_option dump_tag) Utils.dump_string
+let dump_marker dump_tag fmt =
+  function
+  | RangeBegin tag -> Format.fprintf fmt {|@[<2>RangeBegin@ @[%a@]@]|} dump_tag tag
+  | RangeEnd tag -> Format.fprintf fmt {|@[<2>RangeEnd@ @[%a@]@]|} dump_tag tag
+  | Point tag -> Format.fprintf fmt {|@[<2>Point@ @[%a@]@]|} dump_tag tag
 
-let dump_line dump_tag fmt {tags; segments} =
-  Format.fprintf fmt {|@[<1>{@[<2>tags=@,@[%a@]@];@ @[<2>segments=@ @[%a@]@]}@]|}
-    (Utils.dump_list dump_tag) tags
-    (Utils.dump_list (dump_seg dump_tag)) segments
+let dump_token dump_tag fmt =
+  function
+  | String str -> Format.fprintf fmt {|@[<2>String@ "%s"@]|} (String.escaped str)
+  | Marker m -> Format.fprintf fmt {|@[<2>Marker@ @[<1>(%a)@]@]|} (dump_marker dump_tag) m
+
+let dump_line dump_tag fmt {markers; tokens} =
+  Format.fprintf fmt {|@[<1>{@[<2>markers=@,@[%a@]@];@ @[<2>tokens=@ @[%a@]@]}@]|}
+    (Utils.dump_list dump_tag) markers
+    (Utils.dump_list (dump_token dump_tag)) tokens
 
 let dump_block dump_tag fmt {begin_line_num; end_line_num; lines} =
   Format.fprintf fmt {|@[<1>{begin_line_num=%d;@ end_line_num=%d;@ @[<2>lines=@ @[%a@]@]}@]|}
