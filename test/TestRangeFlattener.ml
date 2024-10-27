@@ -1,9 +1,8 @@
 open Asai
 
-module E = Explicator.Make(IntTag)
-module F = Flattener.Make(IntTag)
+module F = RangeFlattener.Make(IntTag)
 
-let test_flattened = Alcotest.of_pp (Flattener.dump IntTag.dump)
+let test_flattened = Alcotest.of_pp (RangeFlattener.dump IntTag.dump)
 
 let single_line_flatten () =
   let source = `String {Range.title = None; content = "aaabbbcccdddeee"} in
@@ -21,7 +20,7 @@ let single_line_flatten () =
     ; Range.make (pt2, pt4), (3, "4")
     ]
   in
-  let expected : _ Flattener.t =
+  let expected : _ RangeFlattener.t =
     [(source,
       [{begin_line_num=1;
         end_line_num=1;
@@ -38,7 +37,7 @@ let single_line_flatten () =
         line_markers=[(1, (2, "2")); (1, (1, "1")); (1, (1, "3")); (1, (3, "4"))]}])]
   in
   let actual = F.flatten ~block_splitting_threshold:5 ranges in
-  Alcotest.(check test_flattened) "Flattener is correct" expected actual
+  Alcotest.(check test_flattened) "RangeFlattener is correct" expected actual
 
 let multi_lines () =
   let source =
@@ -80,7 +79,7 @@ ggggghh
       Range.make (begin_of_line15, pt56), (16, "5");
     ]
   in
-  let expected : _ Flattener.t =
+  let expected : _ RangeFlattener.t =
     [(source,
       [{begin_line_num=2;
         end_line_num=9;
@@ -109,11 +108,11 @@ ggggghh
           [(15, (16, "5"))]}])]
   in
   let actual = F.flatten ~block_splitting_threshold:5 ranges in
-  Alcotest.(check test_flattened) "Flattener is correct" expected actual
+  Alcotest.(check test_flattened) "RangeFlattener is correct" expected actual
 
 let () =
   let open Alcotest in
-  Alcotest.run "Flattener" [
+  Alcotest.run "RangeFlattener" [
     "flattening",
     [
       test_case "single-line ranges" `Quick single_line_flatten;

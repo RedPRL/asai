@@ -1,7 +1,4 @@
-include module type of UserContentData
-
-(** The exception indicating that a range is invalid. *)
-exception Invalid_range of invalid_range
+include module type of SourceUtilsData
 
 (** [find_eol ~line_breaks read (pos, eof)] returns the end position of the first line and the length of the first newline sequence (if any) within the range [\[pos, end)]. If no newlines are found, then [None] is returned as the length.
 

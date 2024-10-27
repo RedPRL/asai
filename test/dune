@@ -1,11 +1,11 @@
 (tests
- (names TestExplicator TestFlattener)
- (modules TestExplicator TestFlattener IntTag)
+ (names TestSourceMarker TestRangeFlattener)
+ (modules TestSourceMarker TestRangeFlattener IntTag)
  (libraries asai alcotest))
 
 (tests
- (names TestUserContent TestText)
- (modules TestUserContent TestText)
+ (names TestSourceUtils TestText)
+ (modules TestSourceUtils TestText)
  (libraries asai alcotest))
 
 (test

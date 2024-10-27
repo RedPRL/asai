@@ -1,8 +1,8 @@
 open Bwd
 open Bwd.Infix
 
-open Explication
-open ExplicatorSigs
+open MarkedSource
+open SourceMarkerSigs
 
 type 'tag block =
   { begin_line_num : int

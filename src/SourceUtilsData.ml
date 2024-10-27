@@ -17,3 +17,6 @@ type invalid_range =
   [ `Begin of invalid_position (** The first position of a range is invalid. *)
   | `End of invalid_position (** The second position of a range is invalid. *)
   ]
+
+(** The exception indicating that a range is invalid. *)
+exception Invalid_range of invalid_range

@@ -8,7 +8,7 @@ let string_of_severity : Diagnostic.severity -> string =
   | Error -> "error"
   | Bug -> "bug"
 
-module E = Explicator.Make(TtyTag)
+module SM = SourceMarker.Make(TtyTag)
 
 (* calculating the width of line numbers *)
 
@@ -51,9 +51,9 @@ let render_code ~param ~severity fmt short_code =
     short_code
     (Ansi.reset_string ~param style)
 
-(* explication *)
+(* marked source *)
 
-module ExplicationRenderer :
+module MarkedSourceRenderer :
 sig
   type param =
     {
@@ -63,7 +63,7 @@ sig
       ansi : Ansi.param;
     }
 
-  val render : param:param -> Format.formatter -> TtyTag.t Explication.t -> unit
+  val render : param:param -> Format.formatter -> TtyTag.t MarkedSource.t -> unit
 end
 =
 struct
@@ -97,7 +97,7 @@ struct
     let style = TtyStyle.highlight ~param:param.ansi param.severity tag in
     Format.fprintf fmt (highlight "%s")
       (Ansi.style_string ~param:param.ansi style)
-      (UserContent.replace_control ~tab_size:param.tab_size segment)
+      (SourceUtils.replace_control ~tab_size:param.tab_size segment)
       (Ansi.reset_string ~param:param.ansi style)
 
   (* Current design:
@@ -106,16 +106,16 @@ struct
      ‹let x◂POS₀▸ = 1›₀ in let ‹x›₁ = «1 + ‹x›₂»◂POS₁▸
   *)
 
-  let render_line ~line_num ~param fmt init_tag_set Explication.{tokens; markers} =
+  let render_line ~line_num ~param fmt init_tag_set MarkedSource.{tokens; markers} =
     let go set =
       function
-      | Explication.String s ->
+      | MarkedSource.String s ->
         render_styled_segment ~param fmt (TtyTagSet.prioritized set) s; set
-      | Explication.Marker RangeEnd t ->
+      | MarkedSource.Marker RangeEnd t ->
         TtyTagSet.remove t set
-      | Explication.Marker Point t ->
+      | MarkedSource.Marker Point t ->
         render_styled_segment ~param fmt (Some t) "‹POS›"; set
-      | Explication.Marker RangeBegin t ->
+      | MarkedSource.Marker RangeBegin t ->
         TtyTagSet.add t set
     in
     Format.fprintf fmt (" " ^^ highlight "%*d |" ^^ " ")
@@ -135,10 +135,10 @@ struct
       (begin_line_num, TtyTagSet.empty)
       lines
 
-  let render_block ~param fmt Explication.{begin_line_num; end_line_num=_; lines} =
+  let render_block ~param fmt MarkedSource.{begin_line_num; end_line_num=_; lines} =
     render_lines ~param ~begin_line_num fmt lines
 
-  let render_part ~param fmt Explication.{source; blocks} =
+  let render_part ~param fmt MarkedSource.{source; blocks} =
     render_source_header fmt source;
     List.iter (render_block ~param fmt) blocks
 
@@ -178,15 +178,15 @@ struct
       ansi : Ansi.param;
     }
 
-  let line_number_width explication : int =
-    let max_line_number_block Explication.{end_line_num; _} = end_line_num in
-    let max_line_number_part Explication.{blocks; _} =
+  let line_number_width marked_source : int =
+    let max_line_number_block MarkedSource.{end_line_num; _} = end_line_num in
+    let max_line_number_part MarkedSource.{blocks; _} =
       Utils.maximum @@ List.map max_line_number_block blocks
     in
-    let max_line_number (parts : _ Explication.t) =
+    let max_line_number (parts : _ MarkedSource.t) =
       Utils.maximum @@ List.map max_line_number_part parts
     in
-    String.length @@ Int.to_string @@ max_line_number explication
+    String.length @@ Int.to_string @@ max_line_number marked_source
 
   let render_textloc ~param ~severity ~extra_remarks fmt (textloc : Loctext.t) =
     let located_tags, unlocated_tags =
@@ -198,12 +198,12 @@ struct
           | (tag, Range.{loc = Some r; value = text}) -> Either.Left (r, (tag, text)))
         (main :: extra_remarks)
     in
-    let explication =
-      E.explicate ~block_splitting_threshold:param.block_splitting_threshold ~debug:param.debug located_tags
+    let marked_source =
+      SM.mark ~block_splitting_threshold:param.block_splitting_threshold ~debug:param.debug located_tags
     in
-    let line_number_width = line_number_width explication in
-    let param = {ExplicationRenderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
-    ExplicationRenderer.render ~param fmt explication;
+    let line_number_width = line_number_width marked_source in
+    let param = {MarkedSourceRenderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
+    MarkedSourceRenderer.render ~param fmt marked_source;
     List.iter (render_unlocated_tag ~severity:param.severity ~ansi:param.ansi fmt) unlocated_tags
 
   let render_backtrace ~param ~severity fmt backtrace =

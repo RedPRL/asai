@@ -50,10 +50,10 @@ module GitHub = GitHub
 (** The internals are exposed for convenience, but they are subject to changes between minor versions. *)
 
 (** The definition of highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
-module Explication = Explication
+module MarkedSource = MarkedSource
 
 (** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
-module Explicator = Explicator
+module SourceMarker = SourceMarker
 
 (** Reading the source content. It uses memory-mapped I/O for files. You probably do not need this module unless you want to create your own diagnostic handler. *)
 module SourceReader = SourceReader
@@ -61,7 +61,7 @@ module SourceReader = SourceReader
 (**/**)
 
 (** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
-module UserContent = UserContent
+module SourceUtils = SourceUtils
 
-(** The internal flattener that is tightly coupled with {!module:Explication}. This is exposed for internal testing. Absolutely no stability guarantees. *)
-module Flattener = Flattener
+(** The internal flattener that is tightly coupled with {!module:MarkedSource}. This is exposed for internal testing. Absolutely no stability guarantees. *)
+module RangeFlattener = RangeFlattener
