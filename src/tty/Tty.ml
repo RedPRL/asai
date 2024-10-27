@@ -111,11 +111,15 @@ struct
       function
       | MarkedSource.String s ->
         render_styled_segment ~param fmt (TtyTagSet.prioritized set) s; set
-      | MarkedSource.Marker RangeEnd t ->
+      | MarkedSource.Marker (_, RangeEnd t) ->
         TtyTagSet.remove t set
-      | MarkedSource.Marker Point t ->
+      | MarkedSource.Marker (Some End_of_file, Point t) ->
+        render_styled_segment ~param fmt (Some t) "‹EOF›"; set
+      | MarkedSource.Marker (Some End_of_line, Point t) ->
+        render_styled_segment ~param fmt (Some t) "‹EOL›"; set
+      | MarkedSource.Marker (None, Point t) ->
         render_styled_segment ~param fmt (Some t) "‹POS›"; set
-      | MarkedSource.Marker RangeBegin t ->
+      | MarkedSource.Marker (_, RangeBegin t) ->
         TtyTagSet.add t set
     in
     Format.fprintf fmt (" " ^^ highlight "%*d |" ^^ " ")

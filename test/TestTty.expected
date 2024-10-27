@@ -107,10 +107,10 @@
  ￮ message 3
 
  ￫ [33mwarning[hello][m
- [2m23 |[m wwwwwwwwww[4;33m‹POS›[m
+ [2m23 |[m wwwwwwwwww[4;33m‹EOF›[m
     [2m^[m [33mthis is the main message[m
  ￭ /path/to/file.cool
- [2m23 |[m wwwwwwwwww[4m‹POS›[m
+ [2m23 |[m wwwwwwwwww[4m‹EOF›[m
     [2m^[m ending of another file
 
  ￫ [1mwarning[hello][m
@@ -222,10 +222,10 @@
  ￮ message 3
 
  ￫ [1mwarning[hello][m
- [2m23 |[m wwwwwwwwww[4;1m‹POS›[m
+ [2m23 |[m wwwwwwwwww[4;1m‹EOF›[m
     [2m^[m [1mthis is the main message[m
  ￭ /path/to/file.cool
- [2m23 |[m wwwwwwwwww[4m‹POS›[m
+ [2m23 |[m wwwwwwwwww[4m‹EOF›[m
     [2m^[m ending of another file
 
  ￫ warning[hello]
@@ -337,9 +337,9 @@
  ￮ message 3
 
  ￫ warning[hello]
- 23 | wwwwwwwwww‹POS›
+ 23 | wwwwwwwwww‹EOF›
     ^ this is the main message
  ￭ /path/to/file.cool
- 23 | wwwwwwwwww‹POS›
+ 23 | wwwwwwwwww‹EOF›
     ^ ending of another file
 

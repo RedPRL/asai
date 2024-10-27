@@ -6,10 +6,17 @@ let dump_marker dump_tag fmt =
   | RangeEnd tag -> Format.fprintf fmt {|@[<2>RangeEnd@ @[%a@]@]|} dump_tag tag
   | Point tag -> Format.fprintf fmt {|@[<2>Point@ @[%a@]@]|} dump_tag tag
 
+let dump_special_position fmt =
+  function
+  | End_of_line -> Format.fprintf fmt {|End_of_line|}
+  | End_of_file -> Format.fprintf fmt {|End_of_file|}
+
 let dump_token dump_tag fmt =
   function
   | String str -> Format.fprintf fmt {|@[<2>String@ "%s"@]|} (String.escaped str)
-  | Marker m -> Format.fprintf fmt {|@[<2>Marker@ @[<1>(%a)@]@]|} (dump_marker dump_tag) m
+  | Marker (p, m) ->
+    Format.fprintf fmt {|@[<2>Marker@ @[<1>(@[%a@],@ @[%a@])@]@]|}
+      (Utils.dump_option dump_special_position) p (dump_marker dump_tag) m
 
 let dump_line dump_tag fmt {markers; tokens} =
   Format.fprintf fmt {|@[<1>{@[<2>markers=@,@[%a@]@];@ @[<2>tokens=@ @[%a@]@]}@]|}

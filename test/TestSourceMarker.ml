@@ -18,13 +18,13 @@ let single_line mode eol () =
             [{markers = [(1, "1"); (2, "2")];
               tokens =
                 [String "aaa";
-                 Marker (RangeBegin (1, "1"));
+                 Marker (None, RangeBegin (1, "1"));
                  String "bbb";
-                 Marker (RangeBegin (2, "2"));
+                 Marker (None, RangeBegin (2, "2"));
                  String "ccc";
-                 Marker (RangeEnd (1, "1"));
+                 Marker (None, RangeEnd (1, "1"));
                  String "ddd";
-                 Marker (RangeEnd (2, "2"));
+                 Marker (None, RangeEnd (2, "2"));
                  String "eee";
                 ]}]}
         ]}
@@ -46,13 +46,13 @@ let multi_lines_with_ls () =
             [{markers=[];
               tokens=
                 [String "aa";
-                 Marker (RangeBegin (1, "1"));
+                 Marker (None, RangeBegin (1, "1"));
                  String "bbbbb";
                 ]};
              {markers=[(1, "1")];
               tokens=
                 [String "bbbb";
-                 Marker (RangeEnd (1, "1"));
+                 Marker (None, RangeEnd (1, "1"));
                  String "ccc";
                 ]}]}
         ]}
@@ -105,7 +105,7 @@ ggggghh
             [{markers=[];
               tokens=
                 [String "aa";
-                 Marker (RangeBegin (1, "2"));
+                 Marker (None, RangeBegin (1, "2"));
                  String "bbbbb"]};
              {markers=[];
               tokens=
@@ -113,10 +113,10 @@ ggggghh
              {markers=[(2, "1"); (1, "2")];
               tokens=
                 [String "b";
-                 Marker (RangeBegin (2, "1"));
+                 Marker (None, RangeBegin (2, "1"));
                  String "*cc";
-                 Marker (RangeEnd (2, "1"));
-                 Marker (RangeEnd (1, "2"));
+                 Marker (None, RangeEnd (2, "1"));
+                 Marker (None, RangeEnd (1, "2"));
                  String "ddd"]};
              {markers=[];
               tokens=
@@ -133,20 +133,20 @@ ggggghh
              {markers=[(8, "4"); (4, "3")];
               tokens=
                 [String "ee";
-                 Marker (RangeBegin (4, "3"));
+                 Marker (None, RangeBegin (4, "3"));
                  String "++";
-                 Marker (RangeBegin (8, "4"));
+                 Marker (None, RangeBegin (8, "4"));
                  String "fff";
-                 Marker (RangeEnd (8, "4"));
-                 Marker (RangeEnd (4, "3"))]}]};
+                 Marker (Some End_of_line, RangeEnd (8, "4"));
+                 Marker (Some End_of_line, RangeEnd (4, "3"))]}]};
          {begin_line_num=15;
           end_line_num=15;
           lines=
             [{markers=[(16, "5")];
               tokens=
-                [Marker (RangeBegin (16, "5"));
+                [Marker (None, RangeBegin (16, "5"));
                  String "ggggg";
-                 Marker (RangeEnd (16, "5"));
+                 Marker (None, RangeEnd (16, "5"));
                  String "hh"]}]}]}]
   in
   let actual = SM.mark ~line_breaks:`Traditional ~block_splitting_threshold:5 ranges in

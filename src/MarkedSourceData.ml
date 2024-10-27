@@ -1,3 +1,8 @@
+(** Special positions. *)
+type special_position =
+  | End_of_line
+  | End_of_file
+
 (** A marker is a delimiter of a range or a specific point. *)
 type 'tag marker =
   | RangeBegin of 'tag
@@ -7,7 +12,7 @@ type 'tag marker =
 (** A token is either a string or a marker. *)
 type 'tag token =
   | String of string
-  | Marker of 'tag marker
+  | Marker of special_position option * 'tag marker
 
 (** A line is a list of {!type:segment}s along with tags. *)
 type 'tag line =
