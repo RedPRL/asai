@@ -1,12 +1,12 @@
 open Bwd
 open Bwd.Infix
 
-open Explication
-include ExplicatorSigs
+open MarkedSource
+include SourceMarkerSigs
 
 (* helper functions used by the register_printer below *)
 
-let print_invalid_offset fmt : UserContent.invalid_offset -> unit =
+let print_invalid_offset fmt : SourceUtils.invalid_offset -> unit =
   function
   | `Negative i ->
     Format.fprintf fmt "its@ offset@ %d@ is@ negative." i
@@ -15,7 +15,7 @@ let print_invalid_offset fmt : UserContent.invalid_offset -> unit =
   | `Within_newline (i, (s, e)) ->
     Format.fprintf fmt "its@ offset@ %d@ is@ within@ a@ newline@ sequence@ [%d,%d)." i s e
 
-let print_invalid_position fmt : UserContent.invalid_position -> unit =
+let print_invalid_position fmt : SourceUtils.invalid_position -> unit =
   function
   | `Offset r ->
     print_invalid_offset fmt r
@@ -24,7 +24,7 @@ let print_invalid_position fmt : UserContent.invalid_position -> unit =
   | `Incorrect_line_num (ln, ln') ->
     Format.fprintf fmt "its@ line@ number@ is@ %d@ but@ it@ should@ have@ been@ %d." ln ln'
 
-let print_invalid_range fmt : UserContent.invalid_range -> unit =
+let print_invalid_range fmt : SourceUtils.invalid_range -> unit =
   function
   | `Begin r ->
     Format.fprintf fmt "its@ beginning@ position@ is@ invalid;@ %a" print_invalid_position r
@@ -59,7 +59,7 @@ module Make (Tag : Tag) = struct
     String.init (end_ - begin_) @@ fun i ->
     SourceReader.unsafe_get source (begin_ + i)
 
-  type explicator_state =
+  type marker_state =
     { lines : Tag.t line bwd
     ; tokens : Tag.t token bwd
     ; remaining_line_markers : (int * Tag.t) list
@@ -69,20 +69,20 @@ module Make (Tag : Tag) = struct
     ; line_num : int
     }
 
-  module F = Flattener.Make(Tag)
+  module F = RangeFlattener.Make(Tag)
 
-  let explicate_block ~line_breaks source (b : Tag.t Flattener.block) : Tag.t block =
+  let mark_block ~line_breaks source (b : Tag.t RangeFlattener.block) : Tag.t block =
     match b.markers with
-    | [] -> invalid_arg "explicate_block: empty block; should be impossible"
+    | [] -> invalid_arg "mark_block: empty block; should be impossible"
     | ((first_loc, _) :: _) as markers ->
       let source = SourceReader.load source in
       let eof = SourceReader.length source in
-      let find_eol i = UserContent.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
+      let find_eol i = SourceUtils.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
       let rec go state : (Range.position * Tag.t marker) list -> _ =
         function
         | (loc, marker) :: markers when state.cursor.line_num = loc.line_num (* on the same line *) ->
-          if loc.offset > eof then invalid_arg "Asai.Explicator.explicate: position beyond EOF; use the debug mode";
-          if loc.offset > state.eol then invalid_arg "Asai.Explicator.explicate: unexpected newline; use the debug mode";
+          if loc.offset > eof then invalid_arg "Asai.SourceMarker.mark: position beyond EOF; use the debug mode";
+          if loc.offset > state.eol then invalid_arg "Asai.SourceMarker.mark: unexpected newline; use the debug mode";
           let tokens =
             if loc.offset = state.cursor.offset then
               state.tokens <: Marker marker
@@ -113,11 +113,11 @@ module Make (Tag : Tag) = struct
           | [], _ ->
             assert (state.line_num = b.end_line_num);
             lines
-          | _ :: _, None -> invalid_arg "Asai.Explicator.explicate: position beyond EOF; use the debug mode"
+          | _ :: _, None -> invalid_arg "Asai.SourceMarker.mark: position beyond EOF; use the debug mode"
           | (loc, _) :: _, Some eol_shift ->
-            if loc.offset > eof then invalid_arg "Asai.Explicator.explicate: position beyond EOF; use the debug mode";
-            if loc.offset <= state.eol then invalid_arg "Asai.Explicator.explicate: expected newline missing; use the debug mode";
-            if loc.offset < state.eol + eol_shift then invalid_arg "Asai.Explicator.explicate: offset within newline; use the debug mode";
+            if loc.offset > eof then invalid_arg "Asai.SourceMarker.mark: position beyond EOF; use the debug mode";
+            if loc.offset <= state.eol then invalid_arg "Asai.SourceMarker.mark: expected newline missing; use the debug mode";
+            if loc.offset < state.eol + eol_shift then invalid_arg "Asai.SourceMarker.mark: offset within newline; use the debug mode";
             (* Okay, p is really on the next line *)
             let cursor = eol_to_next_line eol_shift {state.cursor with offset = state.eol} in
             let eol, eol_shift = find_eol (state.eol + eol_shift) in
@@ -151,11 +151,11 @@ module Make (Tag : Tag) = struct
       ; lines = Bwd.to_list @@ lines
       }
 
-  let[@inline] explicate_blocks ~line_breaks source ranges =
-    List.map (explicate_block ~line_breaks source) ranges
+  let[@inline] mark_blocks ~line_breaks source ranges =
+    List.map (mark_block ~line_breaks source) ranges
 
-  let[@inline] explicate_part ~line_breaks (source, bs) : Tag.t part =
-    { source; blocks = explicate_blocks ~line_breaks source bs }
+  let[@inline] mark_part ~line_breaks (source, bs) : Tag.t part =
+    { source; blocks = mark_blocks ~line_breaks source bs }
 
   let check_ranges ~line_breaks ranges =
     List.iter
@@ -163,11 +163,11 @@ module Make (Tag : Tag) = struct
          let source = SourceReader.load @@ Range.source range in
          let read = SourceReader.unsafe_get source in
          let eof = SourceReader.length source in
-         try UserContent.check_range ~line_breaks ~eof read range
-         with UserContent.Invalid_range reason -> raise @@ Invalid_range (range, reason))
+         try SourceUtils.check_range ~line_breaks ~eof read range
+         with SourceUtils.Invalid_range reason -> raise @@ Invalid_range (range, reason))
       ranges
 
-  let explicate ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(debug=false) ranges =
+  let mark ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(debug=false) ranges =
     if debug then check_ranges ~line_breaks ranges;
-    List.map (explicate_part ~line_breaks) @@ F.flatten ~block_splitting_threshold ranges
+    List.map (mark_part ~line_breaks) @@ F.flatten ~block_splitting_threshold ranges
 end

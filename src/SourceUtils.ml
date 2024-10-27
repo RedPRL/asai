@@ -1,8 +1,7 @@
-include UserContentData
+include SourceUtilsData
 
 exception Invalid_offset of invalid_offset
 exception Invalid_position of invalid_position
-exception Invalid_range of invalid_range
 
 let find_eol_traditional read (i, eof) =
   let rec go i =

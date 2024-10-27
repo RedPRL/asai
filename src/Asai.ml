@@ -9,9 +9,9 @@ module MinimumSigs = MinimumSigs
 module Tty = Tty
 module GitHub = GitHub
 
-module Explication = Explication
-module Explicator = Explicator
+module MarkedSource = MarkedSource
+module SourceMarker = SourceMarker
 module SourceReader = SourceReader
 
-module UserContent = UserContent
-module Flattener = Flattener
+module SourceUtils = SourceUtils
+module RangeFlattener = RangeFlattener

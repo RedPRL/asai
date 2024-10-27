@@ -1,15 +1,15 @@
 open Asai
 
-module E = Explicator.Make(IntTag)
+module SM = SourceMarker.Make(IntTag)
 
-let test_explication = Alcotest.of_pp (Explication.dump IntTag.dump)
+let test_marked_source = Alcotest.of_pp (MarkedSource.dump IntTag.dump)
 
 let single_line mode eol () =
   let source = `String {Range.title = None; content = "aaabbbcccdddeee" ^ eol} in
   let begin_of_line1 : Range.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let range1 = Range.make ({begin_of_line1 with offset = 3}, {begin_of_line1 with offset = 9}), (1, "1") in
   let range2 = Range.make ({begin_of_line1 with offset = 6}, {begin_of_line1 with offset = 12}), (2, "2") in
-  let expected : _ Explication.t =
+  let expected : _ MarkedSource.t =
     [{source;
       blocks =
         [{begin_line_num = 1;
@@ -29,15 +29,15 @@ let single_line mode eol () =
                 ]}]}
         ]}
     ] in
-  let actual = E.explicate ~line_breaks:mode [range1; range2] in
-  Alcotest.(check test_explication) "Explication is correct" expected actual
+  let actual = SM.mark ~line_breaks:mode [range1; range2] in
+  Alcotest.(check test_marked_source) "MarkedSource is correct" expected actual
 
 let multi_lines_with_ls () =
   let source = `String {Range.title = None; content = "aabbbbb\u{2028}bbbbccc"} in
   let begin_of_line1 : Range.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let begin_of_line2 : Range.position = {source; offset = 10; start_of_line = 10; line_num = 2} in
   let range = Range.make ({begin_of_line1 with offset = 2}, {begin_of_line2 with offset = 14}), (1, "1") in
-  let expected : _ Explication.t =
+  let expected : _ MarkedSource.t =
     [{source;
       blocks =
         [{begin_line_num = 1;
@@ -58,8 +58,8 @@ let multi_lines_with_ls () =
         ]}
     ]
   in
-  let actual = E.explicate ~line_breaks:`Unicode [range] in
-  Alcotest.(check test_explication) "Explication is correct" expected actual
+  let actual = SM.mark ~line_breaks:`Unicode [range] in
+  Alcotest.(check test_marked_source) "MarkedSource is correct" expected actual
 
 let multi_lines () =
   let source =
@@ -96,7 +96,7 @@ ggggghh
       Range.make (begin_of_line15, {begin_of_line15 with offset = 51+5}), (16, "5");
     ]
   in
-  let expected : _ Explication.t =
+  let expected : _ MarkedSource.t =
     [{source;
       blocks=
         [{begin_line_num=2;
@@ -149,12 +149,12 @@ ggggghh
                  Marker (RangeEnd (16, "5"));
                  String "hh"]}]}]}]
   in
-  let actual = E.explicate ~line_breaks:`Traditional ~block_splitting_threshold:5 ranges in
-  Alcotest.(check test_explication) "Explication is correct" expected actual
+  let actual = SM.mark ~line_breaks:`Traditional ~block_splitting_threshold:5 ranges in
+  Alcotest.(check test_marked_source) "MarkedSource is correct" expected actual
 
 let () =
   let open Alcotest in
-  Alcotest.run "Explicator" [
+  Alcotest.run "SourceMarker" [
     "single-line",
     [
       test_case "traditional, empty" `Quick (single_line `Traditional "");

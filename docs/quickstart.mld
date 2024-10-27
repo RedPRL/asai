@@ -151,7 +151,7 @@ Reporter.emit ~loc:real_loc "wow" (* using [real_loc] instead  *)
 
 If you have seen an exception from asai like this:
 {v
-Invalid_argument("Asai.Explicator.explicate: <REASON>; use the debug mode")
+Invalid_argument("Asai.SourceMarker.mark: <REASON>; use the debug mode")
 v}
 It means asai has detected invalid ranges. This usually indicates that your lexer or parser is buggy and generates invalid locations. For efficiency, asai by default will not check ranges carefully, but you can force it to do so by using the optional argument [debug]:
 {[

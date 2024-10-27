@@ -1,4 +1,4 @@
-open Explication
+open MarkedSource
 
 type 'tag block =
   { begin_line_num : int
@@ -12,6 +12,6 @@ type 'tag t = (Range.source * 'tag block list) list
 val dump_block : (Format.formatter -> 'tag -> unit) -> Format.formatter -> 'tag block -> unit
 val dump : (Format.formatter -> 'tag -> unit) -> Format.formatter -> 'tag t -> unit
 
-module Make (Tag : ExplicatorSigs.Tag) : sig
+module Make (Tag : SourceMarkerSigs.Tag) : sig
   val flatten : block_splitting_threshold:int -> (Range.t * Tag.t) list -> Tag.t t
 end

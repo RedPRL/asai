@@ -1,7 +1,7 @@
 (** {1 Types} *)
 
 (* @include *)
-include module type of ExplicationData
+include module type of MarkedSourceData
 
 (** {1 Debugging} *)
 
