@@ -15,20 +15,29 @@ let single_line_flatten () =
     {begin_of_line1 with offset = 12}
   in
   let ranges =
-    [ (1, "1"), Range.make (pt1, pt3)
-    ; (2, "2"), Range.make (pt1, pt3)
-    ; (1, "3"), Range.make (pt1, pt3)
-    ; (3, "4"), Range.make (pt2, pt4)
+    [ Range.make (pt1, pt3), (1, "1")
+    ; Range.make (pt1, pt3), (2, "2")
+    ; Range.make (pt1, pt3), (1, "3")
+    ; Range.make (pt2, pt4), (3, "4")
     ]
   in
   let expected : _ Flattener.t =
     [(source,
       [{begin_line_num=1;
         end_line_num=1;
-        tagged_positions=[(Some (2, "2"), pt1);(Some (3, "4"), pt2);(Some (3, "4"), pt3);(None, pt4)];
-        tagged_lines=[((2, "2"), 1); ((1, "1"), 1); ((1, "3"), 1); ((3, "4"), 1)]}])]
+        markers=
+          [ pt1, RangeBegin (1, "3")
+          ; pt1, RangeBegin (1, "1")
+          ; pt1, RangeBegin (2, "2")
+          ; pt2, RangeBegin (3, "4")
+          ; pt3, RangeEnd (2, "2")
+          ; pt3, RangeEnd (1, "1")
+          ; pt3, RangeEnd (1, "3")
+          ; pt4, RangeEnd (3, "4")
+          ];
+        line_markers=[(1, (2, "2")); (1, (1, "1")); (1, (1, "3")); (1, (3, "4"))]}])]
   in
-  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) ranges in
+  let actual = F.flatten ~block_splitting_threshold:5 ranges in
   Alcotest.(check test_flattened) "Flattener is correct" expected actual
 
 let multi_lines () =
@@ -64,38 +73,42 @@ ggggghh
   in
   let ranges =
     [
-      (2, "1"), Range.make (pt18, pt21);
-      (1, "2"), Range.make (pt3, pt21);
-      (4, "3"), Range.make (pt35, pt40);
-      (8, "4"), Range.make (pt37, pt40);
-      (16, "5"), Range.make (begin_of_line15, pt56);
+      Range.make (pt18, pt21), (2, "1");
+      Range.make (pt3, pt21), (1, "2");
+      Range.make (pt35, pt40), (4, "3");
+      Range.make (pt37, pt40), (8, "4");
+      Range.make (begin_of_line15, pt56), (16, "5");
     ]
   in
   let expected : _ Flattener.t =
     [(source,
       [{begin_line_num=2;
         end_line_num=9;
-        tagged_positions=
-          [(Some (1, "2"), pt3);
-           (Some (2, "1"), pt18);
-           (None, pt21);
-           (Some (4, "3"), pt35);
-           (Some (8, "4"), pt37);
-           (None, pt40)];
-        tagged_lines=
-          [((1, "2"), 4);
-           ((2, "1"), 4);
-           ((4, "3"), 9);
-           ((8, "4"), 9)]};
+        markers=
+          [(pt3, RangeBegin (1, "2"));
+           (pt18, RangeBegin (2, "1"));
+           (pt21, RangeEnd (2, "1"));
+           (pt21, RangeEnd (1, "2"));
+           (pt35, RangeBegin (4, "3"));
+           (pt37, RangeBegin (8, "4"));
+           (pt40, RangeEnd (8, "4"));
+           (pt40, RangeEnd (4, "3"));
+          ];
+        line_markers=
+          [ 4, (2, "1")
+          ; 4, (1, "2")
+          ; 9, (8, "4")
+          ; 9, (4, "3")
+          ]};
        {begin_line_num=15;
         end_line_num=15;
-        tagged_positions=
-          [(Some (16, "5"), begin_of_line15);
-           (None, pt56)];
-        tagged_lines=
-          [((16, "5"), 15)]}])]
+        markers=
+          [(begin_of_line15, RangeBegin (16, "5"));
+           (pt56, RangeEnd (16, "5"))];
+        line_markers=
+          [(15, (16, "5"))]}])]
   in
-  let actual = F.flatten ~block_splitting_threshold:5 ~blend:(Explicator.default_blend ~priority:IntTag.priority) ranges in
+  let actual = F.flatten ~block_splitting_threshold:5 ranges in
   Alcotest.(check test_flattened) "Flattener is correct" expected actual
 
 let () =

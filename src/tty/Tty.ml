@@ -43,13 +43,13 @@ let indentf ~param fmt =
 (* different parts of the display *)
 
 let render_code ~param ~severity fmt short_code =
-  let st = TtyStyle.code severity ~param in
+  let style = TtyStyle.code severity ~param in
   Format.fprintf fmt (" @<1>%s " ^^ highlight "%s[%s]" ^^ "@.")
     "￫"
-    (Ansi.style_string ~param st)
+    (Ansi.style_string ~param style)
     (string_of_severity severity)
     short_code
-    (Ansi.reset_string ~param st)
+    (Ansi.reset_string ~param style)
 
 (* explication *)
 
@@ -83,35 +83,57 @@ struct
     | None -> ()
     | Some title -> Format.fprintf fmt " @<1>%s %s@." "￭" title
 
-  let render_segment ~param fmt (tag, seg) =
-    let st = TtyStyle.highlight ~param:param.ansi param.severity tag in
-    Format.fprintf fmt (highlight "%s")
-      (Ansi.style_string ~param:param.ansi st)
-      (UserContent.replace_control ~tab_size:param.tab_size seg)
-      (Ansi.reset_string ~param:param.ansi st)
-
-  let render_line_tag ~param fmt ((_, text) as tag) =
-    let st = TtyStyle.message ~param:param.ansi param.severity tag in
+  let render_line_marker ~param fmt ((_, text) as tag) =
+    let style = TtyStyle.message ~param:param.ansi param.severity tag in
     Format.fprintf fmt (" %*s " ^^ highlight "^" ^^ " " ^^ highlight "@[%t@]" ^^ "@.")
       param.line_number_width ""
       (Ansi.style_string ~param:param.ansi TtyStyle.fringe)
       (Ansi.reset_string ~param:param.ansi TtyStyle.fringe)
-      (Ansi.style_string ~param:param.ansi st)
+      (Ansi.style_string ~param:param.ansi style)
       text
-      (Ansi.reset_string ~param:param.ansi st)
+      (Ansi.reset_string ~param:param.ansi style)
 
-  let render_line ~line_num ~param fmt Explication.{segments; tags} =
+  let render_styled_segment ~param fmt tag segment =
+    let style = TtyStyle.highlight ~param:param.ansi param.severity tag in
+    Format.fprintf fmt (highlight "%s")
+      (Ansi.style_string ~param:param.ansi style)
+      (UserContent.replace_control ~tab_size:param.tab_size segment)
+      (Ansi.reset_string ~param:param.ansi style)
+
+  (* Current design:
+
+     ‹let x◂POS₀▸ = 1› in let ‹x› = «1 + ‹x›»◂POS₁▸
+     ‹let x◂POS₀▸ = 1›₀ in let ‹x›₁ = «1 + ‹x›₂»◂POS₁▸
+  *)
+
+  let render_line ~line_num ~param fmt init_tag_set Explication.{tokens; markers} =
+    let go set =
+      function
+      | Explication.String s ->
+        render_styled_segment ~param fmt (TtyTagSet.prioritized set) s; set
+      | Explication.Marker RangeEnd t ->
+        TtyTagSet.remove t set
+      | Explication.Marker Point t ->
+        render_styled_segment ~param fmt (Some t) "‹POS›"; set
+      | Explication.Marker RangeBegin t ->
+        TtyTagSet.add t set
+    in
     Format.fprintf fmt (" " ^^ highlight "%*d |" ^^ " ")
       (Ansi.style_string ~param:param.ansi TtyStyle.fringe)
       param.line_number_width line_num
       (Ansi.reset_string ~param:param.ansi TtyStyle.fringe);
-    List.iter (render_segment ~param fmt) segments;
+    let end_tag_set = List.fold_left go init_tag_set tokens in
     Format.fprintf fmt "@.";
-    List.iter (render_line_tag ~param fmt) tags
+    List.iter (render_line_marker ~param fmt) markers;
+    end_tag_set
 
   let render_lines ~param ~begin_line_num fmt lines =
-    lines |> List.iteri @@ fun i line ->
-    render_line ~line_num:(begin_line_num + i) ~param fmt line
+    ignore @@ List.fold_left
+      (fun (line_num, set) line ->
+         let set = render_line ~line_num ~param fmt set line in
+         (line_num+1, set))
+      (begin_line_num, TtyTagSet.empty)
+      lines
 
   let render_block ~param fmt Explication.{begin_line_num; end_line_num=_; lines} =
     render_lines ~param ~begin_line_num fmt lines
@@ -125,12 +147,12 @@ struct
 end
 
 let render_unlocated_tag ~severity ~ansi fmt ((_, text) as tag) =
-  let st = TtyStyle.message ~param:ansi severity tag in
+  let style = TtyStyle.message ~param:ansi severity tag in
   Format.fprintf fmt (" @<1>%s " ^^ highlight "@[%t@]" ^^ "@.")
     "￮"
-    (Ansi.style_string ~param:ansi st)
+    (Ansi.style_string ~param:ansi style)
     text
-    (Ansi.reset_string ~param:ansi st)
+    (Ansi.reset_string ~param:ansi style)
 
 module DiagnosticRenderer :
 sig
@@ -173,7 +195,7 @@ struct
       List.partition_map
         (function
           | (tag, Range.{loc = None; value = text}) -> Either.Right (tag, text)
-          | (tag, Range.{loc = Some r; value = text}) -> Either.Left ((tag, text), r))
+          | (tag, Range.{loc = Some r; value = text}) -> Either.Left (r, (tag, text)))
         (main :: extra_remarks)
     in
     let explication =

@@ -30,9 +30,6 @@ let print_invalid_range fmt : UserContent.invalid_range -> unit =
     Format.fprintf fmt "its@ beginning@ position@ is@ invalid;@ %a" print_invalid_position r
   | `End r ->
     Format.fprintf fmt "its@ ending@ position@ is@ invalid;@ %a" print_invalid_position r
-  | `Not_end_of_file (l, l') ->
-    Format.fprintf fmt "its@ offset@ %d@ is@ not@ the@ end@ of@ file@ (%d)." l l'
-  | `End_of_file r -> print_invalid_position fmt r
 
 let () = Printexc.register_printer @@
   function
@@ -45,12 +42,11 @@ let () = Printexc.register_printer @@
   | _ -> None
 
 let to_start_of_line (pos : Range.position) = {pos with offset = pos.start_of_line}
-let default_blend ~(priority : _ -> int) t1 t2 = if priority t2 <= priority t1 then t2 else t1
 
 module Make (Tag : Tag) = struct
   type position = Range.position
 
-  (** Skip the newline sequence, assuming that [shift] is not zero. (Otherwise, it means we already reached eof.) *)
+  (** Skip the newline sequence, assuming that [shift] is not zero. (Otherwise, it means we already reached EOF.) *)
   let eol_to_next_line shift (pos : position) : position =
     assert (shift <> 0);
     { source = pos.source;
@@ -65,9 +61,8 @@ module Make (Tag : Tag) = struct
 
   type explicator_state =
     { lines : Tag.t line bwd
-    ; segments : Tag.t segment bwd
-    ; remaining_tagged_lines : (Tag.t * int) list
-    ; current_tag : Tag.t option
+    ; tokens : Tag.t token bwd
+    ; remaining_line_markers : (int * Tag.t) list
     ; cursor : Range.position
     ; eol : int
     ; eol_shift : int option
@@ -76,96 +71,95 @@ module Make (Tag : Tag) = struct
 
   module F = Flattener.Make(Tag)
 
-  let explicate_block ~line_breaks (b : Tag.t Flattener.block) : Tag.t block =
-    match b.tagged_positions with
-    | [] -> invalid_arg "explicate_block: empty block"
-    | ((_, ploc) :: _) as ps ->
-      let source = SourceReader.load ploc.source in
+  let explicate_block ~line_breaks source (b : Tag.t Flattener.block) : Tag.t block =
+    match b.markers with
+    | [] -> invalid_arg "explicate_block: empty block; should be impossible"
+    | ((first_loc, _) :: _) as markers ->
+      let source = SourceReader.load source in
       let eof = SourceReader.length source in
       let find_eol i = UserContent.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
-      let rec go state : (Tag.t option * Range.position) list -> _ =
+      let rec go state : (Range.position * Tag.t marker) list -> _ =
         function
-        | (ptag, ploc) :: ps when state.cursor.line_num = ploc.line_num ->
-          if ploc.offset > eof then invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode";
-          if ploc.offset > state.eol then invalid_arg "Asai.Explicator.explicate: unexpected newline; use the debug mode";
-          if ploc.offset = state.cursor.offset then
-            go {state with cursor = ploc; current_tag = ptag} ps
-          else
-            (* Still on the same line *)
-            let segments =
-              state.segments <:
-              (state.current_tag, read_between ~source state.cursor.offset ploc.offset)
-            in
-            go { state with segments; cursor = ploc; current_tag = ptag } ps
-        | ps ->
-          (* Shifting to the next line *)
-          let lines, remaining_tagged_lines =
-            let segments =
-              if state.cursor.offset < state.eol then
-                state.segments
-                <: (state.current_tag, read_between ~source state.cursor.offset state.eol)
-              else if Option.is_none state.eol_shift && Option.is_some state.current_tag then
-                state.segments
-                <: (state.current_tag, "‹EOF›")
-              else
-                state.segments
-            in
-            let tagged_lines, remaining_tagged_lines = Utils.span (fun (_, i) -> i = state.line_num) state.remaining_tagged_lines in
-            (state.lines <: {segments = Bwd.to_list segments; tags = List.map fst tagged_lines}), remaining_tagged_lines
+        | (loc, marker) :: markers when state.cursor.line_num = loc.line_num (* on the same line *) ->
+          if loc.offset > eof then invalid_arg "Asai.Explicator.explicate: position beyond EOF; use the debug mode";
+          if loc.offset > state.eol then invalid_arg "Asai.Explicator.explicate: unexpected newline; use the debug mode";
+          let tokens =
+            if loc.offset = state.cursor.offset then
+              state.tokens <: Marker marker
+            else
+              state.tokens <: String (read_between ~source state.cursor.offset loc.offset) <: Marker marker
           in
-          (* Continue the process if [ps] is not empty. *)
-          match ps, state.eol_shift with
+          go { state with tokens; cursor = loc } markers
+        | markers ->
+          (* Shifting to the next line *)
+          let lines, remaining_line_markers =
+            let tokens =
+              if state.cursor.offset < state.eol then
+                state.tokens <: String (read_between ~source state.cursor.offset state.eol)
+              else
+                state.tokens
+            in
+            let line_markers, remaining_line_markers =
+              Utils.span (fun (line_num, _) -> line_num = state.line_num) state.remaining_line_markers
+            in
+            (state.lines <:
+             { tokens = Bwd.to_list tokens
+             ; markers = List.map snd line_markers
+             }),
+            remaining_line_markers
+          in
+          (* Continue the process if [markers] is not empty. *)
+          match markers, state.eol_shift with
           | [], _ ->
             assert (state.line_num = b.end_line_num);
             lines
-          | _ :: _, None -> invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode"
-          | (_, ploc) :: _, Some eol_shift ->
-            if ploc.offset > eof then invalid_arg "Asai.Explicator.explicate: beyond eof; use the debug mode";
-            if ploc.offset <= state.eol then invalid_arg "Asai.Explicator.explicate: expected newline missing; use the debug mode";
-            if ploc.offset < state.eol + eol_shift then invalid_arg "Asai.Explicator.explicate: offset within newline; use the debug mode";
+          | _ :: _, None -> invalid_arg "Asai.Explicator.explicate: position beyond EOF; use the debug mode"
+          | (loc, _) :: _, Some eol_shift ->
+            if loc.offset > eof then invalid_arg "Asai.Explicator.explicate: position beyond EOF; use the debug mode";
+            if loc.offset <= state.eol then invalid_arg "Asai.Explicator.explicate: expected newline missing; use the debug mode";
+            if loc.offset < state.eol + eol_shift then invalid_arg "Asai.Explicator.explicate: offset within newline; use the debug mode";
             (* Okay, p is really on the next line *)
             let cursor = eol_to_next_line eol_shift {state.cursor with offset = state.eol} in
             let eol, eol_shift = find_eol (state.eol + eol_shift) in
             go
               { lines
-              ; segments = Emp
-              ; remaining_tagged_lines
-              ; current_tag = state.current_tag
+              ; tokens = Emp
+              ; remaining_line_markers
               ; cursor
               ; eol
               ; eol_shift
               ; line_num = state.line_num + 1
               }
-              ps
+              markers
       in
-      let begin_pos = to_start_of_line ploc in
-      let eol, eol_shift = find_eol ploc.offset in
       let lines =
+        let begin_pos = to_start_of_line first_loc in
+        let eol, eol_shift = find_eol first_loc.offset in
         go
           { lines = Emp
-          ; segments = Emp
-          ; remaining_tagged_lines = b.tagged_lines
-          ; current_tag = None
+          ; tokens = Emp
+          ; remaining_line_markers = b.line_markers
           ; cursor = begin_pos
           ; eol
           ; eol_shift
           ; line_num = b.begin_line_num
           }
-          ps
+          markers
       in
       { begin_line_num = b.begin_line_num
       ; end_line_num = b.end_line_num
       ; lines = Bwd.to_list @@ lines
       }
 
-  let[@inline] explicate_blocks ~line_breaks = List.map (explicate_block ~line_breaks)
+  let[@inline] explicate_blocks ~line_breaks source ranges =
+    List.map (explicate_block ~line_breaks source) ranges
 
   let[@inline] explicate_part ~line_breaks (source, bs) : Tag.t part =
-    { source; blocks = explicate_blocks ~line_breaks bs }
+    { source; blocks = explicate_blocks ~line_breaks source bs }
 
   let check_ranges ~line_breaks ranges =
     List.iter
-      (fun (_, range) ->
+      (fun (range, _) ->
          let source = SourceReader.load @@ Range.source range in
          let read = SourceReader.unsafe_get source in
          let eof = SourceReader.length source in
@@ -173,8 +167,7 @@ module Make (Tag : Tag) = struct
          with UserContent.Invalid_range reason -> raise @@ Invalid_range (range, reason))
       ranges
 
-  let explicate ?(line_breaks=`Traditional) ?(block_splitting_threshold=5)
-      ?(blend=default_blend ~priority:Tag.priority) ?(debug=false) ranges =
+  let explicate ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(debug=false) ranges =
     if debug then check_ranges ~line_breaks ranges;
-    List.map (explicate_part ~line_breaks) @@ F.flatten ~block_splitting_threshold ~blend ranges
+    List.map (explicate_part ~line_breaks) @@ F.flatten ~block_splitting_threshold ranges
 end

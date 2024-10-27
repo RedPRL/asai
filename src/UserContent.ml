@@ -80,13 +80,9 @@ let check_pos ~line_breaks ~eof read pos =
     raise @@ Invalid_position (`Incorrect_start_of_line (pos.start_of_line, new_pos.start_of_line))
 
 let check_range ~line_breaks ~eof read range =
-  match Range.view range with
-  | `Range (p1, p2) ->
-    (try check_pos ~line_breaks ~eof read p1 with Invalid_position reason -> raise @@ Invalid_range (`Begin reason));
-    (try check_pos ~line_breaks ~eof read p2 with Invalid_position reason -> raise @@ Invalid_range (`End reason))
-  | `End_of_file p ->
-    if p.offset <> eof then raise @@ Invalid_range (`Not_end_of_file (p.offset, eof));
-    (try check_pos ~line_breaks ~eof read p with Invalid_position reason -> raise @@ Invalid_range (`End_of_file reason))
+  let p1, p2 = Range.split range in
+  (try check_pos ~line_breaks ~eof read p1 with Invalid_position reason -> raise @@ Invalid_range (`Begin reason));
+  (try check_pos ~line_breaks ~eof read p2 with Invalid_position reason -> raise @@ Invalid_range (`End reason))
 
 let replace_control ~tab_size str =
   let tab_string = String.make tab_size ' ' in

@@ -79,9 +79,9 @@ let exec handler =
       Loctext.make ~loc:(Range.make (~@ s2 10 0, ~@ s2 10 0)) "message 8";
     ];
 
-  Reporter.emit ~loc:(Range.eof (~@ s1 23 width)) Hello "this is the main message"
+  Reporter.emit ~loc:(Range.make (~@ s1 23 width, ~@ s1 23 width)) Hello "this is the main message"
     ~extra_remarks:[
-      Loctext.make ~loc:(Range.eof (~@ s2 23 width)) "ending of another file";
+      Loctext.make ~loc:(Range.make (~@ s2 23 width, ~@ s2 23 width)) "ending of another file";
     ]
 
 let () =
