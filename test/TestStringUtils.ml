@@ -1,10 +1,10 @@
 let of_test name ~tab_size input expected =
   Alcotest.test_case name `Quick @@ fun () ->
   Alcotest.(check string) "Output matched" expected @@
-  Asai.SourceUtils.replace_control ~tab_size input
+  Asai.StringUtils.replace_control ~tab_size input
 
 let () =
-  Alcotest.run "SourceUtils" [
+  Alcotest.run "StringUtils" [
     "replace_control",
     [
       of_test "tab" ~tab_size:2 "123\t4\t" "123  4  ";

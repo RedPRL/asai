@@ -1,6 +1,6 @@
 open MarkedSource
 
-exception Invalid_range of Range.t * SourceUtils.invalid_range
+exception Invalid_range of Range.t * StringUtils.invalid_range
 (** [Invalid_range (range, reason)] means that [range] is an invalid range because of [reason]. This exception will be raised only when the debug mode is enabled. See the [debug] parameter of {!val:SourceMarker.S.mark} for enabling the debug mode. *)
 
 (** The signature of tags *)

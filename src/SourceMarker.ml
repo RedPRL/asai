@@ -6,7 +6,7 @@ include SourceMarkerSigs
 
 (* helper functions used by the register_printer below *)
 
-let print_invalid_offset fmt : SourceUtils.invalid_offset -> unit =
+let print_invalid_offset fmt : StringUtils.invalid_offset -> unit =
   function
   | `Negative i ->
     Format.fprintf fmt "its@ offset@ %d@ is@ negative." i
@@ -15,7 +15,7 @@ let print_invalid_offset fmt : SourceUtils.invalid_offset -> unit =
   | `Within_newline (i, (s, e)) ->
     Format.fprintf fmt "its@ offset@ %d@ is@ within@ a@ newline@ sequence@ [%d,%d)." i s e
 
-let print_invalid_position fmt : SourceUtils.invalid_position -> unit =
+let print_invalid_position fmt : StringUtils.invalid_position -> unit =
   function
   | `Offset r ->
     print_invalid_offset fmt r
@@ -24,7 +24,7 @@ let print_invalid_position fmt : SourceUtils.invalid_position -> unit =
   | `Incorrect_line_num (ln, ln') ->
     Format.fprintf fmt "its@ line@ number@ is@ %d@ but@ it@ should@ have@ been@ %d." ln ln'
 
-let print_invalid_range fmt : SourceUtils.invalid_range -> unit =
+let print_invalid_range fmt : StringUtils.invalid_range -> unit =
   function
   | `Begin r ->
     Format.fprintf fmt "its@ beginning@ position@ is@ invalid;@ %a" print_invalid_position r
@@ -77,7 +77,7 @@ module Make (Tag : Tag) = struct
     | ((first_loc, _) :: _) as markers ->
       let source = SourceReader.load source in
       let eof = SourceReader.length source in
-      let find_eol i = SourceUtils.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
+      let find_eol i = StringUtils.find_eol ~line_breaks (SourceReader.unsafe_get source) (i, eof) in
       let rec go state : (Range.position * Tag.t marker) list -> _ =
         function
         | (loc, marker) :: markers when state.cursor.line_num = loc.line_num (* on the same line *) ->
@@ -163,8 +163,8 @@ module Make (Tag : Tag) = struct
          let source = SourceReader.load @@ Range.source range in
          let read = SourceReader.unsafe_get source in
          let eof = SourceReader.length source in
-         try SourceUtils.check_range ~line_breaks ~eof read range
-         with SourceUtils.Invalid_range reason -> raise @@ Invalid_range (range, reason))
+         try StringUtils.check_range ~line_breaks ~eof read range
+         with StringUtils.Invalid_range reason -> raise @@ Invalid_range (range, reason))
       ranges
 
   let mark ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(debug=false) ranges =
