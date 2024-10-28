@@ -90,21 +90,7 @@ struct
       partition_sorted ~block_splitting_threshold @@ Bwd.of_list @@ sort_tagged l
   end
 
-  (* Stage 2: for each block, flatten out ranges into markers
-
-     The code needs to handle several subtleties, using the XML-like notation to demonstrate:
-     1. The ordering of markers and text strings should be ordered like this:
-        <range1>...</range1><point/><range2>...</range2>
-        Note that, in the middle, RangeEnd goes first, and then Point, and then RangeBegin.
-     2. If the set of ranges is "well-scoped" (that is, a range is always completely included in,
-        completely including, or being disjoint from another range), then matching beginning and
-        ending markers will have the expected nested structures, like this:
-        <range1><range2>...</range2><range3>...</range3></range1>
-     3. For two ranges marking the same text with different priorities, the prioritized one goes inside.
-        For two ranges with the same text and priority, the order of beginning markers will follow
-        the order of the original input list. This is to reduce interruption of the prioritized highlighting.
-        <low_pri1><low_pri2><high_pri1><high_pri2>...</high_pri2></high_pri1></low_pri2></low_pri1>
-  *)
+  (* Stage 2: for each block, flatten out ranges into markers *)
   module BlockFlattener :
   sig
     val flatten : (Range.t * Tag.t) list -> (Range.position * Tag.t marker) list
