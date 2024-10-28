@@ -8,7 +8,23 @@ let string_of_severity : Diagnostic.severity -> string =
   | Error -> "error"
   | Bug -> "bug"
 
-module SM = Source_marker.Make(TtyTag)
+type marker =
+  ansi:[ `Enabled_with_color | `Enabled_without_color | `Disabled ]
+  -> [ `Main_message | `Extra_remark of int ]
+  -> [ `Range_begin
+     | `Range_end of [`End_of_line | `End_of_file] option
+     | `Point of [`End_of_line | `End_of_file] option
+     ]
+  -> string
+
+let default_marker ~ansi:_ _ =
+  function
+  | `Range_begin | `Range_end _ -> ""
+  | `Point Some `End_of_line -> "‹EOL›"
+  | `Point Some `End_of_file -> "‹EOF›"
+  | `Point None -> "‹POS›"
+
+module SM = Source_marker.Make(Tty_tag)
 
 (* calculating the width of line numbers *)
 
@@ -33,9 +49,9 @@ let indentf ~param fmt =
   let num_lines = List.length lines in
   let p m line =
     Format.fprintf fmt (" " ^^ highlight "@<1>%s" ^^ "%s@.")
-      (Ansi.style_string ~param TtyStyle.indentation)
+      (Ansi.style_string ~param Tty_style.indentation)
       m
-      (Ansi.reset_string ~param TtyStyle.indentation)
+      (Ansi.reset_string ~param Tty_style.indentation)
       line
   in
   List.iteri (fun i line -> p (indent_decorations num_lines i) line) lines
@@ -43,7 +59,7 @@ let indentf ~param fmt =
 (* different parts of the display *)
 
 let render_code ~param ~severity fmt short_code =
-  let style = TtyStyle.code severity ~param in
+  let style = Tty_style.code severity ~param in
   Format.fprintf fmt (" @<1>%s " ^^ highlight "%s[%s]" ^^ "@.")
     "￫"
     (Ansi.style_string ~param style)
@@ -61,9 +77,10 @@ sig
       severity : Diagnostic.severity;
       line_number_width : int;
       ansi : Ansi.param;
+      marker : marker;
     }
 
-  val render : param:param -> Format.formatter -> TtyTag.t Marked_source.t -> unit
+  val render : param:param -> Format.formatter -> Tty_tag.t Marked_source.t -> unit
 end
 =
 struct
@@ -75,6 +92,7 @@ struct
       severity : Diagnostic.severity;
       line_number_width : int;
       ansi : Ansi.param;
+      marker : marker;
     }
 
   (* [ ￭ examples/stlc/source.lambda] *)
@@ -83,46 +101,46 @@ struct
     | None -> ()
     | Some title -> Format.fprintf fmt " @<1>%s %s@." "￭" title
 
-  let render_line_marker ~param fmt ((_, text) as tag) =
-    let style = TtyStyle.message ~param:param.ansi param.severity tag in
+  let render_line_mark ~param fmt ((_, text) as tag) =
+    let style = Tty_style.message ~param:param.ansi param.severity tag in
     Format.fprintf fmt (" %*s " ^^ highlight "^" ^^ " " ^^ highlight "@[%t@]" ^^ "@.")
       param.line_number_width ""
-      (Ansi.style_string ~param:param.ansi TtyStyle.fringe)
-      (Ansi.reset_string ~param:param.ansi TtyStyle.fringe)
+      (Ansi.style_string ~param:param.ansi Tty_style.fringe)
+      (Ansi.reset_string ~param:param.ansi Tty_style.fringe)
       (Ansi.style_string ~param:param.ansi style)
       text
       (Ansi.reset_string ~param:param.ansi style)
 
   let render_styled_segment ~param fmt tag segment =
-    let style = TtyStyle.highlight ~param:param.ansi param.severity tag in
-    Format.fprintf fmt (highlight "%s")
-      (Ansi.style_string ~param:param.ansi style)
-      (String_utils.replace_control ~tab_size:param.tab_size segment)
-      (Ansi.reset_string ~param:param.ansi style)
+    if segment <> "" then
+      let style = Tty_style.highlight ~param:param.ansi param.severity tag in
+      Format.fprintf fmt (highlight "%s")
+        (Ansi.style_string ~param:param.ansi style)
+        (String_utils.replace_control ~tab_size:param.tab_size segment)
+        (Ansi.reset_string ~param:param.ansi style)
 
   let render_line ~line_num ~param fmt init_tag_set Marked_source.{tokens; marks} =
     let go set =
       function
       | Marked_source.String s ->
-        render_styled_segment ~param fmt (TtyTagSet.prioritized set) s; set
-      | Marked_source.Mark (_, Range_end t) ->
-        TtyTagSet.remove t set
-      | Marked_source.Mark (Some `End_of_file, Point t) ->
-        render_styled_segment ~param fmt (Some t) "‹EOF›"; set
-      | Marked_source.Mark (Some `End_of_line, Point t) ->
-        render_styled_segment ~param fmt (Some t) "‹EOL›"; set
-      | Marked_source.Mark (None, Point t) ->
-        render_styled_segment ~param fmt (Some t) "‹POS›"; set
-      | Marked_source.Mark (_, Range_begin t) ->
-        TtyTagSet.add t set
+        render_styled_segment ~param fmt (Tty_tag_set.prioritized set) s; set
+      | Marked_source.Mark (sp, m) ->
+        let (idx, _ as tag), m, next_set =
+          match m with
+          | Range_end t -> t, `Range_end sp, Tty_tag_set.remove t set
+          | Range_begin t -> t, `Range_begin, Tty_tag_set.add t set
+          | Point t -> t, `Point sp, set
+        in
+        let mark = param.marker ~ansi:param.ansi idx m in
+        render_styled_segment ~param fmt (Some tag) mark; next_set
     in
     Format.fprintf fmt (" " ^^ highlight "%*d |" ^^ " ")
-      (Ansi.style_string ~param:param.ansi TtyStyle.fringe)
+      (Ansi.style_string ~param:param.ansi Tty_style.fringe)
       param.line_number_width line_num
-      (Ansi.reset_string ~param:param.ansi TtyStyle.fringe);
+      (Ansi.reset_string ~param:param.ansi Tty_style.fringe);
     let end_tag_set = List.fold_left go init_tag_set tokens in
     Format.fprintf fmt "@.";
-    List.iter (render_line_marker ~param fmt) marks;
+    List.iter (render_line_mark ~param fmt) marks;
     end_tag_set
 
   let render_lines ~param ~begin_line_num fmt lines =
@@ -130,7 +148,7 @@ struct
       (fun (line_num, set) line ->
          let set = render_line ~line_num ~param fmt set line in
          (line_num+1, set))
-      (begin_line_num, TtyTagSet.empty)
+      (begin_line_num, Tty_tag_set.empty)
       lines
 
   let render_block ~param fmt Marked_source.{begin_line_num; end_line_num=_; lines} =
@@ -145,7 +163,7 @@ struct
 end
 
 let render_unlocated_tag ~severity ~ansi fmt ((_, text) as tag) =
-  let style = TtyStyle.message ~param:ansi severity tag in
+  let style = Tty_style.message ~param:ansi severity tag in
   Format.fprintf fmt (" @<1>%s " ^^ highlight "@[%t@]" ^^ "@.")
     "￮"
     (Ansi.style_string ~param:ansi style)
@@ -161,6 +179,7 @@ sig
       block_splitting_threshold : int;
       tab_size : int;
       ansi : Ansi.param;
+      marker : marker;
     }
 
   val render_diagnostic : param:param -> Format.formatter -> string Diagnostic.t -> unit
@@ -174,6 +193,7 @@ struct
       block_splitting_threshold : int;
       tab_size : int;
       ansi : Ansi.param;
+      marker : marker;
     }
 
   let line_number_width marked_source : int =
@@ -188,8 +208,8 @@ struct
 
   let render_textloc ~param ~severity ~extra_remarks fmt (textloc : Loctext.t) =
     let located_tags, unlocated_tags =
-      let main = TtyTag.Main, textloc in
-      let extra_remarks = List.mapi (fun i r -> TtyTag.Extra i, r) (Bwd.to_list extra_remarks) in
+      let main = `Main_message, textloc in
+      let extra_remarks = List.mapi (fun i r -> `Extra_remark i, r) (Bwd.to_list extra_remarks) in
       List.partition_map
         (function
           | (tag, Range.{loc = None; value = text}) -> Either.Right (tag, text)
@@ -200,7 +220,13 @@ struct
       SM.mark ~block_splitting_threshold:param.block_splitting_threshold ~debug:param.debug located_tags
     in
     let line_number_width = line_number_width marked_source in
-    let param = {Marked_source_renderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
+    let param = {
+      Marked_source_renderer.severity = severity;
+      tab_size = param.tab_size;
+      line_number_width;
+      ansi = param.ansi;
+      marker = param.marker
+    } in
     Marked_source_renderer.render ~param fmt marked_source;
     List.iter (render_unlocated_tag ~severity:param.severity ~ansi:param.ansi fmt) unlocated_tags
 
@@ -216,12 +242,12 @@ end
 
 module Make (Message : Minimum_signatures.Message) =
 struct
-  let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
+  let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true) ?(marker=default_marker)
       ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) ?(debug=false) d =
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in
     let d = Diagnostic.map Message.short_code d in
     let ansi = Ansi.Test.guess ?use_ansi ?use_color output in
-    let param = {Diagnostic_renderer.debug; line_breaks; block_splitting_threshold; tab_size; ansi} in
+    let param = {Diagnostic_renderer.debug; line_breaks; block_splitting_threshold; tab_size; ansi; marker} in
     let fmt = Format.formatter_of_out_channel output in
     Source_reader.run @@ fun () ->
     Diagnostic_renderer.render_diagnostic ~param fmt d;
