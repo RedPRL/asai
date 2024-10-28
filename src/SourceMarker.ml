@@ -83,11 +83,20 @@ module Make (Tag : Tag) = struct
         | (loc, marker) :: markers when state.cursor.line_num = loc.line_num (* on the same line *) ->
           if loc.offset > eof then invalid_arg "Asai.SourceMarker.mark: position beyond EOF; use the debug mode";
           if loc.offset > state.eol then invalid_arg "Asai.SourceMarker.mark: unexpected newline; use the debug mode";
+          let special_position =
+            if loc.offset = state.eol then
+              if loc.offset = eof then
+                Some End_of_file
+              else
+                Some End_of_line
+            else
+              None
+          in
           let tokens =
             if loc.offset = state.cursor.offset then
-              state.tokens <: Marker marker
+              state.tokens <: Marker (special_position, marker)
             else
-              state.tokens <: String (read_between ~source state.cursor.offset loc.offset) <: Marker marker
+              state.tokens <: String (read_between ~source state.cursor.offset loc.offset) <: Marker (special_position, marker)
           in
           go { state with tokens; cursor = loc } markers
         | markers ->
