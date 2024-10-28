@@ -13,5 +13,5 @@ module MarkedSource = MarkedSource
 module SourceMarker = SourceMarker
 module SourceReader = SourceReader
 
-module SourceUtils = SourceUtils
+module StringUtils = StringUtils
 module RangeFlattener = RangeFlattener

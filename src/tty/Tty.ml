@@ -97,7 +97,7 @@ struct
     let style = TtyStyle.highlight ~param:param.ansi param.severity tag in
     Format.fprintf fmt (highlight "%s")
       (Ansi.style_string ~param:param.ansi style)
-      (SourceUtils.replace_control ~tab_size:param.tab_size segment)
+      (StringUtils.replace_control ~tab_size:param.tab_size segment)
       (Ansi.reset_string ~param:param.ansi style)
 
   (* Current design:

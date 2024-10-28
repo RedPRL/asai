@@ -4,8 +4,8 @@
  (libraries asai alcotest))
 
 (tests
- (names TestSourceUtils TestText)
- (modules TestSourceUtils TestText)
+ (names TestStringUtils TestText)
+ (modules TestStringUtils TestText)
  (libraries asai alcotest))
 
 (test

@@ -61,7 +61,7 @@ module SourceReader = SourceReader
 (**/**)
 
 (** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
-module SourceUtils = SourceUtils
+module StringUtils = StringUtils
 
 (** The internal flattener that is tightly coupled with {!module:MarkedSource}. This is exposed for internal testing. Absolutely no stability guarantees. *)
 module RangeFlattener = RangeFlattener
