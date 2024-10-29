@@ -11,7 +11,7 @@
     Note: many features are missing and it does not handle [positionEncoding].
 
     @canonical Asai.Lsp.Make *)
-module Make (Message : Asai.MinimumSigs.Message) : sig
+module Make (Message : Asai.Minimum_signatures.Message) : sig
   val start : source:string option
     -> init:(root:string option -> unit)
     -> load_file:(display:(Message.t Asai.Diagnostic.t -> unit) -> string -> unit)

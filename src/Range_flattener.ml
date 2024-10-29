@@ -1,30 +1,30 @@
 open Bwd
 open Bwd.Infix
 
-open MarkedSource
-open SourceMarkerSigs
+open Marked_source
+open Source_marker_sigs
 
 type 'tag block =
   { begin_line_num : int
   ; end_line_num : int
-  ; markers : (Range.position * 'tag marker) list
-  ; line_markers : (int * 'tag) list}
+  ; marks : (Range.position * 'tag mark) list
+  ; line_marks : (int * 'tag) list}
 
 type 'tag t = (Range.source * 'tag block list) list
 
-let dump_block dump_tag fmt {begin_line_num; end_line_num; markers; line_markers} : unit =
+let dump_block dump_tag fmt {begin_line_num; end_line_num; marks; line_marks} : unit =
   Format.fprintf fmt
     begin
       "@[<1>{" ^^
       "begin_line_num=%d;@ " ^^
       "end_line_num=%d;@ " ^^
-      "@[<2>markers=@ @[%a@]@];@ " ^^
+      "@[<2>marks=@ @[%a@]@];@ " ^^
       "@[<2>marked_lines=@,@[%a@]@]" ^^
       "}@]"
     end
     begin_line_num end_line_num
-    (Utils.dump_list (Utils.dump_pair Range.dump_position (dump_marker dump_tag))) markers
-    (Utils.dump_list (Utils.dump_pair Format.pp_print_int dump_tag)) line_markers
+    (Utils.dump_list (Utils.dump_pair Range.dump_position (dump_mark dump_tag))) marks
+    (Utils.dump_list (Utils.dump_pair Format.pp_print_int dump_tag)) line_marks
 
 let dump dump_tag =
   Utils.dump_list @@ Utils.dump_pair Range.dump_source (Utils.dump_list (dump_block dump_tag))
@@ -41,7 +41,7 @@ struct
     Int.compare p1.offset p2.offset
 
   (* Stage 1: group ranges into blocks *)
-  module RangePartitioner :
+  module Range_partitioner :
   sig
     val partition : block_splitting_threshold:int -> (Range.t * Tag.t) list -> unflattened_block list
   end
@@ -90,17 +90,17 @@ struct
       partition_sorted ~block_splitting_threshold @@ Bwd.of_list @@ sort_tagged l
   end
 
-  (* Stage 2: for each block, flatten out ranges into markers *)
-  module BlockFlattener :
+  (* Stage 2: for each block, flatten out ranges into marks *)
+  module Block_flattener :
   sig
-    val flatten : (Range.t * Tag.t) list -> (Range.position * Tag.t marker) list
+    val flatten : (Range.t * Tag.t) list -> (Range.position * Tag.t mark) list
   end
   =
   struct
     type t =
-      { begins : (Range.position * Tag.t marker) bwd
-      ; points : (Range.position * Tag.t marker) bwd
-      ; ends : (Range.position * Tag.t marker) list
+      { begins : (Range.position * Tag.t mark) bwd
+      ; points : (Range.position * Tag.t mark) bwd
+      ; ends : (Range.position * Tag.t mark) list
       }
 
     let add (range, tag) {begins; points; ends} =
@@ -108,45 +108,45 @@ struct
       if b.offset = e.offset then
         {begins; points = points <: (b, Point tag); ends}
       else
-        {begins = begins <: (b, RangeBegin tag); points; ends = (e, RangeEnd tag) :: ends}
+        {begins = begins <: (b, Range_begin tag); points; ends = (e, Range_end tag) :: ends}
 
-    let sort_marker =
-      let marker_order =
+    let sort_marks =
+      let mark_order =
         function
-        | RangeEnd _ -> -1
+        | Range_end _ -> -1
         | Point _ -> 0
-        | RangeBegin _ -> 1
+        | Range_begin _ -> 1
       in
-      let compare_marker m1 m2 = Int.compare (marker_order m1) (marker_order m2) in
-      List.stable_sort (Utils.compare_pair compare_position compare_marker)
+      let compare_mark m1 m2 = Int.compare (mark_order m1) (mark_order m2) in
+      List.stable_sort (Utils.compare_pair compare_position compare_mark)
 
-    let merge_marker {begins; points; ends} =
+    let merge_marks {begins; points; ends} =
       begins @> points @> ends
 
     let flatten l =
-      sort_marker @@ merge_marker @@
+      sort_marks @@ merge_marks @@
       Bwd.fold_right add (Bwd.of_list l) {begins = Emp; points = Emp; ends = []}
   end
 
-  module FileFlattener :
+  module File_flattener :
   sig
     val flatten : block_splitting_threshold:int -> (Range.t * Tag.t) list -> Tag.t block list
   end
   =
   struct
     let flatten_block ({begin_line_num; end_line_num; ranges} : unflattened_block) =
-      let markers = BlockFlattener.flatten ranges in
-      let line_markers =
+      let marks = Block_flattener.flatten ranges in
+      let line_marks =
         List.filter_map
           (function
-            | (_, RangeBegin _) -> None
-            | (p, RangeEnd tag) | (p, Point tag) -> Some (p.Range.line_num, tag))
-          markers
+            | (_, Range_begin _) -> None
+            | (p, Range_end tag) | (p, Point tag) -> Some (p.Range.line_num, tag))
+          marks
       in
-      { begin_line_num; end_line_num; markers; line_markers }
+      { begin_line_num; end_line_num; marks; line_marks }
 
     let flatten ~block_splitting_threshold rs =
-      List.map flatten_block @@ RangePartitioner.partition ~block_splitting_threshold rs
+      List.map flatten_block @@ Range_partitioner.partition ~block_splitting_threshold rs
   end
 
   module Files :
@@ -155,14 +155,14 @@ struct
   end
   =
   struct
-    module FileMap = Map.Make(struct
+    module File_map = Map.Make(struct
         type t = Range.source
         let compare = Stdlib.compare
       end)
 
     let add m ((range, _) as data) =
       m |>
-      FileMap.update (Range.source range) @@ function
+      File_map.update (Range.source range) @@ function
       | None -> Some (Emp <: data)
       | Some rs -> Some (rs <: data)
 
@@ -174,12 +174,12 @@ struct
 
     let flatten ~block_splitting_threshold rs =
       rs
-      |> List.fold_left add FileMap.empty
-      |> FileMap.bindings
+      |> List.fold_left add File_map.empty
+      |> File_map.bindings
       |> List.map
         (fun (src, rs) ->
            let rs = Bwd.to_list rs in
-           (src, priority rs, FileFlattener.flatten ~block_splitting_threshold rs))
+           (src, priority rs, File_flattener.flatten ~block_splitting_threshold rs))
       |> List.stable_sort compare_part
       |> List.map (fun (src, _, part) -> src, part)
   end

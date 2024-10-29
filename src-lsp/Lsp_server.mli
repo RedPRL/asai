@@ -1,15 +1,15 @@
 module L := Lsp.Types
 module RPC := Jsonrpc
 
-module Make (Message : Asai.MinimumSigs.Message) : sig
+module Make (Message : Asai.Minimum_signatures.Message) : sig
   type lsp_error =
-    | DecodeError of string
-    | HandshakeError of string
-    | ShutdownError of string
-    | UnknownRequest of string
-    | UnknownNotification of string
+    | Decode_error of string
+    | Handshake_error of string
+    | Shutdown_error of string
+    | Unknown_request of string
+    | Unknown_notification of string
 
-  exception LspError of lsp_error
+  exception Lsp_error of lsp_error
 
   val recv : unit -> RPC.Packet.t option
   val send : RPC.Packet.t -> unit

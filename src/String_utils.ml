@@ -1,4 +1,4 @@
-include StringUtilsData
+include String_utils_data
 
 exception Invalid_offset of invalid_offset
 exception Invalid_position of invalid_position

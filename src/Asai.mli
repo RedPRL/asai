@@ -28,12 +28,12 @@ module Reporter = Reporter
 (** Generating and handling diagnostics using algebraic effects. The API is optimized for fully structured messages.
 
     @since 0.2.0 *)
-module StructuredReporter = StructuredReporter
+module Structured_reporter = Structured_reporter
 
 (** Signatures that specify the minimum interface for libraries, applications, and handlers to work together.
 
     @since 0.3.0 *)
-module MinimumSigs = MinimumSigs
+module Minimum_signatures = Minimum_signatures
 
 (** {1 Experimental Diagnostic Handlers} *)
 
@@ -43,25 +43,25 @@ module MinimumSigs = MinimumSigs
 module Tty = Tty
 
 (** GitHub Actions workflow commands. *)
-module GitHub = GitHub
+module Github = Github
 
 (** {1 Internals} *)
 
 (** The internals are exposed for convenience, but they are subject to changes between minor versions. *)
 
 (** The definition of highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
-module MarkedSource = MarkedSource
+module Marked_source = Marked_source
 
 (** Turning location information into highlighted text suitable for rendering. You probably do not need this module unless you want to create your own diagnostic handler. *)
-module SourceMarker = SourceMarker
+module Source_marker = Source_marker
 
 (** Reading the source content. It uses memory-mapped I/O for files. You probably do not need this module unless you want to create your own diagnostic handler. *)
-module SourceReader = SourceReader
+module Source_reader = Source_reader
 
 (**/**)
 
 (** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
-module StringUtils = StringUtils
+module String_utils = String_utils
 
 (** The internal flattener that is tightly coupled with {!module:MarkedSource}. This is exposed for internal testing. Absolutely no stability guarantees. *)
-module RangeFlattener = RangeFlattener
+module Range_flattener = Range_flattener

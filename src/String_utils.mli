@@ -1,4 +1,5 @@
-include module type of StringUtilsData
+(** @include *)
+include module type of String_utils_data
 
 (** [find_eol ~line_breaks read (pos, eof)] returns the end position of the first line and the length of the first newline sequence (if any) within the range [\[pos, end)]. If no newlines are found, then [None] is returned as the length.
 

@@ -1,14 +1,14 @@
 (tests
- (names TestSourceMarker TestRangeFlattener)
- (modules TestSourceMarker TestRangeFlattener IntTag)
+ (names Test_source_marker Test_range_flattener)
+ (modules Test_source_marker Test_range_flattener Int_tag)
  (libraries asai alcotest))
 
 (tests
- (names TestStringUtils TestText)
- (modules TestStringUtils TestText)
+ (names Test_string_utils Test_text)
+ (modules Test_string_utils Test_text)
  (libraries asai alcotest))
 
 (test
- (name TestTty)
- (modules TestTty)
+ (name Test_tty)
+ (modules Test_tty)
  (libraries asai))

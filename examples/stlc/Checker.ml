@@ -2,7 +2,7 @@ open Bwd
 open Syntax
 
 module Terminal = Asai.Tty.Make(Reporter.Message)
-module GitHub = Asai.GitHub.Make(Reporter.Message)
+module Github = Asai.Github.Make(Reporter.Message)
 module Server = Asai_lsp.Make(Reporter.Message)
 
 module Elab =
@@ -18,10 +18,10 @@ struct
     match Bwd.find_opt (fun (nm', _) -> String.equal nm nm') ctx with
     | Some (_, tp) -> tp
     | None ->
-      Reporter.fatalf UnboundVariable "variable '%s' is not in scope" nm
+      Reporter.fatalf Unbound_variable "variable '%s' is not in scope" nm
 
   let expected_connective conn tp =
-    Reporter.fatalf TypeError "expected a %s, but got %a" conn pp_tp tp
+    Reporter.fatalf Type_error "expected a %s, but got %a" conn pp_tp tp
 
   let rec equate expected actual =
     Reporter.trace "when equating terms" @@ fun () ->
@@ -35,7 +35,7 @@ struct
     | Nat, Nat ->
       ()
     | _, _ ->
-      Reporter.fatalf TypeError "expected type %a, but got %a" pp_tp expected pp_tp actual
+      Reporter.fatalf Type_error "expected type %a, but got %a" pp_tp expected pp_tp actual
 
   let rec chk (tm : tm) (tp : tp) : unit =
     Reporter.tracef ?loc:tm.loc "when checking it against %a" Syntax.pp_tp tp @@ fun () ->
@@ -92,7 +92,7 @@ struct
         | tp ->
           expected_connective "pair type" tp
       end
-    | NatRec (z, s, scrut) ->
+    | Nat_rec (z, s, scrut) ->
       begin
         let mot = syn z in
         chk s (Fun (mot, mot));
@@ -100,7 +100,7 @@ struct
         mot
       end
     | _ ->
-      Reporter.fatal TypeError "unable to infer its type"
+      Reporter.fatal Type_error "unable to infer its type"
 end
 
 module Driver =
@@ -111,16 +111,16 @@ struct
     let (tm, tp) =
       try Grammar.defn Lex.token lexbuf with
       | Lex.SyntaxError tok ->
-        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) ParsingError "unrecognized token %S" tok
+        Reporter.fatalf ~loc:(Asai.Range.of_lexbuf lexbuf) Parsing_error "unrecognized token %S" tok
       | Grammar.Error ->
-        Reporter.fatal ~loc:(Asai.Range.of_lexbuf lexbuf) ParsingError "failed to parse"
+        Reporter.fatal ~loc:(Asai.Range.of_lexbuf lexbuf) Parsing_error "failed to parse"
     in Elab.Reader.run ~env:Emp @@ fun () -> Elab.chk tm tp
 
   let load mode filepath =
     let display : Reporter.Message.t Asai.Diagnostic.t -> unit =
       match mode with
       | `Normal -> fun d -> Terminal.display d
-      | `GitHub -> fun d -> GitHub.print d
+      | `Github -> fun d -> Github.print d
     in
     Reporter.run ~emit:display ~fatal:(fun d -> display d; exit 1) @@ fun () ->
     load_file filepath
@@ -135,5 +135,5 @@ end
 let () =
   match Sys.argv.(1) with
   | "--server" -> Driver.server ()
-  | "--github" -> Driver.load `GitHub Sys.argv.(2)
+  | "--github" -> Driver.load `Github Sys.argv.(2)
   | filepath -> Driver.load `Normal filepath

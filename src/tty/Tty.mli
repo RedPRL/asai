@@ -5,7 +5,7 @@
 (** {1 Display} *)
 
 (** This module provides functions to display or interact with diagnostics in UNIX terminals. *)
-module Make (Message : MinimumSigs.Message) : sig
+module Make (Message : Minimum_signatures.Message) : sig
 
   (** [display d] prints the diagnostic [d] to the standard output, using terminal control characters for formatting. A message will look like this (but with coloring):
 
@@ -30,8 +30,8 @@ module Make (Message : MinimumSigs.Message) : sig
       @param tab_size The number of spaces that should be used to replace a horizontal tab. Note that a horizontal tab is always expanded to the same number of spaces. The result should still be visually appealing as long as horizontal tabs are only used at the beginning of lines. The default value is [8].
       @param debug Whether to enable the debug mode that performs expensive extra checking. The default is [false].
 
-      @raise Invalid_argument if [use_color] is explicitly set to [true] but [use_ansi] is explicitly set to [false], or if [tab_size < 0], or if invalid ranges are detected. When the debug mode is enabled, detection of invalid ranges will raise the more structured exception {!exception:SourceMarker.Invalid_range} instead.
-      @raise Invalid_range if the debug mode is enabled and invalid ranges are detected. See {!exception:SourceMarker.Invalid_range} for the detailed listing of all possible errors being reported.
+      @raise Invalid_argument if [use_color] is explicitly set to [true] but [use_ansi] is explicitly set to [false], or if [tab_size < 0], or if invalid ranges are detected. When the debug mode is enabled, detection of invalid ranges will raise the more structured exception {!exception:Source_marker.Invalid_range} instead.
+      @raise Invalid_range if the debug mode is enabled and invalid ranges are detected. See {!exception:Source_marker.Invalid_range} for the detailed listing of all possible errors being reported.
 
       @see <https://no-color.org/> for the [NO_COLOR] specification
   *)

@@ -1,22 +1,19 @@
-(** Special positions. *)
-type special_position =
-  | End_of_line
-  | End_of_file
+type special_position = [`End_of_line | `End_of_file]
 
-(** A marker is a delimiter of a range or a specific point. *)
-type 'tag marker =
-  | RangeBegin of 'tag
-  | RangeEnd of 'tag
+(** A mark is a delimiter of a range or a specific point. *)
+type 'tag mark =
+  | Range_begin of 'tag
+  | Range_end of 'tag
   | Point of 'tag
 
-(** A token is either a string or a marker. *)
+(** A token is either a string or a mark. *)
 type 'tag token =
   | String of string
-  | Marker of special_position option * 'tag marker
+  | Mark of special_position option * 'tag mark
 
 (** A line is a list of {!type:segment}s along with tags. *)
 type 'tag line =
-  { markers : 'tag list (** All tags in this line *)
+  { marks : 'tag list (** All tags in this line *)
   ; tokens : 'tag token list
   }
 

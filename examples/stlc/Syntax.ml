@@ -10,7 +10,7 @@ and tm_ =
   | Snd of tm
   | Lit of int
   | Suc of tm
-  | NatRec of tm * tm * tm
+  | Nat_rec of tm * tm * tm
 
 and tp =
   | Fun of tp * tp

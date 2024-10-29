@@ -1,7 +1,7 @@
 (** {1 Types} *)
 
 (* @include *)
-include module type of DiagnosticData
+include module type of Diagnostic_data
 
 (** {1 Constructing Diagnostics} *)
 

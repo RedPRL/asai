@@ -51,4 +51,4 @@ term_:
   | LPR; SUC; a = term; RPR
     { Suc a }
   | LPR; NAT_REC; z = term; s = term; scrut = term; RPR
-    { NatRec(z, s, scrut) }
+    { Nat_rec(z, s, scrut) }

@@ -8,7 +8,7 @@ let string_of_severity : Diagnostic.severity -> string =
   | Error -> "error"
   | Bug -> "bug"
 
-module SM = SourceMarker.Make(TtyTag)
+module SM = Source_marker.Make(TtyTag)
 
 (* calculating the width of line numbers *)
 
@@ -53,7 +53,7 @@ let render_code ~param ~severity fmt short_code =
 
 (* marked source *)
 
-module MarkedSourceRenderer :
+module Marked_source_renderer :
 sig
   type param =
     {
@@ -63,7 +63,7 @@ sig
       ansi : Ansi.param;
     }
 
-  val render : param:param -> Format.formatter -> TtyTag.t MarkedSource.t -> unit
+  val render : param:param -> Format.formatter -> TtyTag.t Marked_source.t -> unit
 end
 =
 struct
@@ -97,29 +97,23 @@ struct
     let style = TtyStyle.highlight ~param:param.ansi param.severity tag in
     Format.fprintf fmt (highlight "%s")
       (Ansi.style_string ~param:param.ansi style)
-      (StringUtils.replace_control ~tab_size:param.tab_size segment)
+      (String_utils.replace_control ~tab_size:param.tab_size segment)
       (Ansi.reset_string ~param:param.ansi style)
 
-  (* Current design:
-
-     ‹let x◂POS₀▸ = 1› in let ‹x› = «1 + ‹x›»◂POS₁▸
-     ‹let x◂POS₀▸ = 1›₀ in let ‹x›₁ = «1 + ‹x›₂»◂POS₁▸
-  *)
-
-  let render_line ~line_num ~param fmt init_tag_set MarkedSource.{tokens; markers} =
+  let render_line ~line_num ~param fmt init_tag_set Marked_source.{tokens; marks} =
     let go set =
       function
-      | MarkedSource.String s ->
+      | Marked_source.String s ->
         render_styled_segment ~param fmt (TtyTagSet.prioritized set) s; set
-      | MarkedSource.Marker (_, RangeEnd t) ->
+      | Marked_source.Mark (_, Range_end t) ->
         TtyTagSet.remove t set
-      | MarkedSource.Marker (Some End_of_file, Point t) ->
+      | Marked_source.Mark (Some `End_of_file, Point t) ->
         render_styled_segment ~param fmt (Some t) "‹EOF›"; set
-      | MarkedSource.Marker (Some End_of_line, Point t) ->
+      | Marked_source.Mark (Some `End_of_line, Point t) ->
         render_styled_segment ~param fmt (Some t) "‹EOL›"; set
-      | MarkedSource.Marker (None, Point t) ->
+      | Marked_source.Mark (None, Point t) ->
         render_styled_segment ~param fmt (Some t) "‹POS›"; set
-      | MarkedSource.Marker (_, RangeBegin t) ->
+      | Marked_source.Mark (_, Range_begin t) ->
         TtyTagSet.add t set
     in
     Format.fprintf fmt (" " ^^ highlight "%*d |" ^^ " ")
@@ -128,7 +122,7 @@ struct
       (Ansi.reset_string ~param:param.ansi TtyStyle.fringe);
     let end_tag_set = List.fold_left go init_tag_set tokens in
     Format.fprintf fmt "@.";
-    List.iter (render_line_marker ~param fmt) markers;
+    List.iter (render_line_marker ~param fmt) marks;
     end_tag_set
 
   let render_lines ~param ~begin_line_num fmt lines =
@@ -139,10 +133,10 @@ struct
       (begin_line_num, TtyTagSet.empty)
       lines
 
-  let render_block ~param fmt MarkedSource.{begin_line_num; end_line_num=_; lines} =
+  let render_block ~param fmt Marked_source.{begin_line_num; end_line_num=_; lines} =
     render_lines ~param ~begin_line_num fmt lines
 
-  let render_part ~param fmt MarkedSource.{source; blocks} =
+  let render_part ~param fmt Marked_source.{source; blocks} =
     render_source_header fmt source;
     List.iter (render_block ~param fmt) blocks
 
@@ -158,7 +152,7 @@ let render_unlocated_tag ~severity ~ansi fmt ((_, text) as tag) =
     text
     (Ansi.reset_string ~param:ansi style)
 
-module DiagnosticRenderer :
+module Diagnostic_renderer :
 sig
   type param =
     {
@@ -183,11 +177,11 @@ struct
     }
 
   let line_number_width marked_source : int =
-    let max_line_number_block MarkedSource.{end_line_num; _} = end_line_num in
-    let max_line_number_part MarkedSource.{blocks; _} =
+    let max_line_number_block Marked_source.{end_line_num; _} = end_line_num in
+    let max_line_number_part Marked_source.{blocks; _} =
       Utils.maximum @@ List.map max_line_number_block blocks
     in
-    let max_line_number (parts : _ MarkedSource.t) =
+    let max_line_number (parts : _ Marked_source.t) =
       Utils.maximum @@ List.map max_line_number_part parts
     in
     String.length @@ Int.to_string @@ max_line_number marked_source
@@ -206,8 +200,8 @@ struct
       SM.mark ~block_splitting_threshold:param.block_splitting_threshold ~debug:param.debug located_tags
     in
     let line_number_width = line_number_width marked_source in
-    let param = {MarkedSourceRenderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
-    MarkedSourceRenderer.render ~param fmt marked_source;
+    let param = {Marked_source_renderer.severity = severity; tab_size = param.tab_size; line_number_width; ansi = param.ansi} in
+    Marked_source_renderer.render ~param fmt marked_source;
     List.iter (render_unlocated_tag ~severity:param.severity ~ansi:param.ansi fmt) unlocated_tags
 
   let render_backtrace ~param ~severity fmt backtrace =
@@ -220,16 +214,16 @@ struct
     render_textloc ~param ~severity ~extra_remarks fmt explanation;
 end
 
-module Make (Message : MinimumSigs.Message) =
+module Make (Message : Minimum_signatures.Message) =
 struct
   let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
       ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) ?(debug=false) d =
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in
     let d = Diagnostic.map Message.short_code d in
     let ansi = Ansi.Test.guess ?use_ansi ?use_color output in
-    let param = {DiagnosticRenderer.debug; line_breaks; block_splitting_threshold; tab_size; ansi} in
+    let param = {Diagnostic_renderer.debug; line_breaks; block_splitting_threshold; tab_size; ansi} in
     let fmt = Format.formatter_of_out_channel output in
-    SourceReader.run @@ fun () ->
-    DiagnosticRenderer.render_diagnostic ~param fmt d;
+    Source_reader.run @@ fun () ->
+    Diagnostic_renderer.render_diagnostic ~param fmt d;
     Format.pp_print_newline fmt ()
 end

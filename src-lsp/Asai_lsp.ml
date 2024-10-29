@@ -1,15 +1,15 @@
 module L = Lsp.Types
 module RPC = Jsonrpc
 
-module Make (Message : Asai.MinimumSigs.Message) =
+module Make (Message : Asai.Minimum_signatures.Message) =
 struct
-  module Server = LspServer.Make(Message)
+  module Server = Lsp_server.Make(Message)
   open Server
 
   let unwrap opt err =
     match opt with
     | Some opt -> opt
-    | None -> raise @@ LspError err
+    | None -> raise @@ Lsp_error err
 
   let print_exn exn =
     let msg = Printexc.to_string exn
@@ -47,7 +47,7 @@ struct
     let positionEncoding =
       L.PositionEncodingKind.UTF8
     in
-    (* [FIXME: Reed M, 09/06/2022] The current verison of the LSP library doesn't support 'positionEncoding' *)
+    (* [FIXME: Reed M, 09/06/2022] The current version of the LSP library doesn't support 'positionEncoding' *)
     L.ServerCapabilities.create
       ~textDocumentSync
       ~hoverProvider
@@ -75,7 +75,7 @@ struct
   let initialize () =
     let (id, req) =
       unwrap (Request.recv ()) @@
-      HandshakeError "Initialization must begin with a request."
+      Handshake_error "Initialization must begin with a request."
     in
     match req with
     | E (Initialize init_params as init_req) ->
@@ -90,7 +90,7 @@ struct
         Request.respond id init_req resp;
         let notif =
           unwrap (Notification.recv ()) @@
-          HandshakeError "Initialization must complete with an initialized notification."
+          Handshake_error "Initialization must complete with an initialized notification."
         in
         match notif with
         | Initialized ->
@@ -99,22 +99,22 @@ struct
           set_root root;
           Eio.traceln "Initialized!"
         | _ ->
-          raise @@ LspError (HandshakeError "Initialization must complete with an initialized notification.")
+          raise @@ Lsp_error (Handshake_error "Initialization must complete with an initialized notification.")
       end
     | (E _) ->
-      raise @@ LspError (HandshakeError "Initialization must begin with an initialize request.")
+      raise @@ Lsp_error (Handshake_error "Initialization must begin with an initialize request.")
 
   (** Perform the LSP shutdown sequence.
       See https://microsoft.github.io/language-server-protocol/specifications/specification-current/#exit *)
   let shutdown () =
     let notif =
       unwrap (Notification.recv ()) @@
-      ShutdownError "No requests can be recieved after a shutdown request."
+      Shutdown_error "No requests can be recieved after a shutdown request."
     in match notif with
     | Exit ->
       ()
     | _ ->
-      raise @@ LspError (ShutdownError "The only notification that can be recieved after a shutdown request is exit.")
+      raise @@ Lsp_error (Shutdown_error "The only notification that can be recieved after a shutdown request is exit.")
 
   (** {1 Main Event Loop} *)
 
