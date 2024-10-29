@@ -3,15 +3,15 @@ module Text = Text
 module Loctext = Loctext
 module Diagnostic = Diagnostic
 module Reporter = Reporter
-module StructuredReporter = StructuredReporter
-module MinimumSigs = MinimumSigs
+module Structured_reporter = Structured_reporter
+module Minimum_signatures = Minimum_signatures
 
 module Tty = Tty
-module GitHub = GitHub
+module Github = Github
 
-module MarkedSource = MarkedSource
-module SourceMarker = SourceMarker
-module SourceReader = SourceReader
+module Marked_source = Marked_source
+module Source_marker = Source_marker
+module Source_reader = Source_reader
 
-module StringUtils = StringUtils
-module RangeFlattener = RangeFlattener
+module String_utils = String_utils
+module Range_flattener = Range_flattener

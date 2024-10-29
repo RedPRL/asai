@@ -7,12 +7,12 @@ module Lsp_Diagnostic = Lsp.Types.Diagnostic
 module Request = Lsp.Client_request
 module Notification = Lsp.Client_notification
 
-module Make (Message : Asai.MinimumSigs.Message) =
+module Make (Message : Asai.Minimum_signatures.Message) =
 struct
   type diagnostic = Message.t Asai.Diagnostic.t
 
   type server = {
-    lsp_io : LspEio.io;
+    lsp_io : Lsp_eio.io;
     should_shutdown : bool;
     source : string option;
     init:root : string option -> unit;
@@ -22,49 +22,49 @@ struct
   module State = Algaeff.State.Make(struct type t = server end)
 
   type lsp_error =
-    | DecodeError of string
-    | HandshakeError of string
-    | ShutdownError of string
-    | UnknownRequest of string
-    | UnknownNotification of string
+    | Decode_error of string
+    | Handshake_error of string
+    | Shutdown_error of string
+    | Unknown_request of string
+    | Unknown_notification of string
 
-  exception LspError of lsp_error
+  exception Lsp_error of lsp_error
 
   let () = Printexc.register_printer @@
     function
-    | LspError (DecodeError err) ->
+    | Lsp_error (Decode_error err) ->
       Some (Format.asprintf "Lsp Error: Couldn't decode %s" err)
-    | LspError (HandshakeError err) ->
+    | Lsp_error (Handshake_error err) ->
       Some (Format.asprintf "Lsp Error: Invalid initialization handshake %s" err)
-    | LspError (ShutdownError err) ->
+    | Lsp_error (Shutdown_error err) ->
       Some (Format.asprintf "Lsp Error: Invalid shutdown sequence %s" err)
-    | LspError (UnknownRequest err) ->
+    | Lsp_error (Unknown_request err) ->
       Some (Format.asprintf "Lsp Error: Unknown request %s" err)
-    | LspError (UnknownNotification err) ->
+    | Lsp_error (Unknown_notification err) ->
       Some (Format.asprintf "Lsp Error: Unknown notification %s" err)
     | _ -> None
 
   let recv () =
     let server = State.get () in
-    LspEio.recv server.lsp_io
+    Lsp_eio.recv server.lsp_io
 
   let send packet =
     let server = State.get () in
-    LspEio.send server.lsp_io packet
+    Lsp_eio.send server.lsp_io packet
 
   let broadcast notif =
     let msg = Broadcast.to_jsonrpc notif in
     send (RPC.Packet.Notification msg)
 
   let render_lsp_related_info (uri : L.DocumentUri.t) (message : Asai.Loctext.t) : L.DiagnosticRelatedInformation.t =
-    let range = LspShims.Loc.lsp_range_of_range message.loc in
+    let range = Lsp_shims.Loc.lsp_range_of_range message.loc in
     let location = L.Location.create ~uri ~range in
     let message = Asai.Text.to_string message.value in
     L.DiagnosticRelatedInformation.create ~location ~message
 
   let render_lsp_diagnostic (uri : L.DocumentUri.t) (diag : diagnostic) : Lsp_Diagnostic.t =
-    let range = LspShims.Loc.lsp_range_of_range diag.explanation.loc in
-    let severity = LspShims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
+    let range = Lsp_shims.Loc.lsp_range_of_range diag.explanation.loc in
+    let severity = Lsp_shims.Diagnostic.lsp_severity_of_severity @@ diag.severity in
     let code = `String (Message.short_code diag.message) in
     let source = (State.get ()).source in
     let message = Asai.Text.to_string diag.explanation.value in
@@ -127,7 +127,7 @@ struct
       function
       | Initialize _ ->
         let err = "Server can only recieve a single initialization request." in
-        raise @@ LspError (HandshakeError err)
+        raise @@ Lsp_error (Handshake_error err)
       | Shutdown ->
         initiate_shutdown ()
       | CodeAction params ->
@@ -135,7 +135,7 @@ struct
       | TextDocumentHover params ->
         hover params
       | _ ->
-        raise @@ LspError (UnknownRequest mthd)
+        raise @@ Lsp_error (Unknown_request mthd)
 
     let handle (msg : RPC.Request.t) =
       Eio.traceln "Request: %s@." msg.method_;
@@ -145,7 +145,7 @@ struct
         let json = Request.yojson_of_result r resp in
         RPC.Response.ok msg.id json
       | Error err ->
-        raise (LspError (DecodeError err))
+        raise (Lsp_error (Decode_error err))
 
     let recv () =
       Option.bind (recv ()) @@
@@ -154,7 +154,7 @@ struct
         begin
           match Request.of_jsonrpc req with
           | Ok packed -> Some (req.id, packed)
-          | Error err -> raise @@ LspError (DecodeError err)
+          | Error err -> raise @@ Lsp_error (Decode_error err)
         end
       | _ -> None
 
@@ -175,7 +175,7 @@ struct
       | DidSaveTextDocument doc ->
         load_file doc.textDocument.uri
       | _ ->
-        raise @@ LspError (UnknownNotification mthd)
+        raise @@ Lsp_error (Unknown_notification mthd)
 
     let handle (msg : RPC.Notification.t) =
       Eio.traceln "Request: %s@." msg.method_;
@@ -183,7 +183,7 @@ struct
       | Ok notif ->
         dispatch msg.method_ notif
       | Error err ->
-        raise @@ LspError (DecodeError err)
+        raise @@ Lsp_error (Decode_error err)
 
     let recv () =
       Option.bind (recv ()) @@
@@ -192,13 +192,13 @@ struct
         begin
           match Notification.of_jsonrpc msg with
           | Ok notif -> Some notif
-          | Error err -> raise @@ LspError (DecodeError err)
+          | Error err -> raise @@ Lsp_error (Decode_error err)
         end
       | _ -> None
   end
 
   let run env ?source ~init ~load_file k =
-    let lsp_io = LspEio.init env in
+    let lsp_io = Lsp_eio.init env in
     let init = {
       lsp_io;
       source;

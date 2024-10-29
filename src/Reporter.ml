@@ -1,7 +1,7 @@
 open Bwd
 open Bwd.Infix
 
-include ReporterSigs
+include Reporter_sigs
 
 module Make (Message : Message) : S with module Message := Message =
 struct

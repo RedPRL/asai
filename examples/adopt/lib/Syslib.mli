@@ -1,2 +1,2 @@
-module Reporter : Asai.MinimumSigs.Reporter
+module Reporter : Asai.Minimum_signatures.Reporter
 module Operations = Operations

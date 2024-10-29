@@ -3,7 +3,7 @@ type bigstring = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.
 module M = Map.Make (String)
 module E = Algaeff.State.Make (struct type t = (Unix.file_descr * bigstring) M.t end)
 
-module FileInternal =
+module File_internal =
 struct
   let load file_path =
     match M.find_opt file_path (E.get ()) with
@@ -32,7 +32,7 @@ type source = File of bigstring | String of string
 
 let load : Range.source -> _ =
   function
-  | `File file_path -> File (snd @@ FileInternal.load file_path)
+  | `File file_path -> File (snd @@ File_internal.load file_path)
   | `String {content; _} -> String content
 
 let length =
@@ -47,4 +47,4 @@ let[@inline] unsafe_get res i =
 
 let run f =
   E.run ~init:M.empty @@ fun () ->
-  Fun.protect ~finally:FileInternal.close_all f
+  Fun.protect ~finally:File_internal.close_all f

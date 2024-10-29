@@ -1,65 +1,65 @@
 open Asai
 
-module SM = SourceMarker.Make(IntTag)
+module SM = Source_marker.Make(Int_tag)
 
-let test_marked_source = Alcotest.of_pp (MarkedSource.dump IntTag.dump)
+let test_marked_source = Alcotest.of_pp (Marked_source.dump Int_tag.dump)
 
 let single_line mode eol () =
   let source = `String {Range.title = None; content = "aaabbbcccdddeee" ^ eol} in
   let begin_of_line1 : Range.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let range1 = Range.make ({begin_of_line1 with offset = 3}, {begin_of_line1 with offset = 9}), (1, "1") in
   let range2 = Range.make ({begin_of_line1 with offset = 6}, {begin_of_line1 with offset = 12}), (2, "2") in
-  let expected : _ MarkedSource.t =
+  let expected : _ Marked_source.t =
     [{source;
       blocks =
         [{begin_line_num = 1;
           end_line_num = 1;
           lines =
-            [{markers = [(1, "1"); (2, "2")];
+            [{marks = [(1, "1"); (2, "2")];
               tokens =
                 [String "aaa";
-                 Marker (None, RangeBegin (1, "1"));
+                 Mark (None, Range_begin (1, "1"));
                  String "bbb";
-                 Marker (None, RangeBegin (2, "2"));
+                 Mark (None, Range_begin (2, "2"));
                  String "ccc";
-                 Marker (None, RangeEnd (1, "1"));
+                 Mark (None, Range_end (1, "1"));
                  String "ddd";
-                 Marker (None, RangeEnd (2, "2"));
+                 Mark (None, Range_end (2, "2"));
                  String "eee";
                 ]}]}
         ]}
     ] in
   let actual = SM.mark ~line_breaks:mode [range1; range2] in
-  Alcotest.(check test_marked_source) "MarkedSource is correct" expected actual
+  Alcotest.(check test_marked_source) "Marked_source is correct" expected actual
 
 let multi_lines_with_ls () =
   let source = `String {Range.title = None; content = "aabbbbb\u{2028}bbbbccc"} in
   let begin_of_line1 : Range.position = {source; offset = 0; start_of_line = 0; line_num = 1} in
   let begin_of_line2 : Range.position = {source; offset = 10; start_of_line = 10; line_num = 2} in
   let range = Range.make ({begin_of_line1 with offset = 2}, {begin_of_line2 with offset = 14}), (1, "1") in
-  let expected : _ MarkedSource.t =
+  let expected : _ Marked_source.t =
     [{source;
       blocks =
         [{begin_line_num = 1;
           end_line_num = 2;
           lines =
-            [{markers=[];
+            [{marks=[];
               tokens=
                 [String "aa";
-                 Marker (None, RangeBegin (1, "1"));
+                 Mark (None, Range_begin (1, "1"));
                  String "bbbbb";
                 ]};
-             {markers=[(1, "1")];
+             {marks=[(1, "1")];
               tokens=
                 [String "bbbb";
-                 Marker (None, RangeEnd (1, "1"));
+                 Mark (None, Range_end (1, "1"));
                  String "ccc";
                 ]}]}
         ]}
     ]
   in
   let actual = SM.mark ~line_breaks:`Unicode [range] in
-  Alcotest.(check test_marked_source) "MarkedSource is correct" expected actual
+  Alcotest.(check test_marked_source) "Marked_source is correct" expected actual
 
 let multi_lines () =
   let source =
@@ -96,65 +96,65 @@ ggggghh
       Range.make (begin_of_line15, {begin_of_line15 with offset = 51+5}), (16, "5");
     ]
   in
-  let expected : _ MarkedSource.t =
+  let expected : _ Marked_source.t =
     [{source;
       blocks=
         [{begin_line_num=2;
           end_line_num=9;
           lines=
-            [{markers=[];
+            [{marks=[];
               tokens=
                 [String "aa";
-                 Marker (None, RangeBegin (1, "2"));
+                 Mark (None, Range_begin (1, "2"));
                  String "bbbbb"]};
-             {markers=[];
+             {marks=[];
               tokens=
                 [String "bbbbbbb"]};
-             {markers=[(2, "1"); (1, "2")];
+             {marks=[(2, "1"); (1, "2")];
               tokens=
                 [String "b";
-                 Marker (None, RangeBegin (2, "1"));
+                 Mark (None, Range_begin (2, "1"));
                  String "*cc";
-                 Marker (None, RangeEnd (2, "1"));
-                 Marker (None, RangeEnd (1, "2"));
+                 Mark (None, Range_end (2, "1"));
+                 Mark (None, Range_end (1, "2"));
                  String "ddd"]};
-             {markers=[];
+             {marks=[];
               tokens=
                 [String "1"]};
-             {markers=[];
+             {marks=[];
               tokens=
                 [String "2"]};
-             {markers=[];
+             {marks=[];
               tokens=
                 [String "3"]};
-             {markers=[];
+             {marks=[];
               tokens=
                 [String "4"]};
-             {markers=[(8, "4"); (4, "3")];
+             {marks=[(8, "4"); (4, "3")];
               tokens=
                 [String "ee";
-                 Marker (None, RangeBegin (4, "3"));
+                 Mark (None, Range_begin (4, "3"));
                  String "++";
-                 Marker (None, RangeBegin (8, "4"));
+                 Mark (None, Range_begin (8, "4"));
                  String "fff";
-                 Marker (Some End_of_line, RangeEnd (8, "4"));
-                 Marker (Some End_of_line, RangeEnd (4, "3"))]}]};
+                 Mark (Some `End_of_line, Range_end (8, "4"));
+                 Mark (Some `End_of_line, Range_end (4, "3"))]}]};
          {begin_line_num=15;
           end_line_num=15;
           lines=
-            [{markers=[(16, "5")];
+            [{marks=[(16, "5")];
               tokens=
-                [Marker (None, RangeBegin (16, "5"));
+                [Mark (None, Range_begin (16, "5"));
                  String "ggggg";
-                 Marker (None, RangeEnd (16, "5"));
+                 Mark (None, Range_end (16, "5"));
                  String "hh"]}]}]}]
   in
   let actual = SM.mark ~line_breaks:`Traditional ~block_splitting_threshold:5 ranges in
-  Alcotest.(check test_marked_source) "MarkedSource is correct" expected actual
+  Alcotest.(check test_marked_source) "Marked_source is correct" expected actual
 
 let () =
   let open Alcotest in
-  Alcotest.run "SourceMarker" [
+  Alcotest.run "Source_marker" [
     "single-line",
     [
       test_case "traditional, empty" `Quick (single_line `Traditional "");

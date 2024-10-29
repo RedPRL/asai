@@ -1,4 +1,4 @@
-include StructuredReporterSigs
+include Structured_reporter_sigs
 
 module Make (Message : Message) : S with module Message := Message =
 struct

@@ -1,6 +1,6 @@
 open Bwd
 
-include DiagnosticData
+include Diagnostic_data
 
 let of_loctext ?(backtrace=Bwd.Emp) ?(extra_remarks=[]) severity message explanation : _ t =
   { severity
