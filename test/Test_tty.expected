@@ -238,98 +238,98 @@
 
  ￫ bug[hello]
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ this is a bug
 
  ￫ error[hello]
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ this is an error
 
  ￫ warning[hello]
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ this is a warning
 
  ￫ info[hello]
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ this is an info
 
  ￫ hint[hello]
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ this is a hint
 
  ￫ warning[hello]
  ꭍ ￮ when peaking into the abyss
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ hello from here
 
  ￫ warning[hello]
  ╭ ￮ when peaking into the abyss
  ╯ ￮ when peaking into the deep abyss
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ hello from here
 
  ￫ warning[hello]
  ╭ ￭ /path/to/file.cool
- ┆ 1 | aaaaaaaaaa
+ ┆ 1 | a«aaaaaaaaa
  ┆ 2 | bbbbbbbbbb
- ┆ 3 | cccccccccc
+ ┆ 3 | cccc»cccccc
  ╯   ^ when stepping into the abyss
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ hello from here
 
  ￫ info[hello]
  ╭ ￭ /path/to/file.cool
- ┆ 1 | aaaaaaaaaa
+ ┆ 1 | a«aaaaaaaaa
  ┆ 2 | bbbbbbbbbb
- ┆ 3 | cccccccccc
+ ┆ 3 | cccc»cccccc
  ┆   ^ when stepping into the abyss
  ┆ ￭ /path/to/file.cool
- ┆ 1 | aaaaaaaaaa
+ ┆ 1 | a«aaaaaaaaa
  ┆ 2 | bbbbbbbbbb
- ┆ 3 | cccccccccc
+ ┆ 3 | cccc»cccccc
  ╯   ^ when stepping into the deep abyss
  ￭ /path/to/file.cool
- 1 | aaaaaaaaaa
+ 1 | aaa«aaaaaaa
  2 | bbbbbbbbbb
- 3 | cccccccccc
+ 3 | cccc»cccccc
    ^ hello from here
 
  ￫ warning[hello]
-  1 | aaaaaaaaaa
-  2 | bbbbbbbbbb
+  1 | aaa«aaaaaaa
+  2 | b»bb«bbbb»b«b»b
     ^ message 6
     ^ this is the main message
     ^ message 5
-  3 | cccccccccc
+  3 | cccc«c»ccccc
     ^ message 4
  ￭ /path/to/file.cool
-  1 | aaaaaaaaaa
-  2 | bbbbbbbbbb
+  1 | aaa««aaaaaaa
+  2 | b»bbbbbbbbb
     ^ message 7
-  3 | cccccccccc
+  3 | cccc»cccccc
     ^ message 2
  10 | ‹POS›jjjjjjjjjj
     ^ message 8

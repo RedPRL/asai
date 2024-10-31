@@ -17,12 +17,14 @@ type marker =
      ]
   -> string
 
-let default_marker ~ansi:_ _ =
-  function
-  | `Range_begin | `Range_end _ -> ""
-  | `Point Some `End_of_line -> "‹EOL›"
-  | `Point Some `End_of_file -> "‹EOF›"
-  | `Point None -> "‹POS›"
+let default_marker ~ansi _ mark =
+  match ansi, mark with
+  | `Disabled, `Range_begin -> "«"
+  | `Disabled, `Range_end _ -> "»"
+  | (`Enabled_with_color | `Enabled_without_color), (`Range_begin | `Range_end _) -> ""
+  | _, `Point Some `End_of_line -> "‹EOL›"
+  | _, `Point Some `End_of_file -> "‹EOF›"
+  | _, `Point None -> "‹POS›"
 
 module SM = Source_marker.Make(Tty_tag)
 

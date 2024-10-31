@@ -6,7 +6,13 @@
 
 (** {2 Custom markers} *)
 
-(** The type of custom marker functions. The output is the string to visualize the mark within the source text. *)
+(** The type of custom marker functions. A marker function takes the following three arguments:
+    + [ansi]: whether ANSI sequences are enabled, and if so, whether colors are used.
+    + The mark's target message: [`Main_message] is the main message, and [`Extra_remark i] is the [i]th extra remark in the diagnostic.
+    + Whether the mark indicates the start or end of a non-empty range, or the location of a point (an empty range), and whether the mark is at the end of a line or a file.
+    The output is the string to visualize the mark within the source text.
+
+    @since 0.4.0 *)
 type marker =
   ansi:[ `Enabled_with_color | `Enabled_without_color | `Disabled ]
   -> [ `Main_message | `Extra_remark of int ]
@@ -16,7 +22,7 @@ type marker =
      ]
   -> string
 
-(** The default marker. Currently, it transforms point marks into [‹POS›], [‹EOL›], or [‹EOF›] (depending on whether they are at the end of a line or a file) and ignores all range marks. This function is subject to change; future versions may display range marks when [use_ansi] is false.
+(** The default marker. Currently, it visualizes point marks into ‹POS›, ‹EOL›, or ‹EOF› (depending on whether they are at the end of a line or a file) and range marks as "«" and "»" when ANSI sequences are disabled.
 
     @since 0.4.0 *)
 val default_marker : marker
@@ -53,6 +59,7 @@ module Make (Message : Minimum_signatures.Message) : sig
       @raise Invalid_argument if [use_color] is explicitly set to [true] but [use_ansi] is explicitly set to [false], or if [tab_size < 0], or if invalid ranges are detected. When the debug mode is enabled, detection of invalid ranges will raise the more structured exception {!exception:Source_marker.Invalid_range} instead.
       @raise Invalid_range if the debug mode is enabled and invalid ranges are detected. See {!exception:Source_marker.Invalid_range} for the detailed listing of all possible errors being reported.
 
+      @before 0.4.0 The optional parameter [marker] was not present.
       @see <https://no-color.org/> for the [NO_COLOR] specification
   *)
   val display : ?output:out_channel -> ?use_ansi:bool -> ?use_color:bool -> ?show_backtrace:bool -> ?marker:marker -> ?line_breaks:[`Unicode | `Traditional] -> ?block_splitting_threshold:int -> ?tab_size:int -> ?debug:bool -> Message.t Diagnostic.t -> unit
