@@ -1,7 +1,4 @@
-type param =
-  { enabled : bool
-  ; color : bool
-  }
+type param = [ `Enabled_with_color | `Enabled_without_color | `Disabled ]
 
 type color = [
   | `Black
@@ -70,23 +67,21 @@ let not_color : attr -> bool =
 let raw_style_string st : string =
   String.concat "" ["\x1b["; String.concat ";" (List.map code_of_attr st); "m"]
 
+let filter_attrs ~param st =
+  match param with
+  | `Disabled -> []
+  | `Enabled_with_color -> st
+  | `Enabled_without_color -> List.filter not_color st
+
 let style_string ~param st =
-  match param.enabled with
-  | false -> ""
-  | _ ->
-    let st = if param.color then st else List.filter not_color st in
-    match st with
-    | [] -> ""
-    | _ -> raw_style_string st
+  match filter_attrs ~param st with
+  | [] -> ""
+  | _ -> raw_style_string st
 
 let reset_string ~param st =
-  match param.enabled with
-  | false -> ""
-  | _ ->
-    let st = if param.color then st else List.filter not_color st in
-    match st with
-    | [] -> ""
-    | _ -> raw_style_string []
+  match filter_attrs ~param st with
+  | [] -> ""
+  | _ -> raw_style_string []
 
 module Test =
 struct
@@ -106,7 +101,10 @@ struct
   let guess ?use_ansi ?use_color o =
     if use_color = Some true && use_ansi = Some false then
       invalid_arg "Asai.Tty.S.display: called with use_color=true but use_ansi=false";
-    let enabled = match use_ansi with Some a -> a | None -> rich_term && is_tty o in
-    let color = enabled && match use_color with Some c -> c | None -> not no_color in
-    {enabled; color}
+    if not (match use_ansi with Some a -> a | None -> rich_term && is_tty o) then
+      `Disabled
+    else if match use_color with Some c -> c | None -> not no_color then
+      `Enabled_with_color
+    else
+      `Enabled_without_color
 end
