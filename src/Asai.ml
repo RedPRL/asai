@@ -4,7 +4,9 @@ module Loctext = Loctext
 module Diagnostic = Diagnostic
 module Reporter = Reporter
 module Structured_reporter = Structured_reporter
+module StructuredReporter = Structured_reporter
 module Minimum_signatures = Minimum_signatures
+module MinimumSigs = Minimum_signatures
 
 module Tty = Tty
 module Github = Github
