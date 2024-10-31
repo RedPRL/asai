@@ -57,7 +57,7 @@ module Make (Message : Minimum_signatures.Message) : sig
       @param debug Whether to enable the debug mode that performs expensive extra checking. The default is [false].
 
       @raise Invalid_argument if [use_color] is explicitly set to [true] but [use_ansi] is explicitly set to [false], or if [tab_size < 0], or if invalid ranges are detected. When the debug mode is enabled, detection of invalid ranges will raise the more structured exception {!exception:Source_marker.Invalid_range} instead.
-      @raise Invalid_range if the debug mode is enabled and invalid ranges are detected. See {!exception:Source_marker.Invalid_range} for the detailed listing of all possible errors being reported.
+      @raise Source_marker.Invalid_range if the debug mode is enabled and invalid ranges are detected. See {!exception:Source_marker.Invalid_range} for the detailed listing of all possible errors being reported.
 
       @before 0.4.0 The optional parameter [marker] was not present, and angle quotation marks were not used even when ANSI escape sequences are not used.
       @see <https://no-color.org/> for the [NO_COLOR] specification
