@@ -244,8 +244,9 @@ end
 
 module Make (Message : Minimum_signatures.Message) =
 struct
-  let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true) ?(marker=default_marker)
-      ?(line_breaks=`Traditional) ?(block_splitting_threshold=5) ?(tab_size=8) ?(debug=false) d =
+  let display ?(output=Stdlib.stdout) ?use_ansi ?use_color ?(show_backtrace=true)
+      ?(line_breaks=`Traditional) ?(block_splitting_threshold=5)
+      ?(marker=default_marker) ?(tab_size=8) ?(debug=false) d =
     let d = if show_backtrace then d else {d with Diagnostic.backtrace = Emp} in
     let d = Diagnostic.map Message.short_code d in
     let ansi = Ansi.Test.guess ?use_ansi ?use_color output in
