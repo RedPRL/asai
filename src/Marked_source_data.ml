@@ -11,9 +11,9 @@ type 'tag token =
   | String of string
   | Mark of special_position option * 'tag mark
 
-(** A line is a list of {!type:segment}s along with tags. *)
+(** A line is a list of {!type:token}s along with marks. *)
 type 'tag line =
-  { marks : 'tag list (** All tags in this line *)
+  { marks : 'tag list (** All tags attached to this line *)
   ; tokens : 'tag token list
   }
 

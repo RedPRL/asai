@@ -63,5 +63,5 @@ module Source_reader = Source_reader
 (** Helper functions for handling user content. This is exposed for internal testing. Absolutely no stability guarantees. *)
 module String_utils = String_utils
 
-(** The internal flattener that is tightly coupled with {!module:MarkedSource}. This is exposed for internal testing. Absolutely no stability guarantees. *)
+(** The internal flattener that is tightly coupled with {!module:Marked_source}. This is exposed for internal testing. Absolutely no stability guarantees. *)
 module Range_flattener = Range_flattener
