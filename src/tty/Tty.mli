@@ -8,7 +8,7 @@
 
 (** The type of custom marker functions. A marker function takes the following three arguments:
     + [ansi]: whether ANSI escape sequences are enabled, and if so, whether colors are used.
-    + The mark's target message: [`Main_message] is the main message, and [`Extra_remark i] is the [i]th extra remark in the diagnostic.
+    + The mark's target message: [`Main_message] is the main message, and [`Extra_remark i] is the [i]th extra remark in the diagnostic. The indexes of the extra remarks begin at zero and follow the original order in the input list (despite the use of backward lists in the definition of diagnostics).
     + Whether the mark indicates the start or end of a non-empty range, or the location of a point (an empty range), and whether the mark is at the end of a line or a file.
     The output is the string to visualize the mark within the source text.
 
