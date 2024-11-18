@@ -9,15 +9,15 @@ type severity =
   | Bug (** A serious error likely caused by a bug in the proof assistant. You would want the end user to report the bug back to you. This is useful for indicating that certain branches in a pattern matching should be "impossible", while printing out debugging information in case the program logic is flawed. *)
 
 (** The type of diagnostics. *)
-type ('message, 'loctext) t = {
+type ('message, 'explanation) t = {
   severity : severity;
   (** Severity of the diagnostic. *)
   message : 'message;
   (** The (structured) message. *)
-  explanation : 'loctext;
+  explanation : 'explanation;
   (** The free-form explanation. *)
-  backtrace : 'loctext bwd;
+  backtrace : 'explanation bwd;
   (** The backtrace leading to this diagnostic. *)
-  extra_remarks : 'loctext bwd;
+  extra_remarks : 'explanation bwd;
   (** Additional remarks that are relevant to the main message but not part of the backtrace. It is a backward list so that new remarks can be added to its end easily. *)
 }
