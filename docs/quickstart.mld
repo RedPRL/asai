@@ -166,6 +166,14 @@ let () =
 
 The checking is very expensive; it is highly recommended to disable the [debug] mode once you are convinced that your code is correct. At very least, disable it unless the end user explicitly wants to enable it.
 
+{2 Wait, I am Using sedlex}
+
+sedlex is a lexer generator for OCaml that aims to provide better Unicode support. If you choose to use sedlex, extracting location information is also straightforward. Here's a function demonstrating how to create an asai range from a sedlex lexer buffer:
+{[
+let range_of_sedlex_lexbuf ?source lexbuf =
+  Asai.Range.of_lex_range ?source @@ Sedlexing.lexing_bytes_positions lexbuf
+]}
+
 {1 Use a Library that Uses asai}
 
 Suppose you wanted to use a cool OCaml library which is also using asai (which is probably why it is cool), how should you display the diagnostics from the library as if they are yours? Let's assume the library exposes a module [CoolLibrary], and the library authors also followed this tutorial to create a module called [CoolLibrary.Reporter]. You want to painlessly incorporate the library.
