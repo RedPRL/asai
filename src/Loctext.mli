@@ -1,3 +1,9 @@
+include Explanation
+
+(** {1 Functors} *)
+
+module Make (Location : Location.S) : S with Location := Location and type t = Text.t Location.located
+
 (** {1 Types} *)
 
 (** A located text *)

@@ -29,6 +29,9 @@ sig
 
   module Message : Message
   (** The module for messages. *)
+  
+  module Explanation : Explanation
+  (** The module for explanations. *)
 
   val run : ?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:(Message.t Diagnostic.t -> unit) -> fatal:(Message.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
   (** [run ~emit ~fatal f] runs the thunk [f], using [emit] to handle non-fatal diagnostics before continuing the computation, and [fatal] to handle fatal diagnostics that have aborted the computation. The recommended way to handle messages from a library that uses asai is to use {{!val:Asai.Reporter.S.adopt}[adopt]}:
