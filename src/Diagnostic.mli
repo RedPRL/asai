@@ -1,5 +1,7 @@
 (** {1 Types} *)
 
+open Bwd
+
 (* @include *)
 include module type of Diagnostic_data
 
@@ -17,57 +19,24 @@ include module type of Diagnostic_data
 
     @since 0.2.0
 *)
-val of_text : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:Loctext.t list -> severity -> 'message -> Text.t -> 'message t
+val of_text : ?loc:Range.t -> ?backtrace:'explanation bwd -> ?extra_remarks:'explanation list -> severity -> 'message -> Text.t -> ('message, 'explanation) t
 
-(** [of_loctext severity message loctext] constructs a diagnostic from a {!type:Loctext.t}.
+(** [of_explanation severity message explanation] constructs a diagnostic from an explanation.
 
     Example:
     {[
-      of_loctext Warning ChiError @@ loctext "your Ch'i is critically low"
+      of_explanation Warning ChiError @@ Loctext.make "your Ch'i is critically low"
     ]}
 
     @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
     @param extra_remarks Additional remarks that are not part of the backtrace.
 *)
-val of_loctext : ?backtrace:backtrace -> ?extra_remarks:Loctext.t list -> severity -> 'message -> Loctext.t -> 'message t
-
-(** [make severity message loctext] constructs a diagnostic with the [loctext].
-
-    Example:
-    {[
-      make Warning ChiError "your Ch'i is critically low"
-    ]}
-
-    @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-    @param extra_remarks Additional remarks that are not part of the backtrace.
-*)
-val make : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:Loctext.t list -> severity -> 'message -> string -> 'message t
-
-(** [makef severity message format ...] is [of_loctext severity message (Loctext.makef format ...)]. It formats the message and constructs a diagnostic out of it.
-
-    Example:
-    {[
-      makef Warning ChiError "your %s is critically low" "Ch'i"
-    ]}
-
-    @param loc The location of the text (usually the code) to highlight.
-    @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-    @param extra_remarks Additional remarks that are not part of the backtrace.
-*)
-val makef : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:Loctext.t list -> severity -> 'message -> ('a, Format.formatter, unit, 'message t) format4 -> 'a
-
-(** [kmakef kont severity message format ...] is [kont (makef severity message format ...)].
-
-    @param loc The location of the text (usually the code) to highlight.
-    @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
-    @param extra_remarks Additional remarks that are not part of the backtrace.
-*)
-val kmakef : ?loc:Range.t -> ?backtrace:backtrace -> ?extra_remarks:Loctext.t list -> ('message t -> 'b) -> severity -> 'message -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+val make : ?backtrace:'explanation bwd -> ?extra_remarks:'explanation list -> severity -> 'message -> 'explanation -> ('message, 'explanation) t
 
 (** {1 Other Helper Functions} *)
 
 (** A convenience function that maps the message of a diagnostic. This is helpful when using {!val:Reporter.S.adopt}. *)
-val map : ('message1 -> 'message2) -> 'message1 t -> 'message2 t
+val map : ('message1 -> 'message2) -> ('explanation1 -> 'explanation2) -> ('message1, 'explanation1) t -> ('message2, 'explanation2) t
 
 (** {1 Deprecated Types and Functions} *)
 
