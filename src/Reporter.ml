@@ -3,7 +3,7 @@ open Bwd.Infix
 
 include Reporter_sigs
 
-module Make (Message : Message) : S with module Message := Message =
+module Make (Message : Message) (*: S with module Message := Message*) =
 struct
 
   (* Backtraces *)
@@ -67,7 +67,7 @@ struct
 
   (* Algebraic effects *)
 
-  let run ?init_loc ?(init_backtrace=Emp) ~emit ~fatal f =
+  let run ?init_loc ?(init_backtrace=Emp) ?debug ~emit ~fatal f =
     Traces.run ~env:(init_loc, init_backtrace) @@ fun () ->
     Effect.Deep.match_with f () @@ handler ~emit ~fatal
 
