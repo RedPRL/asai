@@ -8,19 +8,16 @@ type severity =
   | Error (** A serious error caused by the end user (the user of your proof assistant or compiler) or other external factors (e.g., internet not working). *)
   | Bug (** A serious error likely caused by a bug in the proof assistant. You would want the end user to report the bug back to you. This is useful for indicating that certain branches in a pattern matching should be "impossible", while printing out debugging information in case the program logic is flawed. *)
 
-(** A backtrace is a (backward) list of loctexts. *)
-type backtrace = Loctext.t bwd
-
 (** The type of diagnostics. *)
-type 'message t = {
+type ('message, 'explanation) t = {
   severity : severity;
   (** Severity of the diagnostic. *)
   message : 'message;
   (** The (structured) message. *)
-  explanation : Loctext.t;
+  explanation : 'explanation;
   (** The free-form explanation. *)
-  backtrace : backtrace;
+  backtrace : 'explanation bwd;
   (** The backtrace leading to this diagnostic. *)
-  extra_remarks : Loctext.t bwd;
+  extra_remarks : 'explanation bwd;
   (** Additional remarks that are relevant to the main message but not part of the backtrace. It is a backward list so that new remarks can be added to its end easily. *)
 }

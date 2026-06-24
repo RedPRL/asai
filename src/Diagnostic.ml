@@ -2,7 +2,7 @@ open Bwd
 
 include Diagnostic_data
 
-let of_loctext ?(backtrace=Bwd.Emp) ?(extra_remarks=[]) severity message explanation : _ t =
+let make ?(backtrace=Bwd.Emp) ?(extra_remarks=[]) severity message explanation : _ t =
   { severity
   ; message
   ; explanation
@@ -10,20 +10,7 @@ let of_loctext ?(backtrace=Bwd.Emp) ?(extra_remarks=[]) severity message explana
   ; extra_remarks = Bwd.of_list extra_remarks
   }
 
-let of_text ?loc ?backtrace ?extra_remarks severity message text : _ t =
-  of_loctext ?backtrace ?extra_remarks severity message {loc; value = text}
-
-let make ?loc ?backtrace ?extra_remarks severity message explanation =
-  of_text ?loc ?backtrace ?extra_remarks severity message @@ Text.make explanation
-
-let kmakef ?loc ?backtrace ?extra_remarks k severity message =
-  Text.kmakef @@ fun text ->
-  k @@ of_text ?loc ?backtrace ?extra_remarks severity message text
-
-let makef ?loc ?backtrace ?extra_remarks severity message =
-  Text.kmakef @@ of_text ?loc ?backtrace ?extra_remarks severity message
-
-let map f d = {d with message = f d.message}
+let map f1 f2 d = {d with message = f1 d.message; explanation = f2 d.explanation}
 
 let string_of_text text : string =
   let buf = Buffer.create 20 in
