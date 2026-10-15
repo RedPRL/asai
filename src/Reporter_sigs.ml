@@ -102,7 +102,7 @@ sig
   *)
   val discontinue_fatalf : ('c, 'b) Effect.Deep.continuation ->  ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
-  (** Abort a continuation with a diagnostic. *)
+  (** Resume the continuation by raising a fatal diagnostic as an exception in it. *)
   val discontinue_fatal_diagnostic: ('c, 'a) Effect.Deep.continuation -> Message.t Diagnostic.t -> 'a
 
   (** {2 Backtraces} *)
