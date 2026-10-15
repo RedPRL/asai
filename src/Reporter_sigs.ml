@@ -92,7 +92,7 @@ sig
   *)
   val discontinue_fatal : ('c, 'a) Effect.Deep.continuation -> ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> string -> 'a
 
-  (** [discontinue_fatalf message format ...] constructs a diagnostic and aborts a continuation with the diagnostic. Note that there should not be any literal control characters. See {!type:Text.t}.
+  (** [discontinue_fatalf k message format ...] constructs a fatal diagnostic and resumes the continuation [k] by raising the diagnostic as an exception in [k]. Note that there should not be any literal control characters. See {!type:Text.t}.
 
       @param k The continuation to abort.
       @param severity The severity (to overwrite the default severity inferred from the [message]).
