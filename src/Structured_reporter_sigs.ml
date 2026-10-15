@@ -56,7 +56,7 @@ sig
   (** Abort the computation with a diagnostic. *)
   val fatal_diagnostic: Message.t Diagnostic.t -> 'a
 
-  (** [discontinue_fatal message] aborts a continuation with the [message].
+  (** [discontinue_fatal k message] constructs a fatal diagnostic with the [message] and resumes the continuation [k] by raising the diagnostic as an exception in [k].
 
       @param k The continuation to abort.
       @param severity The severity (to overwrite the default severity inferred from the [message]).
