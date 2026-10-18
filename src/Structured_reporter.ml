@@ -17,6 +17,6 @@ struct
   let fatal ?severity ?loc ?text ?backtrace ?extra_remarks msg =
     fatal_diagnostic @@ diagnostic ?severity ?loc ?text ?backtrace ?extra_remarks msg
 
-  let discontinue_fatal k ?severity ?loc ?text ?backtrace ?extra_remarks msg =
-    discontinue_fatal_diagnostic k @@ diagnostic ?severity ?loc ?text ?backtrace ?extra_remarks msg
+  let discontinue_with_fatal k ?severity ?loc ?text ?backtrace ?extra_remarks msg =
+    discontinue_with_fatal_diagnostic k @@ diagnostic ?severity ?loc ?text ?backtrace ?extra_remarks msg
 end
