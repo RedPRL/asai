@@ -56,6 +56,20 @@ sig
   (** Abort the computation with a diagnostic. *)
   val fatal_diagnostic: Message.t Diagnostic.t -> 'a
 
+  (** [discontinue_with_fatal k message] constructs a fatal diagnostic with the [message] and resumes the continuation [k] by raising the diagnostic as an exception in [k].
+
+      @param k The continuation to abort.
+      @param severity The severity (to overwrite the default severity inferred from the [message]).
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
+      @param text The text (to overwrite the default text inferred from the [message]).
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param extra_remarks Additional remarks that are not part of the backtrace.
+  *)
+  val discontinue_with_fatal : ('c, 'a) Effect.Deep.continuation -> ?severity:Diagnostic.severity -> ?loc:Range.t -> ?text:Text.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> 'a
+
+  (** Resume the continuation by raising a fatal diagnostic as an exception in it. *)
+  val discontinue_with_fatal_diagnostic: ('c, 'a) Effect.Deep.continuation -> Message.t Diagnostic.t -> 'a
+
   (** {2 Backtraces} *)
 
   (** [get_backtrace()] returns the current backtrace. *)

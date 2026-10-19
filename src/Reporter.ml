@@ -55,6 +55,7 @@ struct
 
   let emit_diagnostic d = Effect.perform @@ Emit d
   let fatal_diagnostic d = raise @@ Fatal d
+  let discontinue_with_fatal_diagnostic k d = Effect.Deep.discontinue k (Fatal d)
 
   let handler ~(emit : _ -> unit) ~fatal : _ Effect.Deep.handler =
     { retc = Fun.id;
@@ -87,6 +88,12 @@ struct
 
   let fatalf ?severity ?loc ?backtrace ?extra_remarks message =
     kdiagnosticf fatal_diagnostic ?severity ?loc ?backtrace ?extra_remarks message
+
+  let discontinue_with_fatal k ?severity ?loc ?backtrace ?extra_remarks message explanation =
+    discontinue_with_fatal_diagnostic k @@ diagnostic ?severity ?loc ?backtrace ?extra_remarks message explanation
+
+  let discontinue_with_fatalf k ?severity ?loc ?backtrace ?extra_remarks message =
+    kdiagnosticf (discontinue_with_fatal_diagnostic k) ?severity ?loc ?backtrace ?extra_remarks message
 
   let adopt m (run : ?init_loc:_ -> ?init_backtrace:_ -> emit:_ -> fatal:_ -> _) f =
     run f

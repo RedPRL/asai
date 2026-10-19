@@ -82,6 +82,29 @@ sig
   (** Abort the computation with a diagnostic. *)
   val fatal_diagnostic: Message.t Diagnostic.t -> 'a
 
+  (** [discontinue_with_fatal k message explanation] constructs a fatal diagnostic with the [explanation] and resumes the continuation [k] by raising the diagnostic as an exception in [k].
+
+      @param k The continuation to abort.
+      @param severity The severity (to overwrite the default severity inferred from the [message]).
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param extra_remarks Additional remarks that are not part of the backtrace.
+  *)
+  val discontinue_with_fatal : ('c, 'a) Effect.Deep.continuation -> ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> string -> 'a
+
+  (** [discontinue_with_fatalf k message format ...] constructs a fatal diagnostic and resumes the continuation [k] by raising the diagnostic as an exception in [k]. Note that there should not be any literal control characters. See {!type:Text.t}.
+
+      @param k The continuation to abort.
+      @param severity The severity (to overwrite the default severity inferred from the [message]).
+      @param loc The location of the text (usually the code) to highlight. The default value is the innermost location given by {!val:trace}, {!val:with_loc}, {!val:merge_loc}, or {!run}.
+      @param backtrace The backtrace (to overwrite the accumulative frames up to this point).
+      @param extra_remarks Additional remarks that are not part of the backtrace.
+  *)
+  val discontinue_with_fatalf : ('c, 'b) Effect.Deep.continuation ->  ?severity:Diagnostic.severity -> ?loc:Range.t -> ?backtrace:Diagnostic.backtrace -> ?extra_remarks:Loctext.t list -> Message.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+
+  (** Resume the continuation by raising a fatal diagnostic as an exception in it. *)
+  val discontinue_with_fatal_diagnostic: ('c, 'a) Effect.Deep.continuation -> Message.t Diagnostic.t -> 'a
+
   (** {2 Backtraces} *)
 
   (** [get_backtrace()] returns the current backtrace. *)
