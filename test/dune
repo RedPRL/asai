@@ -4,8 +4,8 @@
  (libraries asai alcotest))
 
 (tests
- (names Test_string_utils Test_text)
- (modules Test_string_utils Test_text)
+ (names Test_string_utils Test_text Test_reporter)
+ (modules Test_string_utils Test_text Test_reporter)
  (libraries asai alcotest))
 
 (test

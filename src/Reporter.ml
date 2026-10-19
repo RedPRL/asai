@@ -57,23 +57,22 @@ struct
   let fatal_diagnostic d = raise @@ Fatal d
   let discontinue_with_fatal_diagnostic k d = Effect.Deep.discontinue k (Fatal d)
 
-  let handler ~(emit : _ -> unit) ~fatal : _ Effect.Deep.handler =
-    { retc = Fun.id;
-      exnc = (function Fatal d -> fatal d | exn -> raise exn);
-      effc = fun (type a) (eff : a Effect.t) ->
-        match eff with
-        | Emit d -> Option.some @@ fun (k : (a, _) Effect.Deep.continuation) ->
-          Algaeff.Fun.Deep.finally k @@ fun () -> emit d
-        | _ -> None }
+  let handle ~(emit : _ -> unit) ~fatal f =
+    try f () with
+    | Fatal d -> fatal d
+    | effect (Emit d), k ->
+      Algaeff.Fun.Deep.finally k @@ fun () -> emit d
 
   (* Algebraic effects *)
 
   let run ?init_loc ?(init_backtrace=Emp) ~emit ~fatal f =
     Traces.run ~env:(init_loc, init_backtrace) @@ fun () ->
-    Effect.Deep.match_with f () @@ handler ~emit ~fatal
+    handle ~emit ~fatal f
 
-  let try_with ?(emit=emit_diagnostic) ?(fatal=fatal_diagnostic) f =
-    Effect.Deep.match_with f () @@ handler ~emit ~fatal
+  let try_with ?emit ?(fatal=fatal_diagnostic) f =
+    match emit with
+    | None -> (try f () with Fatal d -> fatal d)
+    | Some emit -> handle ~emit ~fatal f
 
   (* Convenience functions *)
 
