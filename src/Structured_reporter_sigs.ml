@@ -166,9 +166,9 @@ sig
   *)
   val adopt : ('message Diagnostic.t -> Message.t Diagnostic.t) -> (?init_loc:Range.t -> ?init_backtrace:Diagnostic.backtrace -> emit:('message Diagnostic.t -> unit) -> fatal:('message Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
 
-  (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal}). The default interceptors re-emit or re-raise the intercepted diagnostics.
+  (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal}). When [emit] is omitted, no effect handler is installed and non-fatal diagnostics are left to enclosing handlers. When [fatal] is omitted, fatal diagnostics propagate outward.
 
-      @param emit The interceptor of non-fatal diagnostics. The default value is {!val:emit_diagnostic}.
+      @param emit The optional interceptor of non-fatal diagnostics. Passing {!val:emit_diagnostic} is semantically equivalent to omitting this argument, but less efficient.
       @param fatal The interceptor of fatal diagnostics. The default value is {!val:fatal_diagnostic}. *)
   val try_with : ?emit:(Message.t Diagnostic.t -> unit) -> ?fatal:(Message.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
