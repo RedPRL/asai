@@ -1,8 +1,3 @@
-# Unreleased
-
-- Require OCaml 5.3 or newer and use its deep effect-handler syntax.
-- Avoid installing an effect handler when `Reporter.try_with` or `Structured_reporter.try_with` is called without `~emit` (#202).
-
 # [0.3.1](https://github.com/RedPRL/asai/compare/0.3.0...0.3.1) (2024-02-23)
 
 This is a minor release with several improvements, especially the debug mode to actively detect invalid ranges. OCaml 5.2.0 introduced backward-incompatible changes in ocaml/ocaml#12477 and thus we had to bump up the minimum OCaml version.

@@ -225,7 +225,7 @@ sig
 
   (** [try_with ~emit ~fatal f] runs the thunk [f], using [emit] to intercept non-fatal diagnostics before continuing the computation (see {!val:emit}), and [fatal] to intercept fatal diagnostics that have aborted the computation (see {!val:fatal}). When [emit] is omitted, no effect handler is installed and non-fatal diagnostics are left to enclosing handlers. When [fatal] is omitted, fatal diagnostics propagate outward.
 
-      @param emit The optional interceptor of non-fatal diagnostics. Supplying it installs an effect handler, even when it is {!val:emit_diagnostic}.
+      @param emit The optional interceptor of non-fatal diagnostics. Passing {!val:emit_diagnostic} is semantically equivalent to omitting this argument, but less efficient.
       @param fatal The interceptor of fatal diagnostics. The default value is {!val:fatal_diagnostic}. *)
   val try_with : ?emit:(Message.t Diagnostic.t -> unit) -> ?fatal:(Message.t Diagnostic.t -> 'a) -> (unit -> 'a) -> 'a
 
